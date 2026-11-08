@@ -1,269 +1,231 @@
-import 'dart:async';
-import 'dart:math' as math;
-import 'dart:ui' show FontFeature;
-
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:geolocator/geolocator.dart';
 
-import 'sun_clock.dart';
+import 'clock_view.dart';
+import 'location_model.dart';
+import 'map_picker.dart';
+import 'year_charts.dart';
+import 'zone.dart';
 
-void main() => runApp(const SunClockApp());
+const appBackground = Color(0xFF1C1B17);
+
+void main() {
+  WidgetsFlutterBinding.ensureInitialized();
+  initZones();
+  SystemChrome.setSystemUIOverlayStyle(const SystemUiOverlayStyle(
+    statusBarColor: Colors.transparent,
+    statusBarIconBrightness: Brightness.light,
+    statusBarBrightness: Brightness.dark, // iOS: light status bar text
+    systemNavigationBarColor: appBackground,
+    systemNavigationBarIconBrightness: Brightness.light,
+  ));
+  final model = LocationModel()..load();
+  runApp(SunClockApp(model: model));
+}
 
 class SunClockApp extends StatelessWidget {
-  const SunClockApp({super.key});
+  final LocationModel model;
+  const SunClockApp({super.key, required this.model});
 
   @override
   Widget build(BuildContext context) {
+    final scheme = ColorScheme.fromSeed(
+            seedColor: Colors.amber, brightness: Brightness.dark)
+        .copyWith(background: appBackground, surface: appBackground);
     return MaterialApp(
       title: 'Sun Clock',
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(
-            seedColor: Colors.amber, brightness: Brightness.dark),
+        colorScheme: scheme,
+        scaffoldBackgroundColor: appBackground,
         useMaterial3: true,
       ),
-      home: const ClockPage(),
+      home: HomePage(model: model),
     );
   }
 }
 
-class ClockPage extends StatefulWidget {
-  const ClockPage({super.key});
+class HomePage extends StatelessWidget {
+  final LocationModel model;
+  const HomePage({super.key, required this.model});
 
-  @override
-  State<ClockPage> createState() => _ClockPageState();
-}
-
-class _ClockPageState extends State<ClockPage> {
-  Position? _position;
-  String? _error;
-  Timer? _ticker;
-  StreamSubscription<Position>? _positionSub;
-
-  @override
-  void initState() {
-    super.initState();
-    _ticker = Timer.periodic(
-        const Duration(milliseconds: 250), (_) => setState(() {}));
-    _startLocation();
-  }
-
-  @override
-  void dispose() {
-    _ticker?.cancel();
-    _positionSub?.cancel();
-    super.dispose();
-  }
-
-  Future<void> _startLocation() async {
-    setState(() => _error = null);
-    try {
-      if (!await Geolocator.isLocationServiceEnabled()) {
-        setState(() => _error = 'Location services are turned off.');
-        return;
-      }
-      var permission = await Geolocator.checkPermission();
-      if (permission == LocationPermission.denied) {
-        permission = await Geolocator.requestPermission();
-      }
-      if (permission == LocationPermission.denied ||
-          permission == LocationPermission.deniedForever) {
-        setState(() => _error = 'Location permission is needed to know '
-            'when the sun rises and sets where you are.');
-        return;
-      }
-      final last = await Geolocator.getLastKnownPosition();
-      if (last != null && _position == null) setState(() => _position = last);
-
-      _positionSub?.cancel();
-      _positionSub = Geolocator.getPositionStream(
-        locationSettings: const LocationSettings(
-          accuracy: LocationAccuracy.low, // ~1 km is plenty for sun times
-          distanceFilter: 1000,
-        ),
-      ).listen(
-        (p) => setState(() => _position = p),
-        onError: (Object e) => setState(() => _error = '$e'),
-      );
-    } catch (e) {
-      setState(() => _error = '$e');
-    }
-  }
+  void _openMap(BuildContext context) => Navigator.of(context).push(
+      MaterialPageRoute(builder: (_) => MapPickerPage(model: model)));
 
   @override
   Widget build(BuildContext context) {
-    final now = DateTime.now();
-    final pos = _position;
     return Scaffold(
       body: SafeArea(
-        child: Center(
-          child: SingleChildScrollView(
-            padding: const EdgeInsets.all(24),
-            child: pos == null
-                ? _waiting(context, now)
-                : _clock(context, now, pos.latitude, pos.longitude),
+        child: ListenableBuilder(
+          listenable: model,
+          builder: (context, _) => LayoutBuilder(
+            builder: (context, box) => SingleChildScrollView(
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              child: Column(children: [
+                // First screen: the clock, exactly one viewport tall.
+                ConstrainedBox(
+                  constraints: BoxConstraints(minHeight: box.maxHeight),
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      _TopBar(onMap: () => _openMap(context)),
+                      model.hasPosition
+                          ? ClockView(
+                              lat: model.latitude!,
+                              lon: model.longitude!,
+                              zone: model.zone!,
+                              sourceLabel: model.source == LocationSource.gps
+                                  ? 'GPS'
+                                  : 'picked on map',
+                              onLocationTap: () => _openMap(context),
+                            )
+                          : _NoPosition(
+                              model: model, onMap: () => _openMap(context)),
+                      _ScrollHint(visible: model.hasPosition),
+                    ],
+                  ),
+                ),
+                if (model.hasPosition) ...[
+                  YearCharts(
+                    lat: model.latitude!,
+                    lon: model.longitude!,
+                    zone: model.zone!,
+                  ),
+                  const SizedBox(height: 32),
+                ],
+              ]),
+            ),
           ),
         ),
       ),
     );
   }
+}
 
-  Widget _waiting(BuildContext context, DateTime now) {
+class _TopBar extends StatelessWidget {
+  final VoidCallback onMap;
+  const _TopBar({required this.onMap});
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.only(top: 4),
+      child: Row(children: [
+        IconButton(
+          tooltip: 'About sun time',
+          icon: const Icon(Icons.info_outline),
+          onPressed: () => showAbout(context),
+        ),
+        const Spacer(),
+        IconButton(
+          tooltip: 'Pick location on map',
+          icon: const Icon(Icons.map_outlined),
+          onPressed: onMap,
+        ),
+      ]),
+    );
+  }
+}
+
+class _ScrollHint extends StatelessWidget {
+  final bool visible;
+  const _ScrollHint({required this.visible});
+
+  @override
+  Widget build(BuildContext context) {
+    final c = Theme.of(context).colorScheme.onSurfaceVariant;
+    return Opacity(
+      opacity: visible ? 1 : 0,
+      child: Padding(
+        padding: const EdgeInsets.only(bottom: 8, top: 16),
+        child: Column(children: [
+          Text('The year', style: Theme.of(context).textTheme.labelMedium?.copyWith(color: c)),
+          Icon(Icons.keyboard_arrow_down, color: c),
+        ]),
+      ),
+    );
+  }
+}
+
+class _NoPosition extends StatelessWidget {
+  final LocationModel model;
+  final VoidCallback onMap;
+  const _NoPosition({required this.model, required this.onMap});
+
+  @override
+  Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final error = model.gpsError;
     return Column(mainAxisSize: MainAxisSize.min, children: [
-      if (_error == null) ...[
+      if (error == null) ...[
         const CircularProgressIndicator(),
         const SizedBox(height: 16),
         const Text('Finding your position…'),
       ] else ...[
         Icon(Icons.location_off, size: 48, color: theme.colorScheme.error),
         const SizedBox(height: 16),
-        Text(_error!, textAlign: TextAlign.center),
+        Text(
+          '$error\nSun Clock needs a position to know when the sun rises '
+          'and sets.',
+          textAlign: TextAlign.center,
+        ),
         const SizedBox(height: 16),
-        FilledButton(onPressed: _startLocation, child: const Text('Retry')),
-        TextButton(
-            onPressed: Geolocator.openAppSettings,
-            child: const Text('Open settings')),
+        Wrap(spacing: 8, alignment: WrapAlignment.center, children: [
+          FilledButton(onPressed: model.useGps, child: const Text('Retry')),
+          OutlinedButton(
+              onPressed: Geolocator.openAppSettings,
+              child: const Text('Settings')),
+        ]),
       ],
-      const SizedBox(height: 32),
-      _utcLine(context, now),
-    ]);
-  }
-
-  Widget _clock(BuildContext context, DateTime now, double lat, double lon) {
-    final theme = Theme.of(context);
-    final r = sunClock(now, lat, lon);
-    final muted = theme.textTheme.bodyMedium
-        ?.copyWith(color: theme.colorScheme.onSurfaceVariant);
-
-    return Column(mainAxisSize: MainAxisSize.min, children: [
-      SizedBox(
-        width: 280,
-        height: 280,
-        child: CustomPaint(painter: _DialPainter(r.sunTime, theme)),
+      const SizedBox(height: 8),
+      TextButton.icon(
+        onPressed: onMap,
+        icon: const Icon(Icons.map_outlined),
+        label: const Text('Pick a place on the map'),
       ),
-      const SizedBox(height: 24),
-      Text(_hms(r.sunTime),
-          style: theme.textTheme.displayLarge?.copyWith(
-              fontFeatures: const [FontFeature.tabularFigures()])),
-      Text(r.isDay ? 'Sun time · day' : 'Sun time · night', style: muted),
-      const SizedBox(height: 24),
-      _utcLine(context, now),
-      const SizedBox(height: 24),
-      if (r.mode == SunClockMode.normal) ...[
-        Text(
-            '${r.previous!.isSunrise ? 'Sunrise' : 'Sunset'} '
-            '${_hm(r.previous!.time.toLocal())}   →   '
-            '${r.next!.isSunrise ? 'Sunrise' : 'Sunset'} '
-            '${_hm(r.next!.time.toLocal())}',
-            style: muted),
-        const SizedBox(height: 4),
-        Text(
-            '1 sun hour = ${r.realMinutesPerSunHour.toStringAsFixed(1)} '
-            'real minutes',
-            style: muted),
-      ] else
-        Text(
-            'The sun does not ${r.isDay ? 'set' : 'rise'} here today.\n'
-            'Showing solar time (12:00 = solar noon).',
-            textAlign: TextAlign.center,
-            style: muted),
-      const SizedBox(height: 4),
-      Text('${_coord(lat, 'N', 'S')}  ${_coord(lon, 'E', 'W')}', style: muted),
+      const SizedBox(height: 32),
+      Ticker(builder: (context, now) => UtcLine(now: now)),
     ]);
-  }
-
-  Widget _utcLine(BuildContext context, DateTime now) {
-    final theme = Theme.of(context);
-    final utc = now.toUtc();
-    return Text(
-      'UTC  ${_hms(Duration(hours: utc.hour, minutes: utc.minute, seconds: utc.second))}',
-      style: theme.textTheme.headlineSmall
-          ?.copyWith(fontFeatures: const [FontFeature.tabularFigures()]),
-    );
   }
 }
 
-String _two(int n) => n.toString().padLeft(2, '0');
-
-String _hms(Duration d) =>
-    '${_two(d.inHours % 24)}:${_two(d.inMinutes % 60)}:${_two(d.inSeconds % 60)}';
-
-String _hm(DateTime t) => '${_two(t.hour)}:${_two(t.minute)}';
-
-String _coord(double v, String pos, String neg) =>
-    '${v.abs().toStringAsFixed(3)}° ${v >= 0 ? pos : neg}';
-
-/// 24-hour dial: midnight at the bottom, noon at the top. Because sunrise is
-/// always 06:00 and sunset 18:00, the upper half is always day.
-class _DialPainter extends CustomPainter {
-  final Duration sunTime;
-  final ThemeData theme;
-  _DialPainter(this.sunTime, this.theme);
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    final c = size.center(Offset.zero);
-    final radius = size.shortestSide / 2;
-    final rect = Rect.fromCircle(center: c, radius: radius);
-
-    // Day (upper) and night (lower) halves.
-    canvas.drawArc(rect, math.pi, math.pi, true,
-        Paint()..color = const Color(0xFFFFC94D).withOpacity(0.25));
-    canvas.drawArc(rect, 0, math.pi, true,
-        Paint()..color = const Color(0xFF3A4A8C).withOpacity(0.35));
-    canvas.drawCircle(
-        c,
-        radius,
-        Paint()
-          ..style = PaintingStyle.stroke
-          ..strokeWidth = 2
-          ..color = theme.colorScheme.outline);
-
-    // Angle for hour h: 0h at bottom, clockwise, 12h at top.
-    double angle(double h) => math.pi / 2 + h / 24 * 2 * math.pi;
-
-    final tp = TextPainter(textDirection: TextDirection.ltr);
-    for (var h = 0; h < 24; h++) {
-      final a = angle(h.toDouble());
-      final dir = Offset(math.cos(a), math.sin(a));
-      final major = h % 6 == 0;
-      canvas.drawLine(
-          c + dir * (radius - (major ? 14 : 7)),
-          c + dir * radius,
-          Paint()
-            ..strokeWidth = major ? 3 : 1.5
-            ..color = theme.colorScheme.onSurface);
-      if (major) {
-        tp.text = TextSpan(
-            text: '$h',
-            style: TextStyle(
-                color: theme.colorScheme.onSurface,
-                fontSize: 16,
-                fontWeight: FontWeight.w600));
-        tp.layout();
-        tp.paint(canvas,
-            c + dir * (radius - 30) - Offset(tp.width / 2, tp.height / 2));
-      }
-    }
-
-    // Hand.
-    final hours = sunTime.inMicroseconds / Duration.microsecondsPerHour;
-    final a = angle(hours);
-    final dir = Offset(math.cos(a), math.sin(a));
-    final isDay = hours >= 6 && hours < 18;
-    final handColor = isDay ? const Color(0xFFFFB300) : const Color(0xFF9FA8DA);
-    canvas.drawLine(
-        c,
-        c + dir * (radius - 22),
-        Paint()
-          ..strokeWidth = 4
-          ..strokeCap = StrokeCap.round
-          ..color = handColor);
-    canvas.drawCircle(c + dir * (radius - 22), 10, Paint()..color = handColor);
-    canvas.drawCircle(c, 5, Paint()..color = theme.colorScheme.onSurface);
-  }
-
-  @override
-  bool shouldRepaint(_DialPainter old) => old.sunTime != sunTime;
+void showAbout(BuildContext context) {
+  final theme = Theme.of(context);
+  showModalBottomSheet<void>(
+    context: context,
+    showDragHandle: true,
+    isScrollControlled: true,
+    builder: (context) => SafeArea(
+      child: SingleChildScrollView(
+        padding: const EdgeInsets.fromLTRB(24, 0, 24, 24),
+        child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+          Text('Sun time', style: theme.textTheme.headlineSmall),
+          const SizedBox(height: 12),
+          const Text(
+            'Sun Clock divides the day into 24 hours that follow the sun. '
+            'Sunrise is always 06:00 and sunset always 18:00. The 12 day '
+            'hours share the real daylight evenly, and the 12 night hours '
+            'share the night.\n\n'
+            'In winter, day hours are short and night hours long; in summer '
+            'it is the other way round. At the equinoxes every hour is '
+            'close to 60 minutes.\n\n'
+            'Sunrise and sunset are calculated with the NOAA solar formulas '
+            '(the upper edge of the sun touching the horizon, with standard '
+            'refraction). When the sun does not rise or set at all, the '
+            'clock shows apparent solar time, with 12:00 at solar noon.',
+          ),
+          const SizedBox(height: 12),
+          Text('Map data © OpenStreetMap contributors.',
+              style: theme.textTheme.bodySmall),
+          const SizedBox(height: 16),
+          TextButton(
+            onPressed: () => showLicensePage(
+                context: context, applicationName: 'Sun Clock'),
+            child: const Text('Open-source licences'),
+          ),
+        ]),
+      ),
+    ),
+  );
 }

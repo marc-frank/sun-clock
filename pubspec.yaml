@@ -1,5 +1,5 @@
 name: sun_clock
-description: "A new Flutter project."
+description: "A 24-hour clock where sunrise is always 06:00 and sunset 18:00."
 # The following line prevents the package from being accidentally published to
 # pub.dev using `flutter pub publish`. This is preferred for private packages.
 publish_to: 'none' # Remove this line if you wish to publish to pub.dev
@@ -36,6 +36,12 @@ dependencies:
   # Use with the CupertinoIcons class for iOS style icons.
   cupertino_icons: ^1.0.2
   geolocator: ^11.1.0
+  fl_chart: ">=0.68.0 <0.69.0"  # 0.69+ needs Flutter 3.27 (Color.withValues)
+  flutter_map: ^6.1.0
+  latlong2: ^0.9.1
+  shared_preferences: ^2.2.3
+  timezone: ^0.9.4
+  lat_lng_to_timezone: ^0.2.0
 
 dev_dependencies:
   flutter_test:
@@ -47,6 +53,7 @@ dev_dependencies:
   # package. See that file for information about deactivating specific lint
   # rules and activating additional ones.
   flutter_lints: ^2.0.0
+  flutter_launcher_icons: ^0.13.1
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec
@@ -89,3 +96,15 @@ flutter:
   #
   # For details regarding fonts from package dependencies,
   # see https://flutter.dev/custom-fonts/#from-packages
+
+# App icons: regenerate with `dart run flutter_launcher_icons`
+# (source images are drawn by `python tool/make_icon.py`). The themed
+# monochrome layer (res/drawable-*/ic_launcher_monochrome.png) is added by hand.
+flutter_launcher_icons:
+  android: true
+  ios: true
+  image_path: "assets/icon/icon.png"
+  remove_alpha_ios: true
+  adaptive_icon_background: "#1C1B17"
+  adaptive_icon_foreground: "assets/icon/icon_foreground.png"
+  min_sdk_android: 21
