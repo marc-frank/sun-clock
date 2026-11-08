@@ -12,8 +12,15 @@ import 'zone.dart';
 
 enum LocationSource { gps, map }
 
+/// How exactly GPS positions are used. Approximate is the default: it asks the
+/// system for a coarse fix only and rounds it to 0.01° (about 1 km), which
+/// changes sun times by a few seconds at most.
+enum LocationPrecision { approximate, precise }
+
 class LocationModel extends ChangeNotifier {
   LocationSource _source = LocationSource.gps;
+  LocationPrecision _precision = LocationPrecision.approximate;
+  bool _preciseDenied = false;
   double? _lat;
   double? _lon;
   tz.Location? _zone;
@@ -23,6 +30,15 @@ class LocationModel extends ChangeNotifier {
   Timer? _saveTimer;
 
   LocationSource get source => _source;
+  LocationPrecision get precision => _precision;
+
+  /// Precise was chosen, but the system only granted approximate location.
+  bool get preciseDenied => _preciseDenied;
+
+  /// Coordinates are rounded (approximate GPS).
+  bool get isApproximate =>
+      _source == LocationSource.gps &&
+      _precision == LocationPrecision.approximate;
   double? get latitude => _lat;
   double? get longitude => _lon;
   tz.Location? get zone => _zone;
@@ -34,10 +50,14 @@ class LocationModel extends ChangeNotifier {
   static const _kSource = 'source';
   static const _kLat = 'lat';
   static const _kLon = 'lon';
+  static const _kPrecision = 'precision';
 
   Future<void> load() async {
     try {
       final prefs = await SharedPreferences.getInstance();
+      if (prefs.getString(_kPrecision) == LocationPrecision.precise.name) {
+        _precision = LocationPrecision.precise;
+      }
       final lat = prefs.getDouble(_kLat);
       final lon = prefs.getDouble(_kLon);
       if (lat != null && lon != null) _set(lat, lon);
@@ -61,9 +81,25 @@ class LocationModel extends ChangeNotifier {
     _saveSoon();
   }
 
+  Future<void> setPrecision(LocationPrecision p) async {
+    if (p == _precision) return;
+    _precision = p;
+    _preciseDenied = false;
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setString(_kPrecision, p.name);
+    } catch (_) {}
+    if (_source == LocationSource.gps) {
+      await useGps(); // restart the stream with the new accuracy
+    } else {
+      notifyListeners();
+    }
+  }
+
   Future<void> useGps() async {
     _source = LocationSource.gps;
     _gpsError = null;
+    _preciseDenied = false;
     notifyListeners();
     _saveSoon();
     try {
@@ -79,15 +115,29 @@ class LocationModel extends ChangeNotifier {
         return _fail('Location permission was not granted.');
       }
       if (_source != LocationSource.gps) return; // user picked a point meanwhile
+      final precise = _precision == LocationPrecision.precise;
+      if (precise) {
+        // Android 12+ and iOS 14+ let the user grant only approximate access.
+        var status = await Geolocator.getLocationAccuracy();
+        if (status == LocationAccuracyStatus.reduced) {
+          try {
+            // iOS: one-time prompt for full accuracy (no-op on Android).
+            status = await Geolocator.requestTemporaryFullAccuracy(
+                purposeKey: 'SunTimes');
+          } catch (_) {}
+        }
+        _preciseDenied = status == LocationAccuracyStatus.reduced;
+        notifyListeners();
+      }
       final last = await Geolocator.getLastKnownPosition();
       if (last != null && _source == LocationSource.gps) {
         _set(last.latitude, last.longitude);
       }
       _stopGps();
       _gpsSub = Geolocator.getPositionStream(
-        locationSettings: const LocationSettings(
-          accuracy: LocationAccuracy.low, // ~1 km is plenty for sun times
-          distanceFilter: 1000,
+        locationSettings: LocationSettings(
+          accuracy: precise ? LocationAccuracy.high : LocationAccuracy.low,
+          distanceFilter: precise ? 50 : 1000,
         ),
       ).listen(
         (p) {
@@ -110,9 +160,14 @@ class LocationModel extends ChangeNotifier {
   }
 
   void _set(double lat, double lon) {
+    lon = ((lon + 180) % 360 + 360) % 360 - 180; // map can wrap past ±180
+    if (isApproximate) {
+      lat = (lat * 100).roundToDouble() / 100;
+      lon = (lon * 100).roundToDouble() / 100;
+    }
     _lat = lat;
-    _lon = ((lon + 180) % 360 + 360) % 360 - 180; // map can wrap past ±180
-    _zone = zoneAt(lat, _lon!);
+    _lon = lon;
+    _zone = zoneAt(lat, lon);
     notifyListeners();
   }
 
