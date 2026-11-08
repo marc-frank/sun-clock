@@ -136,7 +136,16 @@ class ClockView extends StatelessWidget {
     String ev(SunEvent e) =>
         '${e.isSunrise ? 'Sunrise' : 'Sunset'} ${hm(inZone(e.time, zone))}';
     return [
-      Text('${ev(r.previous!)}   →   ${ev(r.next!)}', style: muted),
+      // An icon instead of a "→" character, which sits off-centre in the font.
+      Row(mainAxisSize: MainAxisSize.min, children: [
+        Text(ev(r.previous!), style: muted),
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 12),
+          child: Icon(Icons.arrow_forward,
+              size: (muted?.fontSize ?? 14) + 2, color: muted?.color),
+        ),
+        Text(ev(r.next!), style: muted),
+      ]),
       const SizedBox(height: 4),
       Text(
           '1 sun hour = ${r.realMinutesPerSunHour.toStringAsFixed(1)} '
