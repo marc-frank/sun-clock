@@ -307,7 +307,7 @@ class SunClockService : Service() {
         builder.setContentTitle("$hh:$mm sun time")
             .setContentText(detail)
         if (d.label.isNotEmpty()) builder.setSubText(d.label)
-        builder.setSmallIcon(Icon.createWithBitmap(timeIcon("$hh:$mm")))
+        builder.setSmallIcon(Icon.createWithBitmap(timeIcon(hh, mm)))
         return builder.build()
     }
 
@@ -317,26 +317,32 @@ class SunClockService : Service() {
     }
 
     /**
-     * Status-bar icon: "hh:mm" on one line like the system clock. Android
-     * draws notification icons in a square slot (and keeps only the alpha
-     * channel), so the text is condensed and scaled to fill the full width.
+     * Status-bar icon: hours above minutes, as large as the square icon slot
+     * allows (Android keeps only the alpha channel). The digits are sized so
+     * the two lines fill the full height, then widened to fill the width.
      */
-    private fun timeIcon(text: String): Bitmap {
+    private fun timeIcon(hh: String, mm: String): Bitmap {
         val size = 96
+        val gap = 6f
+        val lineHeight = (size - gap) / 2f - 1f // 1 px margin: round digits overshoot
         val bmp = Bitmap.createBitmap(size, size, Bitmap.Config.ARGB_8888)
         val canvas = Canvas(bmp)
         val paint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
             color = Color.WHITE
-            typeface = Typeface.create("sans-serif-condensed", Typeface.BOLD)
+            typeface = Typeface.create(Typeface.DEFAULT, Typeface.BOLD)
             textAlign = Paint.Align.CENTER
             textSize = 100f
         }
-        // Scale the font so the text spans the whole width.
-        paint.textSize *= size / paint.measureText(text)
+        // Digit height (all digits share the cap height) → fill half the icon.
         val bounds = android.graphics.Rect()
-        paint.getTextBounds(text, 0, text.length, bounds)
-        val baseline = size / 2f - bounds.exactCenterY()
-        canvas.drawText(text, size / 2f, baseline, paint)
+        paint.getTextBounds("00", 0, 2, bounds)
+        paint.textSize *= lineHeight / bounds.height()
+        // Then stretch horizontally up to the full width (at most 1.4×).
+        val widest = maxOf(paint.measureText(hh), paint.measureText(mm), paint.measureText("00"))
+        paint.textScaleX = (size / widest).coerceIn(1f, 1.4f)
+        // Baselines: digits have no descenders, so bottom = baseline.
+        canvas.drawText(hh, size / 2f, 1f + lineHeight, paint)
+        canvas.drawText(mm, size / 2f, size - 1f, paint)
         return bmp
     }
 
