@@ -37,9 +37,12 @@ which is not in git. Without that file, release builds are signed with the
 debug key.
 
 ```bash
-flutter build apk --release        # sideloadable APK
-flutter build appbundle --release  # for Google Play
+bash tool/build_release.sh
 ```
+
+This builds the signed APK (to install directly) and the app bundle (for
+Google Play), and copies them to `dist/SunClock-<version>.apk` / `.aab`.
+`dist/` is not in git.
 
 App icons: `python tool/make_icon.py` draws the images in `assets/icon/`,
 then `dart run flutter_launcher_icons` generates the platform icons. The
