@@ -5,6 +5,8 @@ import 'package:geolocator/geolocator.dart';
 import 'clock_view.dart';
 import 'location_model.dart';
 import 'map_picker.dart';
+import 'settings_sheet.dart';
+import 'status_bar_clock.dart';
 import 'year_charts.dart';
 import 'zone.dart';
 
@@ -21,12 +23,14 @@ void main() {
     systemNavigationBarIconBrightness: Brightness.light,
   ));
   final model = LocationModel()..load();
-  runApp(SunClockApp(model: model));
+  final statusBar = StatusBarClock(model)..load();
+  runApp(SunClockApp(model: model, statusBar: statusBar));
 }
 
 class SunClockApp extends StatelessWidget {
   final LocationModel model;
-  const SunClockApp({super.key, required this.model});
+  final StatusBarClock statusBar;
+  const SunClockApp({super.key, required this.model, required this.statusBar});
 
   @override
   Widget build(BuildContext context) {
@@ -41,14 +45,15 @@ class SunClockApp extends StatelessWidget {
         scaffoldBackgroundColor: appBackground,
         useMaterial3: true,
       ),
-      home: HomePage(model: model),
+      home: HomePage(model: model, statusBar: statusBar),
     );
   }
 }
 
 class HomePage extends StatelessWidget {
   final LocationModel model;
-  const HomePage({super.key, required this.model});
+  final StatusBarClock statusBar;
+  const HomePage({super.key, required this.model, required this.statusBar});
 
   void _openMap(BuildContext context) => Navigator.of(context).push(
       MaterialPageRoute(builder: (_) => MapPickerPage(model: model)));
@@ -69,15 +74,22 @@ class HomePage extends StatelessWidget {
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      _TopBar(onMap: () => _openMap(context)),
+                      _TopBar(
+                        onMap: () => _openMap(context),
+                        model: model,
+                        statusBar: statusBar,
+                      ),
                       model.hasPosition
                           ? ClockView(
                               lat: model.latitude!,
                               lon: model.longitude!,
                               zone: model.zone!,
                               sourceLabel: model.source == LocationSource.gps
-                                  ? 'GPS'
+                                  ? (model.isApproximate
+                                      ? 'GPS, approximate'
+                                      : 'GPS')
                                   : 'picked on map',
+                              approximate: model.isApproximate,
                               onLocationTap: () => _openMap(context),
                             )
                           : _NoPosition(
@@ -105,7 +117,10 @@ class HomePage extends StatelessWidget {
 
 class _TopBar extends StatelessWidget {
   final VoidCallback onMap;
-  const _TopBar({required this.onMap});
+  final LocationModel model;
+  final StatusBarClock statusBar;
+  const _TopBar(
+      {required this.onMap, required this.model, required this.statusBar});
 
   @override
   Widget build(BuildContext context) {
@@ -118,6 +133,25 @@ class _TopBar extends StatelessWidget {
           onPressed: () => showAbout(context),
         ),
         const Spacer(),
+        if (statusBar.supported)
+          ListenableBuilder(
+            listenable: statusBar,
+            builder: (context, _) => IconButton(
+              tooltip: statusBar.enabled
+                  ? 'Hide sun time from status bar'
+                  : 'Show sun time in status bar',
+              isSelected: statusBar.enabled,
+              icon: const Icon(Icons.notifications_none),
+              selectedIcon: const Icon(Icons.notifications_active),
+              onPressed: () =>
+                  toggleStatusBar(context, statusBar, !statusBar.enabled),
+            ),
+          ),
+        IconButton(
+          tooltip: 'Settings',
+          icon: const Icon(Icons.tune),
+          onPressed: () => showSettings(context, model, statusBar),
+        ),
         IconButton(
           tooltip: 'Pick location on map',
           icon: const Icon(Icons.map_outlined),

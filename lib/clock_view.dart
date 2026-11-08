@@ -24,11 +24,15 @@ String hoursToHm(double h) {
   return '${two((m ~/ 60) % 24)}:${two(m % 60)}';
 }
 
-String coord(double v, String pos, String neg) =>
-    '${v.abs().toStringAsFixed(3)}° ${v >= 0 ? pos : neg}';
+String coord(double v, String pos, String neg, {int decimals = 3}) =>
+    '${v.abs().toStringAsFixed(decimals)}° ${v >= 0 ? pos : neg}';
 
-String coords(double lat, double lon) =>
-    '${coord(lat, 'N', 'S')}  ${coord(lon, 'E', 'W')}';
+/// Approximate positions are rounded to 0.01°, so show two decimals and "≈".
+String coords(double lat, double lon, {bool approximate = false}) {
+  final d = approximate ? 2 : 3;
+  return '${approximate ? '≈ ' : ''}${coord(lat, 'N', 'S', decimals: d)}  '
+      '${coord(lon, 'E', 'W', decimals: d)}';
+}
 
 /// Rebuilds its child four times a second with the current time.
 class Ticker extends StatefulWidget {
@@ -65,6 +69,7 @@ class ClockView extends StatelessWidget {
   final double lon;
   final tz.Location zone;
   final String sourceLabel;
+  final bool approximate;
   final VoidCallback? onLocationTap;
 
   const ClockView({
@@ -73,6 +78,7 @@ class ClockView extends StatelessWidget {
     required this.lon,
     required this.zone,
     required this.sourceLabel,
+    this.approximate = false,
     this.onLocationTap,
   });
 
@@ -106,7 +112,7 @@ class ClockView extends StatelessWidget {
           child: Padding(
             padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
             child: Text(
-              '${coords(lat, lon)}\n'
+              '${coords(lat, lon, approximate: approximate)}\n'
               '${zone.name} (${utcOffsetLabel(now, zone)}) · $sourceLabel',
               textAlign: TextAlign.center,
               style: muted,

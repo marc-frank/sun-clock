@@ -203,7 +203,7 @@ class _LivePreview extends StatelessWidget {
                           'night ${_min(d.nightHourMinutes)}',
                           style: muted?.copyWith(fontFeatures: tabular),
                         ),
-                        Text('${coords(lat, lon)} · ${zoneCity(zone)}',
+                        Text('${coords(lat, lon, approximate: model.isApproximate)} · ${zoneCity(zone)}',
                             style: muted,
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis),
