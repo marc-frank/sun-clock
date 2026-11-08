@@ -1,6 +1,5 @@
 import 'dart:async';
 import 'dart:math' as math;
-import 'dart:ui' show FontFeature;
 
 import 'package:flutter/material.dart';
 import 'package:timezone/timezone.dart' as tz;
@@ -174,9 +173,9 @@ class DialPainter extends CustomPainter {
     final scale = radius / 140;
 
     canvas.drawArc(rect, math.pi, math.pi, true,
-        Paint()..color = const Color(0xFFFFC94D).withOpacity(0.25));
+        Paint()..color = const Color(0xFFFFC94D).withValues(alpha: 0.25));
     canvas.drawArc(rect, 0, math.pi, true,
-        Paint()..color = const Color(0xFF3A4A8C).withOpacity(0.35));
+        Paint()..color = const Color(0xFF3A4A8C).withValues(alpha: 0.35));
     canvas.drawCircle(
         c,
         radius,

@@ -155,9 +155,9 @@ class _LivePreview extends StatelessWidget {
       listenable: model,
       builder: (context, _) {
         if (!model.hasPosition) {
-          return Card(
+          return const Card(
             child: Padding(
-              padding: const EdgeInsets.all(16),
+              padding: EdgeInsets.all(16),
               child: Text('Tap or drag the map to pick a place.'),
             ),
           );

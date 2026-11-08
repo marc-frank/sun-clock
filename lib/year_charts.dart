@@ -91,7 +91,7 @@ class _Section extends StatelessWidget {
     final theme = Theme.of(context);
     return Card(
       elevation: 0,
-      color: theme.colorScheme.surfaceVariant.withOpacity(0.35),
+      color: theme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.35),
       child: Padding(
         padding: const EdgeInsets.fromLTRB(16, 16, 16, 12),
         child:
@@ -176,7 +176,7 @@ FlTitlesData _titles(BuildContext context,
 }
 
 FlGridData _grid(BuildContext context, double yInterval, int dayCount) {
-  final c = Theme.of(context).colorScheme.outlineVariant.withOpacity(0.4);
+  final c = Theme.of(context).colorScheme.outlineVariant.withValues(alpha: 0.4);
   return FlGridData(
     drawVerticalLine: true,
     horizontalInterval: yInterval,
@@ -188,7 +188,7 @@ FlGridData _grid(BuildContext context, double yInterval, int dayCount) {
 
 VerticalLine _todayLine(BuildContext context, double x) => VerticalLine(
       x: x,
-      color: Theme.of(context).colorScheme.onSurface.withOpacity(0.7),
+      color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.7),
       strokeWidth: 1.5,
       dashArray: [4, 4],
       label: VerticalLineLabel(
@@ -266,7 +266,7 @@ class _SunTimesChart extends StatelessWidget {
       ],
       betweenBarsData: [
         BetweenBarsData(
-            fromIndex: 0, toIndex: 1, color: dayColor.withOpacity(0.15)),
+            fromIndex: 0, toIndex: 1, color: dayColor.withValues(alpha: 0.15)),
       ],
       extraLinesData:
           ExtraLinesData(verticalLines: [_todayLine(context, todayIndex)]),

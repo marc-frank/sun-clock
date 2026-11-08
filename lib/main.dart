@@ -32,7 +32,7 @@ class SunClockApp extends StatelessWidget {
   Widget build(BuildContext context) {
     final scheme = ColorScheme.fromSeed(
             seedColor: Colors.amber, brightness: Brightness.dark)
-        .copyWith(background: appBackground, surface: appBackground);
+        .copyWith(surface: appBackground);
     return MaterialApp(
       title: 'Sun Clock',
       debugShowCheckedModeBanner: false,
@@ -173,9 +173,9 @@ class _NoPosition extends StatelessWidget {
         const SizedBox(height: 16),
         Wrap(spacing: 8, alignment: WrapAlignment.center, children: [
           FilledButton(onPressed: model.useGps, child: const Text('Retry')),
-          OutlinedButton(
+          const OutlinedButton(
               onPressed: Geolocator.openAppSettings,
-              child: const Text('Settings')),
+              child: Text('Settings')),
         ]),
       ],
       const SizedBox(height: 8),
