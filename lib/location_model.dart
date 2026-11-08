@@ -2,8 +2,10 @@
 // user picked on the map. Picked points are remembered across launches.
 
 import 'dart:async';
+import 'dart:io' show Platform;
 
 import 'package:flutter/foundation.dart';
+import 'package:flutter/services.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:timezone/timezone.dart' as tz;
@@ -106,8 +108,17 @@ class LocationModel extends ChangeNotifier {
       if (!await Geolocator.isLocationServiceEnabled()) {
         return _fail('Location services are turned off.');
       }
+      final precise = _precision == LocationPrecision.precise;
       var permission = await Geolocator.checkPermission();
-      if (permission == LocationPermission.denied) {
+      if (!kIsWeb && Platform.isAndroid) {
+        // Ask with the chosen precision (coarse only for approximate);
+        // also upgrades an earlier coarse grant when precise is chosen.
+        if (permission != LocationPermission.deniedForever) {
+          await const MethodChannel('sun_clock/location')
+              .invokeMethod<bool>('requestLocation', {'precise': precise});
+          permission = await Geolocator.checkPermission();
+        }
+      } else if (permission == LocationPermission.denied) {
         permission = await Geolocator.requestPermission();
       }
       if (permission == LocationPermission.denied ||
@@ -115,7 +126,6 @@ class LocationModel extends ChangeNotifier {
         return _fail('Location permission was not granted.');
       }
       if (_source != LocationSource.gps) return; // user picked a point meanwhile
-      final precise = _precision == LocationPrecision.precise;
       if (precise) {
         // Android 12+ and iOS 14+ let the user grant only approximate access.
         var status = await Geolocator.getLocationAccuracy();

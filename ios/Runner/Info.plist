@@ -6,6 +6,11 @@
 	<string>$(DEVELOPMENT_LANGUAGE)</string>
 	<key>ITSAppUsesNonExemptEncryption</key>
 	<false/>
+	<key>NSLocationTemporaryUsageDescriptionDictionary</key>
+	<dict>
+		<key>SunTimes</key>
+		<string>You chose precise location, which makes sunrise and sunset times accurate to the second.</string>
+	</dict>
 	<key>NSLocationWhenInUseUsageDescription</key>
 	<string>Your position is used to calculate local sunrise and sunset times.</string>
 	<key>CFBundleDisplayName</key>
