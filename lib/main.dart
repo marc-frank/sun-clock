@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:geolocator/geolocator.dart';
+import 'package:package_info_plus/package_info_plus.dart';
 
 import 'clock_view.dart';
 import 'location_model.dart';
@@ -224,6 +225,16 @@ class _NoPosition extends StatelessWidget {
   }
 }
 
+/// "Version 1.1.0 (2)", read from the installed app (set in pubspec.yaml).
+Future<String> appVersion() async {
+  try {
+    final info = await PackageInfo.fromPlatform();
+    return 'Version ${info.version} (${info.buildNumber})';
+  } catch (_) {
+    return '';
+  }
+}
+
 void showAbout(BuildContext context) {
   final theme = Theme.of(context);
   showModalBottomSheet<void>(
@@ -253,10 +264,21 @@ void showAbout(BuildContext context) {
           Text('Map data © OpenStreetMap contributors.',
               style: theme.textTheme.bodySmall),
           const SizedBox(height: 16),
-          TextButton(
-            onPressed: () => showLicensePage(
-                context: context, applicationName: 'Sun Clock'),
-            child: const Text('Open-source licences'),
+          FutureBuilder<String>(
+            future: appVersion(),
+            builder: (context, snap) => Row(children: [
+              Text(snap.data ?? '',
+                  style: theme.textTheme.bodySmall?.copyWith(
+                      color: theme.colorScheme.onSurfaceVariant)),
+              const Spacer(),
+              TextButton(
+                onPressed: () => showLicensePage(
+                    context: context,
+                    applicationName: 'Sun Clock',
+                    applicationVersion: snap.data),
+                child: const Text('Open-source licences'),
+              ),
+            ]),
           ),
         ]),
       ),
