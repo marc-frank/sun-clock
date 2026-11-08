@@ -51,9 +51,15 @@ void showSettings(
                     model.precision == LocationPrecision.approximate
                         ? 'Uses a coarse fix, rounded to about 1 km. Sun times '
                             'shift by only a few seconds per kilometre, so this '
-                            'is accurate enough and keeps your position private.'
+                            'is accurate enough and uses less battery.'
                         : 'Uses GPS for your exact position. Sun times become '
                             'accurate to the second; uses a little more battery.',
+                    style: muted,
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    'Either way, your position stays on this phone: sun times '
+                    'are calculated on the device and nothing is uploaded.',
                     style: muted,
                   ),
                   if (model.precision == LocationPrecision.precise &&
