@@ -318,12 +318,12 @@ class SunClockService : Service() {
 
     /**
      * Status-bar icon: hours above minutes, as large as the square icon slot
-     * allows (Android keeps only the alpha channel). The digits are sized so
-     * the two lines fill the full height, then widened to fill the width.
+     * allows (Android keeps only the alpha channel). The digits keep their
+     * normal proportions and are sized so the two lines fill the full height.
      */
     private fun timeIcon(hh: String, mm: String): Bitmap {
         val size = 96
-        val gap = 6f
+        val gap = 4f
         val lineHeight = (size - gap) / 2f - 1f // 1 px margin: round digits overshoot
         val bmp = Bitmap.createBitmap(size, size, Bitmap.Config.ARGB_8888)
         val canvas = Canvas(bmp)
@@ -337,9 +337,10 @@ class SunClockService : Service() {
         val bounds = android.graphics.Rect()
         paint.getTextBounds("00", 0, 2, bounds)
         paint.textSize *= lineHeight / bounds.height()
-        // Then stretch horizontally up to the full width (at most 1.4×).
-        val widest = maxOf(paint.measureText(hh), paint.measureText(mm), paint.measureText("00"))
-        paint.textScaleX = (size / widest).coerceIn(1f, 1.4f)
+        // Two digits are narrower than the icon at this height, so no
+        // squeezing is needed; guard anyway for unusually wide fonts.
+        val widest = maxOf(paint.measureText(hh), paint.measureText(mm))
+        if (widest > size) paint.textSize *= size / widest
         // Baselines: digits have no descenders, so bottom = baseline.
         canvas.drawText(hh, size / 2f, 1f + lineHeight, paint)
         canvas.drawText(mm, size / 2f, size - 1f, paint)
