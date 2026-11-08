@@ -1,4 +1,5 @@
 import 'package:fl_chart/fl_chart.dart';
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:timezone/timezone.dart' as tz;
 
@@ -143,7 +144,7 @@ FlTitlesData _titles(BuildContext context,
     leftTitles: AxisTitles(
       sideTitles: SideTitles(
         showTitles: true,
-        reservedSize: 40,
+        reservedSize: _leftReserved,
         interval: yInterval,
         getTitlesWidget: (v, meta) {
           if (v == meta.min || v == meta.max) {
@@ -199,6 +200,85 @@ VerticalLine _todayLine(BuildContext context, double x) => VerticalLine(
       ),
     );
 
+/// Width of the y-axis labels; the plot starts this far from the left.
+const double _leftReserved = 40;
+
+/// A line chart you can scrub through with a finger.
+///
+/// A swipe that starts sideways belongs to the chart for its whole length
+/// (the page does not take it over), a vertical swipe scrolls the page, and a
+/// tap pins the infobox on that day until the next touch.
+class _ScrubChart extends StatefulWidget {
+  final LineChartData data;
+  final double reservedLeft;
+  const _ScrubChart(this.data, {required this.reservedLeft});
+
+  @override
+  State<_ScrubChart> createState() => _ScrubChartState();
+}
+
+class _ScrubChartState extends State<_ScrubChart> {
+  int? _index;
+
+  void _show(double dx, double width) {
+    final d = widget.data;
+    final plotWidth = width - widget.reservedLeft;
+    if (plotWidth <= 0) return;
+    final x = d.minX + (dx - widget.reservedLeft) / plotWidth * (d.maxX - d.minX);
+    final i = x.round().clamp(d.minX.toInt(), d.maxX.toInt());
+    if (i != _index) setState(() => _index = i);
+  }
+
+  void _hide() {
+    if (_index != null) setState(() => _index = null);
+  }
+
+  LineChartData _withIndicators(LineChartData d) {
+    final i = _index;
+    if (i == null) return d;
+    final spots = <LineBarSpot>[];
+    final bars = <LineChartBarData>[];
+    for (var b = 0; b < d.lineBarsData.length; b++) {
+      final bar = d.lineBarsData[b];
+      final hasSpot = i < bar.spots.length && bar.spots[i] != FlSpot.nullSpot;
+      bars.add(bar.copyWith(showingIndicators: hasSpot ? [i] : []));
+      if (hasSpot) spots.add(LineBarSpot(bar, b, bar.spots[i]));
+    }
+    return d.copyWith(
+      lineBarsData: bars,
+      showingTooltipIndicators: spots.isEmpty ? [] : [ShowingTooltipIndicators(spots)],
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return LayoutBuilder(builder: (context, box) {
+      final width = box.maxWidth;
+      return RawGestureDetector(
+        behavior: HitTestBehavior.opaque,
+        gestures: {
+          HorizontalDragGestureRecognizer:
+              GestureRecognizerFactoryWithHandlers<HorizontalDragGestureRecognizer>(
+            HorizontalDragGestureRecognizer.new,
+            (r) => r
+              ..onDown = ((d) => _show(d.localPosition.dx, width))
+              ..onUpdate = ((d) => _show(d.localPosition.dx, width))
+              ..onEnd = ((_) => _hide())
+              ..onCancel = _hide, // a vertical swipe went to the page
+          ),
+          TapGestureRecognizer:
+              GestureRecognizerFactoryWithHandlers<TapGestureRecognizer>(
+            TapGestureRecognizer.new,
+            (r) => r..onTapUp = ((d) => _show(d.localPosition.dx, width)),
+          ),
+        },
+        child: LineChart(_withIndicators(widget.data),
+            duration: Duration.zero),
+      );
+    });
+  }
+}
+
 LineChartBarData _line(List<FlSpot> spots, Color color) => LineChartBarData(
       spots: spots,
       color: color,
@@ -211,7 +291,10 @@ LineTouchData _touch(BuildContext context, List<DaySun> days,
     String Function(LineBarSpot s) valueText) {
   final theme = Theme.of(context);
   return LineTouchData(
-    handleBuiltInTouches: true,
+    // Touch is handled by _ScrubChart; fl_chart's own recognizers lose
+    // swipes to the page scroll and flicker on tap-cancel.
+    enabled: false,
+    handleBuiltInTouches: false,
     touchTooltipData: LineTouchTooltipData(
       getTooltipColor: (_) => theme.colorScheme.inverseSurface,
       fitInsideHorizontally: true,
@@ -248,7 +331,7 @@ class _SunTimesChart extends StatelessWidget {
       set.add(d.sunset == null ? FlSpot.nullSpot : FlSpot(i.toDouble(), d.sunset!));
     }
     final n = days.length;
-    return LineChart(LineChartData(
+    return _ScrubChart(LineChartData(
       minX: 0,
       maxX: n - 1,
       minY: 0,
@@ -272,7 +355,7 @@ class _SunTimesChart extends StatelessWidget {
           ExtraLinesData(verticalLines: [_todayLine(context, todayIndex)]),
       lineTouchData: _touch(context, days,
           (s) => '${s.barIndex == 0 ? 'Sunrise' : 'Sunset'} ${hoursToHm(s.y)}'),
-    ));
+    ), reservedLeft: _leftReserved);
   }
 }
 
@@ -310,7 +393,7 @@ class _HourLengthChart extends StatelessWidget {
     final maxY = ((hi + 3) / interval).ceilToDouble() * interval;
     final n = days.length;
 
-    return LineChart(LineChartData(
+    return _ScrubChart(LineChartData(
       minX: 0,
       maxX: n - 1,
       minY: minY < 0 ? 0 : minY,
@@ -343,6 +426,6 @@ class _HourLengthChart extends StatelessWidget {
       lineTouchData: _touch(context, days,
           (s) => '${s.barIndex == 0 ? 'Day' : 'Night'} hour '
               '${s.y.toStringAsFixed(1)} min'),
-    ));
+    ), reservedLeft: _leftReserved);
   }
 }
