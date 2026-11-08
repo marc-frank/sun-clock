@@ -2,21 +2,36 @@ package com.sunriseclock.sun_clock
 
 import android.content.Context
 
-/** Sun events handed over from Dart, persisted so the service survives reboots. */
+/** Sun events computed for one position, used to interpolate sun time. */
 data class SunData(
     /** (utcMillis, isSunrise), sorted by time. */
     val events: List<Pair<Long, Boolean>>,
     /** Solar noons (utcMillis), for the polar-day/night fallback. */
     val noons: List<Long>,
     val label: String,
+    val computedAt: Long,
+)
+
+/** What the service needs to run, persisted so it survives reboots. */
+data class ClockParams(
+    val lat: Double,
+    val lon: Double,
+    /** Place name from the app's time-zone lookup; empty once the phone moved. */
+    val label: String,
+    /** Follow the device location (the app uses GPS, not a point picked on the map). */
+    val followLocation: Boolean,
+    /** The user chose precise location in the app's settings. */
+    val precise: Boolean,
 )
 
 object SunClockStore {
     private const val PREFS = "sun_clock_status_bar"
     private const val K_ENABLED = "enabled"
-    private const val K_EVENTS = "events"
-    private const val K_NOONS = "noons"
+    private const val K_LAT = "lat"
+    private const val K_LON = "lon"
     private const val K_LABEL = "label"
+    private const val K_FOLLOW = "follow"
+    private const val K_PRECISE = "precise"
 
     private fun prefs(c: Context) = c.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
 
@@ -25,25 +40,27 @@ object SunClockStore {
     fun setEnabled(c: Context, on: Boolean) =
         prefs(c).edit().putBoolean(K_ENABLED, on).apply()
 
-    /** [flatEvents] is [millis, 1|0, millis, 1|0, ...] as sent by Dart. */
-    fun save(c: Context, flatEvents: List<Long>, noons: List<Long>, label: String) {
+    fun save(c: Context, p: ClockParams) {
         prefs(c).edit()
-            .putString(K_EVENTS, flatEvents.joinToString(","))
-            .putString(K_NOONS, noons.joinToString(","))
-            .putString(K_LABEL, label)
+            // Doubles as raw bits: SharedPreferences has no putDouble.
+            .putLong(K_LAT, p.lat.toRawBits())
+            .putLong(K_LON, p.lon.toRawBits())
+            .putString(K_LABEL, p.label)
+            .putBoolean(K_FOLLOW, p.followLocation)
+            .putBoolean(K_PRECISE, p.precise)
             .putBoolean(K_ENABLED, true)
             .apply()
     }
 
-    fun load(c: Context): SunData? {
+    fun load(c: Context): ClockParams? {
         val p = prefs(c)
-        val flat = p.getString(K_EVENTS, null)?.split(",")?.mapNotNull { it.toLongOrNull() }
-            ?: return null
-        val events = flat.chunked(2).filter { it.size == 2 }
-            .map { Pair(it[0], it[1] == 1L) }
-            .sortedBy { it.first }
-        val noons = p.getString(K_NOONS, "")!!.split(",").mapNotNull { it.toLongOrNull() }
-        if (events.isEmpty() && noons.isEmpty()) return null
-        return SunData(events, noons, p.getString(K_LABEL, "") ?: "")
+        if (!p.contains(K_LAT) || !p.contains(K_LON)) return null
+        return ClockParams(
+            lat = Double.fromBits(p.getLong(K_LAT, 0)),
+            lon = Double.fromBits(p.getLong(K_LON, 0)),
+            label = p.getString(K_LABEL, "") ?: "",
+            followLocation = p.getBoolean(K_FOLLOW, false),
+            precise = p.getBoolean(K_PRECISE, false),
+        )
     }
 }

@@ -104,8 +104,9 @@ void showSettings(
                       title: const Text('Sun time in status bar'),
                       subtitle: Text(
                         'Shows the sun time as a status-bar icon and in the '
-                        'notification shade. Keeps running when the app is '
-                        'closed; it uses the last known location.',
+                        'notification shade. Keeps running and follows your '
+                        'location while the app is closed (after a restart '
+                        'of the phone, once you open the app again).',
                         style: muted,
                       ),
                       value: statusBar.enabled,

@@ -1,7 +1,8 @@
 // Dart side of the Android status-bar sun clock. The native service
-// (SunClockService.kt) cannot run the NOAA code, so this computes the next
-// two months of sunrises, sunsets and solar noons and hands them over; the
-// service interpolates sun time between them every sun-minute.
+// (SunClockService.kt) computes sun times itself with a Kotlin port of the
+// NOAA formulas (SolarCalc.kt), so it only needs the position and settings.
+// When the app uses GPS, the service also follows the phone's location while
+// the app is closed.
 
 import 'dart:async';
 import 'dart:io' show Platform;
@@ -10,15 +11,10 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 
 import 'location_model.dart';
-import 'solar.dart';
 import 'zone.dart';
 
 class StatusBarClock extends ChangeNotifier {
   static const _channel = MethodChannel('sun_clock/status_bar');
-
-  /// Days of sun events sent to the service. The service keeps working this
-  /// long without the app being opened.
-  static const horizonDays = 60;
 
   final LocationModel model;
   bool _enabled = false;
@@ -69,25 +65,13 @@ class StatusBarClock extends ChangeNotifier {
 
   Future<void> _sync() async {
     if (!_enabled || !model.hasPosition) return;
-    final lat = model.latitude!, lon = model.longitude!;
-    final now = DateTime.now().toUtc();
-
-    final events = <int>[]; // flat: [utcMillis, 1 = sunrise / 0 = sunset, ...]
-    final noons = <int>[];
-    for (var d = -1; d <= horizonDays; d++) {
-      final day = now.add(Duration(days: d));
-      final rise = sunEvent(day, lat, lon, rising: true);
-      final set = sunEvent(day, lat, lon, rising: false);
-      if (rise != null) events.addAll([rise.millisecondsSinceEpoch, 1]);
-      if (set != null) events.addAll([set.millisecondsSinceEpoch, 0]);
-      noons.add(solarNoon(day, lon).millisecondsSinceEpoch);
-    }
-
     try {
       await _channel.invokeMethod<void>('start', {
-        'events': events,
-        'noons': noons,
+        'lat': model.latitude!,
+        'lon': model.longitude!,
         'label': zoneCity(model.zone!),
+        'followLocation': model.source == LocationSource.gps,
+        'precise': model.precision == LocationPrecision.precise,
       });
     } catch (e) {
       debugPrint('status bar clock: $e');

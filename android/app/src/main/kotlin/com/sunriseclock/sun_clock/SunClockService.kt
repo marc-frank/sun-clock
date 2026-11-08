@@ -1,5 +1,6 @@
 package com.sunriseclock.sun_clock
 
+import android.Manifest
 import android.app.Notification
 import android.app.NotificationChannel
 import android.app.NotificationManager
@@ -9,6 +10,7 @@ import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
+import android.content.pm.PackageManager
 import android.content.pm.ServiceInfo
 import android.graphics.Bitmap
 import android.graphics.Canvas
@@ -16,10 +18,15 @@ import android.graphics.Color
 import android.graphics.Paint
 import android.graphics.Typeface
 import android.graphics.drawable.Icon
+import android.location.Location
+import android.location.LocationListener
+import android.location.LocationManager
 import android.os.Build
+import android.os.Bundle
 import android.os.Handler
 import android.os.IBinder
 import android.os.Looper
+import kotlin.math.abs
 import kotlin.math.ceil
 import kotlin.math.floor
 
@@ -27,13 +34,20 @@ import kotlin.math.floor
  * Foreground service that keeps a notification showing the current sun time.
  * The small (status-bar) icon is drawn on the fly with the hours above the
  * minutes, so the sun time is visible in the status bar itself.
- * It wakes once per sun-minute; the handler pauses while the device sleeps.
+ *
+ * It wakes once per sun-minute (the handler pauses while the device sleeps)
+ * and, when the app uses GPS, follows the device location with low-power
+ * updates so the sun times stay right after travelling with the app closed.
+ * Location access relies on the app's while-in-use permission: the service
+ * runs with the "location" foreground type when started from the app. After
+ * a reboot it can only use the last stored position until the app is opened.
  */
 class SunClockService : Service() {
 
     companion object {
         private const val CHANNEL_ID = "sun_time"
         private const val NOTIFICATION_ID = 1
+        private const val DAY_MS = 86_400_000L
 
         fun start(c: Context) {
             val i = Intent(c, SunClockService::class.java)
@@ -46,7 +60,9 @@ class SunClockService : Service() {
     }
 
     private val handler = Handler(Looper.getMainLooper())
+    private var params: ClockParams? = null
     private var data: SunData? = null
+    private var listening = false
 
     private val tick = object : Runnable {
         override fun run() {
@@ -61,6 +77,16 @@ class SunClockService : Service() {
             handler.removeCallbacks(tick)
             handler.post(tick)
         }
+    }
+
+    private val locationListener = object : LocationListener {
+        override fun onLocationChanged(location: Location) = onMoved(location)
+
+        // Needed before API 30, where these are not default methods.
+        @Deprecated("Deprecated in Java")
+        override fun onStatusChanged(provider: String?, status: Int, extras: Bundle?) {}
+        override fun onProviderEnabled(provider: String) {}
+        override fun onProviderDisabled(provider: String) {}
     }
 
     override fun onBind(intent: Intent?): IBinder? = null
@@ -81,20 +107,19 @@ class SunClockService : Service() {
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
-        data = SunClockStore.load(this)
-        val notification = build(System.currentTimeMillis())
-        if (Build.VERSION.SDK_INT >= 34) {
-            startForeground(
-                NOTIFICATION_ID, notification,
-                ServiceInfo.FOREGROUND_SERVICE_TYPE_SPECIAL_USE,
-            )
-        } else {
-            startForeground(NOTIFICATION_ID, notification)
-        }
-        if (data == null) {
+        val p = SunClockStore.load(this)
+        params = p
+        data = p?.let { SolarCalc.build(it.lat, it.lon, System.currentTimeMillis(), it.label) }
+
+        val wantLocation = p != null && p.followLocation && hasLocationPermission()
+        val withLocation = goForeground(build(System.currentTimeMillis()), wantLocation)
+
+        if (p == null) {
             stopSelf()
             return START_NOT_STICKY
         }
+        stopLocation()
+        if (withLocation) startLocation(p.precise)
         handler.removeCallbacks(tick)
         handler.post(tick)
         return START_STICKY
@@ -102,13 +127,129 @@ class SunClockService : Service() {
 
     override fun onDestroy() {
         handler.removeCallbacks(tick)
+        stopLocation()
         unregisterReceiver(refresh)
         super.onDestroy()
+    }
+
+    /**
+     * Enters the foreground. With [wantLocation] it asks for the location type
+     * too, which Android only allows while the app is in use (not after a
+     * reboot); then it falls back to the plain type. Returns whether location
+     * access is available.
+     */
+    private fun goForeground(n: Notification, wantLocation: Boolean): Boolean {
+        if (Build.VERSION.SDK_INT >= 34) {
+            val special = ServiceInfo.FOREGROUND_SERVICE_TYPE_SPECIAL_USE
+            if (wantLocation) {
+                try {
+                    startForeground(
+                        NOTIFICATION_ID, n,
+                        special or ServiceInfo.FOREGROUND_SERVICE_TYPE_LOCATION,
+                    )
+                    return true
+                } catch (_: Exception) {
+                    // Started from the background: no while-in-use location.
+                }
+            }
+            startForeground(NOTIFICATION_ID, n, special)
+            return false
+        }
+        if (Build.VERSION.SDK_INT >= 29 && wantLocation) {
+            startForeground(NOTIFICATION_ID, n, ServiceInfo.FOREGROUND_SERVICE_TYPE_LOCATION)
+            return true
+        }
+        startForeground(NOTIFICATION_ID, n)
+        return wantLocation
+    }
+
+    private fun granted(p: String) = checkSelfPermission(p) == PackageManager.PERMISSION_GRANTED
+
+    private fun hasLocationPermission() =
+        granted(Manifest.permission.ACCESS_COARSE_LOCATION) ||
+            granted(Manifest.permission.ACCESS_FINE_LOCATION)
+
+    /**
+     * Low-power updates: approximate uses the network provider every 15 min
+     * or 1 km; precise uses the fused/GPS provider every 5 min or 250 m. The
+     * passive provider adds fixes other apps (e.g. navigation) request anyway.
+     */
+    private fun startLocation(precise: Boolean) {
+        val lm = getSystemService(Context.LOCATION_SERVICE) as LocationManager
+        val fine = granted(Manifest.permission.ACCESS_FINE_LOCATION)
+        val requests = mutableListOf<Triple<String, Long, Float>>()
+        if (precise && fine) {
+            val provider = if (Build.VERSION.SDK_INT >= 31 &&
+                lm.allProviders.contains(LocationManager.FUSED_PROVIDER)
+            ) LocationManager.FUSED_PROVIDER else LocationManager.GPS_PROVIDER
+            requests.add(Triple(provider, 5 * 60_000L, 250f))
+        } else {
+            requests.add(Triple(LocationManager.NETWORK_PROVIDER, 15 * 60_000L, 1000f))
+        }
+        requests.add(Triple(LocationManager.PASSIVE_PROVIDER, 60_000L, if (precise) 100f else 1000f))
+
+        for ((provider, minTime, minDistance) in requests) {
+            try {
+                if (!lm.allProviders.contains(provider)) continue
+                lm.requestLocationUpdates(provider, minTime, minDistance, locationListener, Looper.getMainLooper())
+                listening = true
+                lm.getLastKnownLocation(provider)?.let { onMoved(it) }
+            } catch (_: SecurityException) {
+            } catch (_: IllegalArgumentException) {
+            }
+        }
+    }
+
+    private fun stopLocation() {
+        if (!listening) return
+        val lm = getSystemService(Context.LOCATION_SERVICE) as LocationManager
+        try {
+            lm.removeUpdates(locationListener)
+        } catch (_: Exception) {
+        }
+        listening = false
+    }
+
+    private fun onMoved(location: Location) {
+        val p = params ?: return
+        if (!p.followLocation) return
+        if (location.time < System.currentTimeMillis() - 6 * 3_600_000L) return // stale fix
+        var lat = location.latitude
+        var lon = location.longitude
+        if (!p.precise) { // same rounding as the app: about 1 km
+            lat = Math.round(lat * 100) / 100.0
+            lon = Math.round(lon * 100) / 100.0
+        }
+        val threshold = if (p.precise) 0.002 else 0.01 // degrees, ~200 m / ~1 km
+        if (abs(lat - p.lat) < threshold && abs(lon - p.lon) < threshold) return
+
+        // The place name came from the app's time-zone lookup; drop it once
+        // the phone is more than ~25 km away and show coordinates instead.
+        val far = abs(lat - p.lat) > 0.25 || abs(lon - p.lon) > 0.25
+        val label = if (far || p.label.isEmpty()) coordLabel(lat, lon, p.precise) else p.label
+        val moved = p.copy(lat = lat, lon = lon, label = label)
+        params = moved
+        SunClockStore.save(this, moved)
+        data = SolarCalc.build(lat, lon, System.currentTimeMillis(), label)
+        handler.removeCallbacks(tick)
+        handler.post(tick)
+    }
+
+    private fun coordLabel(lat: Double, lon: Double, precise: Boolean): String {
+        val f = if (precise) "%.3f" else "%.2f"
+        val ns = if (lat >= 0) "N" else "S"
+        val ew = if (lon >= 0) "E" else "W"
+        return "${String.format(f, abs(lat))}° $ns ${String.format(f, abs(lon))}° $ew"
     }
 
     /** Posts the notification; returns the delay until the next sun-minute. */
     private fun update(): Long {
         val now = System.currentTimeMillis()
+        val p = params
+        // Keep the computed days ahead of the clock (data covers two weeks).
+        if (p != null && (data == null || now - data!!.computedAt > DAY_MS)) {
+            data = SolarCalc.build(p.lat, p.lon, now, p.label)
+        }
         val nm = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
         nm.notify(NOTIFICATION_ID, build(now))
         val r = data?.let { SunTime.read(now, it) } ?: return 60_000L
@@ -157,15 +298,16 @@ class SunClockService : Service() {
                 append(" · ")
                 append(if (next.second) "sunrise in " else "sunset in ")
                 append(duration(next.first - now))
+            } else {
+                append(" · solar time (no sunrise/sunset)")
             }
             r.realMinutesPerHour?.let { append(" · 1 h = ${Math.round(it)} min") }
-            if (r.stale) append(" · open Sun Clock to refresh")
         }
 
         builder.setContentTitle("$hh:$mm sun time")
             .setContentText(detail)
         if (d.label.isNotEmpty()) builder.setSubText(d.label)
-        builder.setSmallIcon(Icon.createWithBitmap(timeIcon(hh, mm)))
+        builder.setSmallIcon(Icon.createWithBitmap(timeIcon("$hh:$mm")))
         return builder.build()
     }
 
@@ -174,21 +316,27 @@ class SunClockService : Service() {
         return if (min >= 60) "${min / 60} h ${min % 60} min" else "$min min"
     }
 
-    /** Status-bar icon: hours over minutes. Android keeps only the alpha channel. */
-    private fun timeIcon(hh: String, mm: String): Bitmap {
+    /**
+     * Status-bar icon: "hh:mm" on one line like the system clock. Android
+     * draws notification icons in a square slot (and keeps only the alpha
+     * channel), so the text is condensed and scaled to fill the full width.
+     */
+    private fun timeIcon(text: String): Bitmap {
         val size = 96
         val bmp = Bitmap.createBitmap(size, size, Bitmap.Config.ARGB_8888)
         val canvas = Canvas(bmp)
         val paint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
             color = Color.WHITE
-            typeface = Typeface.create(Typeface.DEFAULT, Typeface.BOLD)
+            typeface = Typeface.create("sans-serif-condensed", Typeface.BOLD)
             textAlign = Paint.Align.CENTER
-            textSize = 50f
-            letterSpacing = -0.05f
+            textSize = 100f
         }
-        // Two lines, each about half the icon tall.
-        canvas.drawText(hh, size / 2f, 44f, paint)
-        canvas.drawText(mm, size / 2f, 92f, paint)
+        // Scale the font so the text spans the whole width.
+        paint.textSize *= size / paint.measureText(text)
+        val bounds = android.graphics.Rect()
+        paint.getTextBounds(text, 0, text.length, bounds)
+        val baseline = size / 2f - bounds.exactCenterY()
+        canvas.drawText(text, size / 2f, baseline, paint)
         return bmp
     }
 

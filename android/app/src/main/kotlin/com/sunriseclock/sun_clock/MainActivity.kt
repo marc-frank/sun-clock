@@ -36,10 +36,16 @@ class MainActivity : FlutterActivity() {
                     "isEnabled" -> result.success(SunClockStore.isEnabled(this))
                     "requestNotificationPermission" -> requestNotifications(result)
                     "start" -> {
-                        val events = call.argument<List<Number>>("events")!!.map { it.toLong() }
-                        val noons = call.argument<List<Number>>("noons")!!.map { it.toLong() }
-                        val label = call.argument<String>("label") ?: ""
-                        SunClockStore.save(this, events, noons, label)
+                        SunClockStore.save(
+                            this,
+                            ClockParams(
+                                lat = call.argument<Double>("lat")!!,
+                                lon = call.argument<Double>("lon")!!,
+                                label = call.argument<String>("label") ?: "",
+                                followLocation = call.argument<Boolean>("followLocation") == true,
+                                precise = call.argument<Boolean>("precise") == true,
+                            ),
+                        )
                         SunClockService.start(this)
                         result.success(null)
                     }
