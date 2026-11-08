@@ -37,7 +37,7 @@ dependencies:
   cupertino_icons: ^1.0.2
   geolocator: ^11.1.0
   fl_chart: ^1.0.0
-  flutter_map: ^6.1.0
+  flutter_map: ^8.0.0
   latlong2: ^0.9.1
   shared_preferences: ^2.2.3
   timezone: ^0.9.4

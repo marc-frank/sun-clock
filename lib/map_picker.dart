@@ -64,10 +64,11 @@ class _MapPickerPageState extends State<MapPickerPage> {
             interactionOptions: const InteractionOptions(
                 flags: InteractiveFlag.all & ~InteractiveFlag.rotate),
             onMapReady: () => _mapReady = true,
-            onPositionChanged: (pos, hasGesture) {
-              final c = pos.center;
-              if (hasGesture && c != null) {
-                model.setFromMap(c.latitude, c.longitude);
+            // The map repeats east–west without limit; the model folds the
+            // longitude back into ±180°.
+            onPositionChanged: (camera, hasGesture) {
+              if (hasGesture) {
+                model.setFromMap(camera.center.latitude, camera.center.longitude);
               }
             },
             onTap: (_, p) {
