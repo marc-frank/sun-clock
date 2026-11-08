@@ -58,8 +58,9 @@ void showSettings(
                   ),
                   const SizedBox(height: 4),
                   Text(
-                    'Either way, your position stays on this phone: sun times '
-                    'are calculated on the device and nothing is uploaded.',
+                    'Either way, sun times are calculated on this phone and '
+                    'your position is not sent anywhere. Only the map screen '
+                    'loads map images from OpenStreetMap for the area shown.',
                     style: muted,
                   ),
                   if (model.precision == LocationPrecision.precise &&
