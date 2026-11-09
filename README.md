@@ -6,9 +6,10 @@ The 12 day hours split the real daylight evenly, and the 12 night hours split
 the real night evenly. The current UTC time is shown alongside.
 
 Scroll down for charts of the year: sunrise and sunset times, and how long
-one day hour and one night hour last. The map button lets you pick any place
-on an OpenStreetMap map. The clock and charts follow the pin live, and the
-picked place is remembered.
+one day hour and one night hour last. Under the charts is an OpenStreetMap
+panel to pick any place, so the charts can be watched changing while you drag;
+it can be maximized to a full-screen map (also behind the map button). The
+clock and charts follow the pin live, and the picked place is remembered.
 
 ## Code
 
@@ -21,7 +22,7 @@ picked place is remembered.
 | `lib/location_model.dart` | GPS or map-picked position, saved with `shared_preferences` |
 | `lib/clock_view.dart` | Dial, sun time, UTC |
 | `lib/year_charts.dart` | Year charts (`fl_chart`) |
-| `lib/map_picker.dart` | Map picker with a live preview (`flutter_map`) |
+| `lib/map_picker.dart` | Map panel under the charts and full-screen map picker (`flutter_map`) |
 
 ## Develop
 

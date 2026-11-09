@@ -56,8 +56,7 @@ class HomePage extends StatelessWidget {
   final StatusBarClock statusBar;
   const HomePage({super.key, required this.model, required this.statusBar});
 
-  void _openMap(BuildContext context) => Navigator.of(context).push(
-      MaterialPageRoute(builder: (_) => MapPickerPage(model: model)));
+  void _openMap(BuildContext context) => openMapPicker(context, model);
 
   @override
   Widget build(BuildContext context) {
@@ -104,6 +103,12 @@ class HomePage extends StatelessWidget {
                     lat: model.latitude!,
                     lon: model.longitude!,
                     zone: model.zone!,
+                  ),
+                  const SizedBox(height: 16),
+                  // Under the charts, so they can be watched while picking.
+                  MapPanel(
+                    model: model,
+                    height: (box.maxHeight * 0.42).clamp(220, 420),
                   ),
                   const SizedBox(height: 32),
                 ],
