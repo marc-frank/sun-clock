@@ -33,12 +33,25 @@ double _wallHours(DateTime utc, DateTime date, tz.Location zone) {
   return dayShift * 24 + l.hour + l.minute / 60 + l.second / 3600;
 }
 
+/// The UTC date whose NOAA events (computed around that date's solar noon)
+/// fall on the local calendar day [date]. Usually the same date, but a zone
+/// far from local solar time is a day off: Kiritimati at 157° W uses UTC+14,
+/// and over the open ocean the nearest zone can lie across the date line.
+DateTime _sunDate(DateTime date, double lon, tz.Location zone) {
+  final offset = tz.TZDateTime.from(date.add(const Duration(hours: 12)), zone)
+      .timeZoneOffset;
+  // Local clock hour of solar noon, counted from local midnight of [date].
+  final noon = 12 + offset.inMinutes / 60 - lon / 15;
+  return date.subtract(Duration(days: (noon / 24).floor()));
+}
+
 /// Sun data for one calendar [date] (only year/month/day are used).
 DaySun daySun(DateTime date, double lat, double lon, tz.Location zone) {
   date = DateTime.utc(date.year, date.month, date.day);
-  final next = date.add(const Duration(days: 1));
-  final rise = sunEvent(date, lat, lon, rising: true);
-  final set = sunEvent(date, lat, lon, rising: false);
+  final sunDate = _sunDate(date, lon, zone);
+  final next = sunDate.add(const Duration(days: 1));
+  final rise = sunEvent(sunDate, lat, lon, rising: true);
+  final set = sunEvent(sunDate, lat, lon, rising: false);
   final nextRise = sunEvent(next, lat, lon, rising: true);
 
   double? dayHour;
@@ -58,7 +71,7 @@ DaySun daySun(DateTime date, double lat, double lon, tz.Location zone) {
 
   var polar = PolarState.none;
   if (rise == null || set == null) {
-    final noon = date.add(Duration(minutes: (720 - 4 * lon).round()));
+    final noon = sunDate.add(Duration(minutes: (720 - 4 * lon).round()));
     final decl = solarParams(julianDay(noon)).declination;
     polar = cosHourAngleSunrise(lat, decl) < -1
         ? PolarState.polarDay

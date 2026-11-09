@@ -28,6 +28,27 @@ void main() {
     expect(days.every((d) => d.polar == PolarState.none), isTrue);
   });
 
+  // Kiritimati (157° W) uses UTC+14, a day ahead of the sun; the year's
+  // sunrises used to land on the next local day (30:00 and later) and fell
+  // off the chart.
+  test('a zone across the date line keeps times on the local day', () {
+    for (final (lat, lon) in const [(1.87, -157.4), (0.0, -170.0), (-50.0, -160.0)]) {
+      final zone = zoneAt(lat, lon);
+      final days = yearData(2026, lat, lon, zone);
+      for (final d in days) {
+        expect(d.sunrise!, inInclusiveRange(0, 24), reason: '$lat $lon ${d.date}');
+        expect(d.sunset!, inInclusiveRange(0, 24), reason: '$lat $lon ${d.date}');
+        expect(d.dayHourMinutes, isNotNull);
+        expect(d.nightHourMinutes, isNotNull);
+      }
+    }
+    // Kiritimati itself: sunrise around 06:20, sunset around 18:30.
+    final k = yearData(2026, 1.87, -157.4, zoneAt(1.87, -157.4));
+    expect(zoneAt(1.87, -157.4).name, 'Pacific/Kiritimati');
+    expect(k[170].sunrise!, closeTo(6.4, 0.5));
+    expect(k[170].sunset!, closeTo(18.5, 0.5));
+  });
+
   test('Tromsø has polar day and polar night', () {
     final zone = zoneAt(69.65, 18.96);
     final days = yearData(2026, 69.65, 18.96, zone);
