@@ -65,19 +65,23 @@ const _sunHour = Duration.microsecondsPerHour;
 
 SunClockReading sunClock(DateTime now, double lat, double lon) {
   final nowUtc = now.toUtc();
-  final events = sunEventsAround(nowUtc, lat, lon);
+  final (prev, next) = _bracket(sunEventsAround(nowUtc, lat, lon), nowUtc);
+  return _reading(nowUtc, prev, next, lat, lon);
+}
 
+/// The last event at or before [nowUtc] and the first one after it.
+(SunEvent?, SunEvent?) _bracket(List<SunEvent> events, DateTime nowUtc) {
   SunEvent? prev;
-  SunEvent? next;
   for (final e in events) {
-    if (!e.time.isAfter(nowUtc)) {
-      prev = e;
-    } else {
-      next = e;
-      break;
-    }
+    if (e.time.isAfter(nowUtc)) return (prev, e);
+    prev = e;
   }
+  return (prev, null);
+}
 
+/// Sun time at [nowUtc] between the bracketing events [prev] and [next].
+SunClockReading _reading(DateTime nowUtc, SunEvent? prev, SunEvent? next,
+    double lat, double lon) {
   if (prev != null &&
       next != null &&
       prev.isSunrise != next.isSunrise &&
@@ -111,6 +115,40 @@ SunClockReading sunClock(DateTime now, double lat, double lon) {
     next: null,
     mode: SunClockMode.solarTimeFallback,
   );
+}
+
+/// [sunClock] for a clock that is read several times a second: the sun
+/// events are computed once and reused until the position changes or the
+/// time passes the next event (or leaves the bracketing pair otherwise).
+class SunClockCache {
+  double? _lat;
+  double? _lon;
+  SunEvent? _prev;
+  SunEvent? _next;
+  DateTime? _validFrom;
+  DateTime? _validUntil;
+
+  /// How often the events are recomputed when there is no next event
+  /// (polar day or night).
+  static const polarRecheck = Duration(hours: 1);
+
+  SunClockReading read(DateTime now, double lat, double lon) {
+    final nowUtc = now.toUtc();
+    if (lat != _lat ||
+        lon != _lon ||
+        nowUtc.isBefore(_validFrom!) ||
+        !nowUtc.isBefore(_validUntil!)) {
+      final (prev, next) =
+          _bracket(sunEventsAround(nowUtc, lat, lon), nowUtc);
+      _prev = prev;
+      _next = next;
+      _lat = lat;
+      _lon = lon;
+      _validFrom = _prev?.time ?? nowUtc;
+      _validUntil = _next?.time ?? nowUtc.add(polarRecheck);
+    }
+    return _reading(nowUtc, _prev, _next, lat, lon);
+  }
 }
 
 double _declinationSign(DateTime utc) =>

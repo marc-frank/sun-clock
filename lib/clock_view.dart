@@ -34,7 +34,8 @@ String coords(double lat, double lon, {bool approximate = false}) {
       '${coord(lon, 'E', 'W', decimals: d)}';
 }
 
-/// Rebuilds its child four times a second with the current time.
+/// Rebuilds its child four times a second with the current time, while the
+/// app is in the foreground.
 class Ticker extends StatefulWidget {
   final Widget Function(BuildContext context, DateTime now) builder;
   const Ticker({super.key, required this.builder});
@@ -44,18 +45,44 @@ class Ticker extends StatefulWidget {
 }
 
 class _TickerState extends State<Ticker> {
-  late final Timer _timer;
+  Timer? _timer;
+  late final AppLifecycleListener _lifecycle;
 
   @override
   void initState() {
     super.initState();
-    _timer = Timer.periodic(
+    _lifecycle = AppLifecycleListener(onStateChange: _onLifecycle);
+    _start();
+  }
+
+  void _start() {
+    _timer ??= Timer.periodic(
         const Duration(milliseconds: 250), (_) => setState(() {}));
+  }
+
+  void _stop() {
+    _timer?.cancel();
+    _timer = null;
+  }
+
+  // Inactive still means visible (e.g. a system dialog on top); hidden and
+  // paused mean nobody sees the clock.
+  void _onLifecycle(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed ||
+        state == AppLifecycleState.inactive) {
+      if (_timer == null) {
+        _start();
+        setState(() {}); // show the right time at once
+      }
+    } else {
+      _stop();
+    }
   }
 
   @override
   void dispose() {
-    _timer.cancel();
+    _stop();
+    _lifecycle.dispose();
     super.dispose();
   }
 
@@ -64,7 +91,7 @@ class _TickerState extends State<Ticker> {
 }
 
 /// The main clock: dial, sun time, UTC, surrounding sun events.
-class ClockView extends StatelessWidget {
+class ClockView extends StatefulWidget {
   final double lat;
   final double lon;
   final tz.Location zone;
@@ -83,10 +110,20 @@ class ClockView extends StatelessWidget {
   });
 
   @override
+  State<ClockView> createState() => _ClockViewState();
+}
+
+class _ClockViewState extends State<ClockView> {
+  // The clock is read four times a second; the sun events behind it change
+  // only a few times a day.
+  final _sun = SunClockCache();
+
+  @override
   Widget build(BuildContext context) {
+    final lat = widget.lat, lon = widget.lon, zone = widget.zone;
     return Ticker(builder: (context, now) {
       final theme = Theme.of(context);
-      final r = sunClock(now, lat, lon);
+      final r = _sun.read(now, lat, lon);
       final muted = theme.textTheme.bodyMedium
           ?.copyWith(color: theme.colorScheme.onSurfaceVariant);
 
@@ -104,16 +141,16 @@ class ClockView extends StatelessWidget {
         const SizedBox(height: 24),
         UtcLine(now: now),
         const SizedBox(height: 24),
-        ..._eventLines(r, muted),
+        ..._eventLines(r, zone, muted),
         const SizedBox(height: 4),
         InkWell(
-          onTap: onLocationTap,
+          onTap: widget.onLocationTap,
           borderRadius: BorderRadius.circular(8),
           child: Padding(
             padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
             child: Text(
-              '${coords(lat, lon, approximate: approximate)}\n'
-              '${zone.name} (${utcOffsetLabel(now, zone)}) · $sourceLabel',
+              '${coords(lat, lon, approximate: widget.approximate)}\n'
+              '${zone.name} (${utcOffsetLabel(now, zone)}) · ${widget.sourceLabel}',
               textAlign: TextAlign.center,
               style: muted,
             ),
@@ -123,7 +160,8 @@ class ClockView extends StatelessWidget {
     });
   }
 
-  List<Widget> _eventLines(SunClockReading r, TextStyle? muted) {
+  List<Widget> _eventLines(
+      SunClockReading r, tz.Location zone, TextStyle? muted) {
     if (r.mode != SunClockMode.normal) {
       return [
         Text(
