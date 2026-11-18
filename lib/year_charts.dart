@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
@@ -21,8 +23,15 @@ class YearCharts extends StatefulWidget {
   final double lon;
   final tz.Location zone;
 
+  /// The current time; replaceable in tests.
+  final DateTime Function() clock;
+
   const YearCharts(
-      {super.key, required this.lat, required this.lon, required this.zone});
+      {super.key,
+      required this.lat,
+      required this.lon,
+      required this.zone,
+      this.clock = DateTime.now});
 
   @override
   State<YearCharts> createState() => _YearChartsState();
@@ -31,10 +40,87 @@ class YearCharts extends StatefulWidget {
 class _YearChartsState extends State<YearCharts> {
   final _cache = YearDataCache();
 
+  /// At most this many chart updates per second while the map is dragged.
+  static const _minInterval = Duration(milliseconds: 100);
+
+  // The position the charts show. While the map is dragged the location
+  // changes every frame, and each change recomputes the whole year, so the
+  // charts follow at most every [_minInterval], with a trailing update for
+  // the final position.
+  late double _lat = widget.lat;
+  late double _lon = widget.lon;
+  late tz.Location _zone = widget.zone;
+
+  /// Runs for [_minInterval] after each update; changes meanwhile wait.
+  Timer? _cooldown;
+
+  // The "today" marker (and after New Year the whole year) moves at local
+  // midnight in the location's zone. A timer set for that moment rebuilds
+  // the charts once a day instead of with every clock tick.
+  Timer? _midnight;
+  late final AppLifecycleListener _lifecycle;
+
+  @override
+  void initState() {
+    super.initState();
+    _lifecycle = AppLifecycleListener(onResume: _newDay);
+    _scheduleMidnight();
+  }
+
+  @override
+  void didUpdateWidget(YearCharts old) {
+    super.didUpdateWidget(old);
+    // The first change after a pause shows at once (build follows this);
+    // later ones wait for the cooldown to end.
+    if (_cooldown == null && _behind) _follow();
+  }
+
+  bool get _behind =>
+      widget.lat != _lat || widget.lon != _lon || widget.zone != _zone;
+
+  void _follow() {
+    final zoneChanged = widget.zone != _zone;
+    _lat = widget.lat;
+    _lon = widget.lon;
+    _zone = widget.zone;
+    if (zoneChanged) _scheduleMidnight();
+    _cooldown = Timer(_minInterval, _cooldownEnded);
+  }
+
+  void _cooldownEnded() {
+    _cooldown = null;
+    if (mounted && _behind) setState(_follow); // the trailing update
+  }
+
+  void _scheduleMidnight() {
+    _midnight?.cancel();
+    final now = inZone(widget.clock(), _zone);
+    // Midnight is skipped on a few DST days; TZDateTime then moves it on.
+    final next = tz.TZDateTime(_zone, now.year, now.month, now.day + 1);
+    final wait = next.difference(now) + const Duration(seconds: 1);
+    _midnight = Timer(wait.isNegative ? const Duration(seconds: 1) : wait,
+        _newDay);
+  }
+
+  // Also called on resume: timers can run late while the phone sleeps.
+  void _newDay() {
+    if (!mounted) return;
+    setState(() {});
+    _scheduleMidnight();
+  }
+
+  @override
+  void dispose() {
+    _midnight?.cancel();
+    _cooldown?.cancel();
+    _lifecycle.dispose();
+    super.dispose();
+  }
+
   @override
   Widget build(BuildContext context) {
-    final today = inZone(DateTime.now(), widget.zone);
-    final days = _cache.get(today.year, widget.lat, widget.lon, widget.zone);
+    final today = inZone(widget.clock(), _zone);
+    final days = _cache.get(today.year, _lat, _lon, _zone);
     final todayIndex = DateTime.utc(today.year, today.month, today.day)
         .difference(DateTime.utc(today.year))
         .inDays
@@ -44,7 +130,7 @@ class _YearChartsState extends State<YearCharts> {
     return Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
       _Section(
         title: 'Sunrise and sunset',
-        subtitle: '${today.year} · local time, ${widget.zone.name}',
+        subtitle: '${today.year} · local time, ${_zone.name}',
         legend: const [
           _LegendItem(dayColor, 'Sunrise'),
           _LegendItem(Color(0xFFFF7043), 'Sunset'),

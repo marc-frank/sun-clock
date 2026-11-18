@@ -4,6 +4,7 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:timezone/timezone.dart' as tz;
 
+import 'converter.dart';
 import 'sun_clock.dart';
 import 'zone.dart';
 
@@ -34,7 +35,8 @@ String coords(double lat, double lon, {bool approximate = false}) {
       '${coord(lon, 'E', 'W', decimals: d)}';
 }
 
-/// Rebuilds its child four times a second with the current time.
+/// Rebuilds its child four times a second with the current time, while the
+/// app is in the foreground.
 class Ticker extends StatefulWidget {
   final Widget Function(BuildContext context, DateTime now) builder;
   const Ticker({super.key, required this.builder});
@@ -44,18 +46,44 @@ class Ticker extends StatefulWidget {
 }
 
 class _TickerState extends State<Ticker> {
-  late final Timer _timer;
+  Timer? _timer;
+  late final AppLifecycleListener _lifecycle;
 
   @override
   void initState() {
     super.initState();
-    _timer = Timer.periodic(
+    _lifecycle = AppLifecycleListener(onStateChange: _onLifecycle);
+    _start();
+  }
+
+  void _start() {
+    _timer ??= Timer.periodic(
         const Duration(milliseconds: 250), (_) => setState(() {}));
+  }
+
+  void _stop() {
+    _timer?.cancel();
+    _timer = null;
+  }
+
+  // Inactive still means visible (e.g. a system dialog on top); hidden and
+  // paused mean nobody sees the clock.
+  void _onLifecycle(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed ||
+        state == AppLifecycleState.inactive) {
+      if (_timer == null) {
+        _start();
+        setState(() {}); // show the right time at once
+      }
+    } else {
+      _stop();
+    }
   }
 
   @override
   void dispose() {
-    _timer.cancel();
+    _stop();
+    _lifecycle.dispose();
     super.dispose();
   }
 
@@ -63,8 +91,28 @@ class _TickerState extends State<Ticker> {
   Widget build(BuildContext context) => widget.builder(context, DateTime.now());
 }
 
-/// The main clock: dial, sun time, UTC, surrounding sun events.
-class ClockView extends StatelessWidget {
+/// Dial diameter for a screen of [screen] logical pixels: as large as fits
+/// beside the text of the first screen (which grows with [textScale]),
+/// between 120 and 300, and never wider than [maxWidth].
+double dialSize(Size screen, double maxWidth, double textScale) {
+  // What the top bar, the times, the event lines and the gaps need, measured
+  // on a phone at text scale 1: about 200 px of padding and icons and 320 px
+  // of text.
+  final byHeight = screen.height - 200 - 320 * textScale;
+  return byHeight.clamp(120.0, 300.0).clamp(0.0, maxWidth);
+}
+
+/// "Sun time 14:32, day": what a screen reader says for the dial.
+String dialLabel(SunClockReading r) {
+  final t = r.sunTime;
+  return 'Sun time ${two(t.inHours % 24)}:${two(t.inMinutes % 60)}, '
+      '${r.isDay ? 'day' : 'night'}'
+      '${r.mode == SunClockMode.solarTimeFallback ? ', solar time' : ''}';
+}
+
+/// The main clock: dial, sun time, local time and UTC, surrounding sun
+/// events.
+class ClockView extends StatefulWidget {
   final double lat;
   final double lon;
   final tz.Location zone;
@@ -83,39 +131,106 @@ class ClockView extends StatelessWidget {
   });
 
   @override
+  State<ClockView> createState() => _ClockViewState();
+}
+
+class _ClockViewState extends State<ClockView> {
+  // The clock is read four times a second; the sun events behind it change
+  // only a few times a day.
+  final _sun = SunClockCache();
+
+  // The dial's screen-reader label, renewed at most once a minute (or when
+  // the place changes) so the reader is not flooded with changes.
+  String? _label;
+  DateTime? _labelTime;
+  double? _labelLat, _labelLon;
+
+  String _labelFor(DateTime now, SunClockReading r) {
+    final stale = _labelTime == null ||
+        now.difference(_labelTime!).abs() >= const Duration(minutes: 1) ||
+        _labelLat != widget.lat ||
+        _labelLon != widget.lon;
+    if (stale) {
+      _label = dialLabel(r);
+      _labelTime = now;
+      _labelLat = widget.lat;
+      _labelLon = widget.lon;
+    }
+    return _label!;
+  }
+
+  @override
   Widget build(BuildContext context) {
+    final lat = widget.lat, lon = widget.lon, zone = widget.zone;
     return Ticker(builder: (context, now) {
       final theme = Theme.of(context);
-      final r = sunClock(now, lat, lon);
+      final r = _sun.read(now, lat, lon);
       final muted = theme.textTheme.bodyMedium
           ?.copyWith(color: theme.colorScheme.onSurfaceVariant);
 
+      final mq = MediaQuery.of(context);
+      final screen = mq.padding.deflateSize(mq.size);
+      final textScale = mq.textScaler.scale(16) / 16;
+
       return Column(mainAxisSize: MainAxisSize.min, children: [
-        SizedBox(
-          width: 280,
-          height: 280,
-          child: CustomPaint(painter: DialPainter(r.sunTime, theme)),
+        // Dial, sun time and day/night read as one label, renewed once a
+        // minute instead of with every tick.
+        Semantics(
+          container: true,
+          label: _labelFor(now, r),
+          child: ExcludeSemantics(
+            child: Column(mainAxisSize: MainAxisSize.min, children: [
+              LayoutBuilder(builder: (context, box) {
+                final d = dialSize(screen, box.maxWidth, textScale);
+                return SizedBox(
+                  width: d,
+                  height: d,
+                  child: CustomPaint(painter: DialPainter(r.sunTime, theme)),
+                );
+              }),
+              const SizedBox(height: 24),
+              FittedBox(
+                fit: BoxFit.scaleDown,
+                child: Text(hms(r.sunTime),
+                    style: theme.textTheme.displayLarge
+                        ?.copyWith(fontFeatures: tabular)),
+              ),
+              Text(r.isDay ? 'Sun time · day' : 'Sun time · night',
+                  style: muted),
+            ]),
+          ),
         ),
         const SizedBox(height: 24),
-        Text(hms(r.sunTime),
-            style: theme.textTheme.displayLarge
-                ?.copyWith(fontFeatures: tabular)),
-        Text(r.isDay ? 'Sun time · day' : 'Sun time · night', style: muted),
-        const SizedBox(height: 24),
-        UtcLine(now: now),
-        const SizedBox(height: 24),
-        ..._eventLines(r, muted),
+        FittedBox(
+          fit: BoxFit.scaleDown,
+          child: TimeLines(now: now, zone: zone),
+        ),
+        TextButton.icon(
+          onPressed: () =>
+              showConverter(context, lat: lat, lon: lon, zone: zone),
+          icon: const Icon(Icons.swap_horiz),
+          label: const Text('Convert a time'),
+        ),
+        const SizedBox(height: 16),
+        ..._eventLines(r, zone, muted),
         const SizedBox(height: 4),
-        InkWell(
-          onTap: onLocationTap,
-          borderRadius: BorderRadius.circular(8),
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-            child: Text(
-              '${coords(lat, lon, approximate: approximate)}\n'
-              '${zone.name} (${utcOffsetLabel(now, zone)}) · $sourceLabel',
-              textAlign: TextAlign.center,
-              style: muted,
+        Semantics(
+          button: widget.onLocationTap != null,
+          hint: widget.onLocationTap == null
+              ? null
+              : 'Opens the map to pick a place',
+          child: InkWell(
+            onTap: widget.onLocationTap,
+            borderRadius: BorderRadius.circular(8),
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+              child: Text(
+                '${coords(lat, lon, approximate: widget.approximate)}\n'
+                '${zone.name} (${utcOffsetLabel(now, zone)}) · '
+                '${widget.sourceLabel}',
+                textAlign: TextAlign.center,
+                style: muted,
+              ),
             ),
           ),
         ),
@@ -123,7 +238,8 @@ class ClockView extends StatelessWidget {
     });
   }
 
-  List<Widget> _eventLines(SunClockReading r, TextStyle? muted) {
+  List<Widget> _eventLines(
+      SunClockReading r, tz.Location zone, TextStyle? muted) {
     if (r.mode != SunClockMode.normal) {
       return [
         Text(
@@ -137,21 +253,56 @@ class ClockView extends StatelessWidget {
         '${e.isSunrise ? 'Sunrise' : 'Sunset'} ${hm(inZone(e.time, zone))}';
     return [
       // An icon instead of a "→" character, which sits off-centre in the font.
-      Row(mainAxisSize: MainAxisSize.min, children: [
-        Text(ev(r.previous!), style: muted),
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 12),
-          child: Icon(Icons.arrow_forward,
-              size: (muted?.fontSize ?? 14) + 2, color: muted?.color),
-        ),
-        Text(ev(r.next!), style: muted),
-      ]),
+      // A Wrap, so large text breaks the line instead of overflowing.
+      Wrap(
+          alignment: WrapAlignment.center,
+          crossAxisAlignment: WrapCrossAlignment.center,
+          children: [
+            Text(ev(r.previous!), style: muted),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 12),
+              child: Icon(Icons.arrow_forward,
+                  size: (muted?.fontSize ?? 14) + 2, color: muted?.color),
+            ),
+            Text(ev(r.next!), style: muted),
+          ]),
       const SizedBox(height: 4),
       Text(
           '1 sun hour = ${r.realMinutesPerSunHour.toStringAsFixed(1)} '
           'real minutes',
           style: muted),
     ];
+  }
+}
+
+/// Local wall-clock time of [zone] and UTC, one line each.
+class TimeLines extends StatelessWidget {
+  final DateTime now;
+  final tz.Location zone;
+  const TimeLines({super.key, required this.now, required this.zone});
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final style =
+        theme.textTheme.headlineSmall?.copyWith(fontFeatures: tabular);
+    final label = style?.copyWith(color: theme.colorScheme.onSurfaceVariant);
+    final local = inZone(now, zone);
+    final utc = now.toUtc();
+    TableRow row(String name, DateTime t) => TableRow(children: [
+          Padding(
+            padding: const EdgeInsets.only(right: 12),
+            child: Text(name, style: label),
+          ),
+          Text(hms(Duration(hours: t.hour, minutes: t.minute, seconds: t.second)),
+              style: style),
+        ]);
+    return Table(
+      defaultColumnWidth: const IntrinsicColumnWidth(),
+      defaultVerticalAlignment: TableCellVerticalAlignment.baseline,
+      textBaseline: TextBaseline.alphabetic,
+      children: [row('Local', local), row('UTC', utc)],
+    );
   }
 }
 
