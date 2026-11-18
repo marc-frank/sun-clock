@@ -8,6 +8,8 @@ data class SunData(
     val events: List<Pair<Long, Boolean>>,
     /** Solar noons (utcMillis), for the polar-day/night fallback. */
     val noons: List<Long>,
+    /** Latitude, for the polar-day/night fallback's day/night flag. */
+    val lat: Double,
     val label: String,
     val computedAt: Long,
 )
