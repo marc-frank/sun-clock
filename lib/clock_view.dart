@@ -91,7 +91,27 @@ class _TickerState extends State<Ticker> {
   Widget build(BuildContext context) => widget.builder(context, DateTime.now());
 }
 
-/// The main clock: dial, sun time, UTC, surrounding sun events.
+/// Dial diameter for a screen of [screen] logical pixels: as large as fits
+/// beside the text of the first screen (which grows with [textScale]),
+/// between 120 and 300, and never wider than [maxWidth].
+double dialSize(Size screen, double maxWidth, double textScale) {
+  // What the top bar, the times, the event lines and the gaps need, measured
+  // on a phone at text scale 1: about 200 px of padding and icons and 320 px
+  // of text.
+  final byHeight = screen.height - 200 - 320 * textScale;
+  return byHeight.clamp(120.0, 300.0).clamp(0.0, maxWidth);
+}
+
+/// "Sun time 14:32, day": what a screen reader says for the dial.
+String dialLabel(SunClockReading r) {
+  final t = r.sunTime;
+  return 'Sun time ${two(t.inHours % 24)}:${two(t.inMinutes % 60)}, '
+      '${r.isDay ? 'day' : 'night'}'
+      '${r.mode == SunClockMode.solarTimeFallback ? ', solar time' : ''}';
+}
+
+/// The main clock: dial, sun time, local time and UTC, surrounding sun
+/// events.
 class ClockView extends StatefulWidget {
   final double lat;
   final double lon;
@@ -119,6 +139,26 @@ class _ClockViewState extends State<ClockView> {
   // only a few times a day.
   final _sun = SunClockCache();
 
+  // The dial's screen-reader label, renewed at most once a minute (or when
+  // the place changes) so the reader is not flooded with changes.
+  String? _label;
+  DateTime? _labelTime;
+  double? _labelLat, _labelLon;
+
+  String _labelFor(DateTime now, SunClockReading r) {
+    final stale = _labelTime == null ||
+        now.difference(_labelTime!).abs() >= const Duration(minutes: 1) ||
+        _labelLat != widget.lat ||
+        _labelLon != widget.lon;
+    if (stale) {
+      _label = dialLabel(r);
+      _labelTime = now;
+      _labelLat = widget.lat;
+      _labelLon = widget.lon;
+    }
+    return _label!;
+  }
+
   @override
   Widget build(BuildContext context) {
     final lat = widget.lat, lon = widget.lon, zone = widget.zone;
@@ -128,19 +168,43 @@ class _ClockViewState extends State<ClockView> {
       final muted = theme.textTheme.bodyMedium
           ?.copyWith(color: theme.colorScheme.onSurfaceVariant);
 
+      final mq = MediaQuery.of(context);
+      final screen = mq.padding.deflateSize(mq.size);
+      final textScale = mq.textScaler.scale(16) / 16;
+
       return Column(mainAxisSize: MainAxisSize.min, children: [
-        SizedBox(
-          width: 280,
-          height: 280,
-          child: CustomPaint(painter: DialPainter(r.sunTime, theme)),
+        // Dial, sun time and day/night read as one label, renewed once a
+        // minute instead of with every tick.
+        Semantics(
+          container: true,
+          label: _labelFor(now, r),
+          child: ExcludeSemantics(
+            child: Column(mainAxisSize: MainAxisSize.min, children: [
+              LayoutBuilder(builder: (context, box) {
+                final d = dialSize(screen, box.maxWidth, textScale);
+                return SizedBox(
+                  width: d,
+                  height: d,
+                  child: CustomPaint(painter: DialPainter(r.sunTime, theme)),
+                );
+              }),
+              const SizedBox(height: 24),
+              FittedBox(
+                fit: BoxFit.scaleDown,
+                child: Text(hms(r.sunTime),
+                    style: theme.textTheme.displayLarge
+                        ?.copyWith(fontFeatures: tabular)),
+              ),
+              Text(r.isDay ? 'Sun time · day' : 'Sun time · night',
+                  style: muted),
+            ]),
+          ),
         ),
         const SizedBox(height: 24),
-        Text(hms(r.sunTime),
-            style: theme.textTheme.displayLarge
-                ?.copyWith(fontFeatures: tabular)),
-        Text(r.isDay ? 'Sun time · day' : 'Sun time · night', style: muted),
-        const SizedBox(height: 24),
-        TimeLines(now: now, zone: zone),
+        FittedBox(
+          fit: BoxFit.scaleDown,
+          child: TimeLines(now: now, zone: zone),
+        ),
         TextButton.icon(
           onPressed: () =>
               showConverter(context, lat: lat, lon: lon, zone: zone),
@@ -150,16 +214,23 @@ class _ClockViewState extends State<ClockView> {
         const SizedBox(height: 16),
         ..._eventLines(r, zone, muted),
         const SizedBox(height: 4),
-        InkWell(
-          onTap: widget.onLocationTap,
-          borderRadius: BorderRadius.circular(8),
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-            child: Text(
-              '${coords(lat, lon, approximate: widget.approximate)}\n'
-              '${zone.name} (${utcOffsetLabel(now, zone)}) · ${widget.sourceLabel}',
-              textAlign: TextAlign.center,
-              style: muted,
+        Semantics(
+          button: widget.onLocationTap != null,
+          hint: widget.onLocationTap == null
+              ? null
+              : 'Opens the map to pick a place',
+          child: InkWell(
+            onTap: widget.onLocationTap,
+            borderRadius: BorderRadius.circular(8),
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+              child: Text(
+                '${coords(lat, lon, approximate: widget.approximate)}\n'
+                '${zone.name} (${utcOffsetLabel(now, zone)}) · '
+                '${widget.sourceLabel}',
+                textAlign: TextAlign.center,
+                style: muted,
+              ),
             ),
           ),
         ),
@@ -182,15 +253,19 @@ class _ClockViewState extends State<ClockView> {
         '${e.isSunrise ? 'Sunrise' : 'Sunset'} ${hm(inZone(e.time, zone))}';
     return [
       // An icon instead of a "→" character, which sits off-centre in the font.
-      Row(mainAxisSize: MainAxisSize.min, children: [
-        Text(ev(r.previous!), style: muted),
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 12),
-          child: Icon(Icons.arrow_forward,
-              size: (muted?.fontSize ?? 14) + 2, color: muted?.color),
-        ),
-        Text(ev(r.next!), style: muted),
-      ]),
+      // A Wrap, so large text breaks the line instead of overflowing.
+      Wrap(
+          alignment: WrapAlignment.center,
+          crossAxisAlignment: WrapCrossAlignment.center,
+          children: [
+            Text(ev(r.previous!), style: muted),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 12),
+              child: Icon(Icons.arrow_forward,
+                  size: (muted?.fontSize ?? 14) + 2, color: muted?.color),
+            ),
+            Text(ev(r.next!), style: muted),
+          ]),
       const SizedBox(height: 4),
       Text(
           '1 sun hour = ${r.realMinutesPerSunHour.toStringAsFixed(1)} '
