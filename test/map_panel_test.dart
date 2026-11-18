@@ -4,14 +4,20 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:sun_clock/location_model.dart';
 import 'package:sun_clock/map_picker.dart';
+import 'package:sun_clock/world_map.dart';
 import 'package:sun_clock/zone.dart';
 
 /// The map panel sits in the scrolling home page under the charts.
 void main() {
-  setUpAll(initZones);
+  TestWidgetsFlutterBinding.ensureInitialized();
+  setUpAll(() async {
+    initZones();
+    await WorldMapData.load();
+  });
   setUp(() => SharedPreferences.setMockInitialValues({}));
 
-  Future<(LocationModel, ScrollController)> pumpPanel(WidgetTester tester) async {
+  Future<(LocationModel, ScrollController)> pumpPanel(
+      WidgetTester tester) async {
     tester.view.physicalSize = const Size(400, 800);
     tester.view.devicePixelRatio = 1;
     addTearDown(tester.view.reset);
@@ -31,6 +37,17 @@ void main() {
     await tester.pump();
     return (model, scroll);
   }
+
+  testWidgets('the map is drawn from the bundled data, not the network',
+      (tester) async {
+    await pumpPanel(tester);
+    final tiles = tester.widget<TileLayer>(find.byType(TileLayer));
+    expect(tiles.tileProvider, isA<WorldTileProvider>());
+    expect(tiles.urlTemplate, isNull);
+    expect(find.text('Natural Earth'), findsOneWidget);
+    expect(find.text('Berlin'), findsOneWidget);
+    await tester.pump(const Duration(seconds: 1)); // let the save timer run
+  });
 
   testWidgets('dragging the panel map moves the location, not the page',
       (tester) async {

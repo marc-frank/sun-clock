@@ -68,6 +68,10 @@ flutter:
   # the material Icons class.
   uses-material-design: true
 
+  # Offline world map, built by `python tool/make_map.py` from Natural Earth.
+  assets:
+    - assets/map/world.bin
+
   # To add assets to your application, add an assets section, like this:
   # assets:
   #   - images/a_dot_burr.jpeg

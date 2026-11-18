@@ -5,6 +5,7 @@ import 'package:latlong2/latlong.dart';
 import 'clock_view.dart';
 import 'location_model.dart';
 import 'sun_clock.dart';
+import 'world_map.dart';
 import 'year_data.dart';
 import 'zone.dart';
 
@@ -30,10 +31,18 @@ class SunMapState extends State<SunMap> {
 
   LocationModel get model => widget.model;
 
+  /// The offline map, parsed once for the whole app.
+  WorldMapData? _data = WorldMapData.loaded;
+
   @override
   void initState() {
     super.initState();
     model.addListener(_follow);
+    if (_data == null) {
+      WorldMapData.load().then((d) {
+        if (mounted) setState(() => _data = d);
+      });
+    }
   }
 
   @override
@@ -71,6 +80,7 @@ class SunMapState extends State<SunMap> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final data = _data;
     final start = model.hasPosition
         ? LatLng(model.latitude!, model.longitude!)
         : const LatLng(20, 0);
@@ -80,8 +90,9 @@ class SunMapState extends State<SunMap> {
         options: MapOptions(
           initialCenter: start,
           initialZoom: model.hasPosition ? _sharedZoom : 2,
-          minZoom: 2,
-          maxZoom: 16,
+          minZoom: worldMinZoom,
+          maxZoom: worldMaxZoom,
+          backgroundColor: sea,
           interactionOptions: const InteractionOptions(
               flags: InteractiveFlag.all & ~InteractiveFlag.rotate),
           onMapReady: () => _ready = true,
@@ -99,17 +110,16 @@ class SunMapState extends State<SunMap> {
           },
         ),
         children: [
-          TileLayer(
-            urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
-            userAgentPackageName: 'com.sunriseclock.sun_clock',
-            maxNativeZoom: 19,
-          ),
-          const RichAttributionWidget(
-            alignment: AttributionAlignment.bottomLeft,
-            attributions: [
-              TextSourceAttribution('OpenStreetMap contributors'),
-            ],
-          ),
+          if (data != null) ...[
+            TileLayer(
+              tileProvider: WorldTileProvider(
+                  data, MediaQuery.devicePixelRatioOf(context).clamp(1, 3)),
+              maxNativeZoom: worldMaxZoom.toInt(),
+              tileDisplay: const TileDisplay.instantaneous(),
+            ),
+            CityLabels(data: data),
+          ],
+          const NaturalEarthCredit(),
         ],
       ),
       // Centre pin: the tip of the icon marks the point.
@@ -219,16 +229,15 @@ class _MapPanelState extends State<MapPanel> {
             ),
           ]),
         ),
-        SizedBox(
-            height: widget.height, child: SunMap(key: _map, model: model)),
+        SizedBox(height: widget.height, child: SunMap(key: _map, model: model)),
       ]),
     );
   }
 }
 
 Future<void> openMapPicker(BuildContext context, LocationModel model) =>
-    Navigator.of(context).push(
-        MaterialPageRoute(builder: (_) => MapPickerPage(model: model)));
+    Navigator.of(context)
+        .push(MaterialPageRoute(builder: (_) => MapPickerPage(model: model)));
 
 /// Full-screen map with a live preview of the clock.
 class MapPickerPage extends StatelessWidget {
@@ -332,7 +341,8 @@ class _LivePreview extends StatelessWidget {
                           'night ${_min(d.nightHourMinutes)}',
                           style: muted?.copyWith(fontFeatures: tabular),
                         ),
-                        Text('${coords(lat, lon, approximate: model.isApproximate)} · ${zoneCity(zone)}',
+                        Text(
+                            '${coords(lat, lon, approximate: model.isApproximate)} · ${zoneCity(zone)}',
                             style: muted,
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis),
@@ -346,5 +356,6 @@ class _LivePreview extends StatelessWidget {
     );
   }
 
-  static String _min(double? m) => m == null ? '—' : '${m.toStringAsFixed(0)} min';
+  static String _min(double? m) =>
+      m == null ? '—' : '${m.toStringAsFixed(0)} min';
 }
