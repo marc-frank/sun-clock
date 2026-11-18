@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="widget_label">Sonnenzeit</string>
+    <string name="widget_description">Aktuelle Sonnenzeit und der nächste Sonnenauf- oder -untergang</string>
+    <string name="widget_day">Tag</string>
+    <string name="widget_night">Nacht</string>
+    <string name="widget_sunrise_at">Aufgang %1$s</string>
+    <string name="widget_sunset_at">Untergang %1$s</string>
+    <string name="widget_solar_time">wahre Sonnenzeit</string>
+    <string name="widget_no_position">Sun Clock öffnen, um einen Ort festzulegen</string>
+    <string name="widget_preview_detail">Tag · Untergang 17:42</string>
+    <string name="notif_title">%1$s Sonnenzeit</string>
+    <string name="notif_sunrise_in">Aufgang in %1$s</string>
+    <string name="notif_sunset_in">Untergang in %1$s</string>
+    <string name="notif_solar">wahre Sonnenzeit (kein Sonnenauf-/-untergang)</string>
+    <string name="notif_hour_length">1 h = %1$d min</string>
+    <string name="duration_h_min">%1$d h %2$d min</string>
+    <string name="duration_min">%1$d min</string>
+    <string name="channel_name">Sonnenzeit in der Statusleiste</string>
+    <string name="channel_description">Zeigt die aktuelle Sonnenzeit in der Statusleiste.</string>
+</resources>

@@ -14,6 +14,9 @@ import 'zone.dart';
 
 enum LocationSource { gps, map }
 
+/// Why no GPS position is available; the UI turns it into text.
+enum GpsError { servicesOff, permissionDenied, noFix }
+
 /// How exactly GPS positions are used. Approximate is the default: it asks the
 /// system for a coarse fix only and rounds it to 0.01° (about 1 km), which
 /// changes sun times by a few seconds at most.
@@ -26,7 +29,7 @@ class LocationModel extends ChangeNotifier {
   double? _lat;
   double? _lon;
   tz.Location? _zone;
-  String? _gpsError;
+  GpsError? _gpsError;
 
   StreamSubscription<Position>? _gpsSub;
   Timer? _saveTimer;
@@ -47,7 +50,7 @@ class LocationModel extends ChangeNotifier {
   bool get hasPosition => _lat != null && _lon != null;
 
   /// Set when GPS is the source and no fix can be obtained.
-  String? get gpsError => _gpsError;
+  GpsError? get gpsError => _gpsError;
 
   static const _kSource = 'source';
   static const _kLat = 'lat';
@@ -106,7 +109,7 @@ class LocationModel extends ChangeNotifier {
     _saveSoon();
     try {
       if (!await Geolocator.isLocationServiceEnabled()) {
-        return _fail('Location services are turned off.');
+        return _fail(GpsError.servicesOff);
       }
       final precise = _precision == LocationPrecision.precise;
       var permission = await Geolocator.checkPermission();
@@ -123,7 +126,7 @@ class LocationModel extends ChangeNotifier {
       }
       if (permission == LocationPermission.denied ||
           permission == LocationPermission.deniedForever) {
-        return _fail('Location permission was not granted.');
+        return _fail(GpsError.permissionDenied);
       }
       if (_source != LocationSource.gps) return; // user picked a point meanwhile
       if (precise) {
@@ -156,16 +159,16 @@ class LocationModel extends ChangeNotifier {
           _set(p.latitude, p.longitude);
           _saveSoon();
         },
-        onError: (Object e) => _fail('Could not get a GPS fix.'),
+        onError: (Object e) => _fail(GpsError.noFix),
       );
     } catch (e) {
-      _fail('Could not get a GPS fix.');
+      _fail(GpsError.noFix);
     }
   }
 
-  void _fail(String message) {
+  void _fail(GpsError error) {
     if (_source != LocationSource.gps) return;
-    _gpsError = message;
+    _gpsError = error;
     notifyListeners();
   }
 

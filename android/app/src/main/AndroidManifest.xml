@@ -1,5 +1,6 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
-    <uses-permission android:name="android.permission.INTERNET" />
+    <!-- No INTERNET permission: the map is bundled and nothing is sent or
+         loaded. (Debug and profile builds add it for the Flutter tools.) -->
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
     <!-- Only requested when "Precise" is chosen in Settings (MainActivity). -->
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />

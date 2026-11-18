@@ -347,8 +347,8 @@ class SunClockService : Service() {
 
         if (r == null) {
             return builder.setSmallIcon(R.drawable.ic_stat_sun)
-                .setContentTitle("Sun time")
-                .setContentText("Open Sun Clock to set a location.")
+                .setContentTitle(getString(R.string.widget_label))
+                .setContentText(getString(R.string.widget_no_position))
                 .build()
         }
 
@@ -357,19 +357,25 @@ class SunClockService : Service() {
         val mm = (total % 60).toString().padStart(2, '0')
 
         val detail = buildString {
-            append(if (r.isDay) "Day" else "Night")
+            append(getString(if (r.isDay) R.string.widget_day else R.string.widget_night))
             val next = r.next
             if (next != null) {
                 append(" · ")
-                append(if (next.second) "sunrise in " else "sunset in ")
-                append(duration(next.first - now))
+                append(
+                    getString(
+                        if (next.second) R.string.notif_sunrise_in else R.string.notif_sunset_in,
+                        duration(next.first - now),
+                    ),
+                )
             } else {
-                append(" · solar time (no sunrise/sunset)")
+                append(" · ").append(getString(R.string.notif_solar))
             }
-            r.realMinutesPerHour?.let { append(" · 1 h = ${Math.round(it)} min") }
+            r.realMinutesPerHour?.let {
+                append(" · ").append(getString(R.string.notif_hour_length, Math.round(it).toInt()))
+            }
         }
 
-        builder.setContentTitle("$hh:$mm sun time")
+        builder.setContentTitle(getString(R.string.notif_title, "$hh:$mm"))
             .setContentText(detail)
         if (d.label.isNotEmpty()) builder.setSubText(d.label)
         if (Build.VERSION.SDK_INT >= 36 && wantsTextChip(this)) {
@@ -392,7 +398,11 @@ class SunClockService : Service() {
 
     private fun duration(ms: Long): String {
         val min = (ms / 60000L).coerceAtLeast(0)
-        return if (min >= 60) "${min / 60} h ${min % 60} min" else "$min min"
+        return if (min >= 60) {
+            getString(R.string.duration_h_min, (min / 60).toInt(), (min % 60).toInt())
+        } else {
+            getString(R.string.duration_min, min.toInt())
+        }
     }
 
     /**
@@ -430,9 +440,9 @@ class SunClockService : Service() {
         if (Build.VERSION.SDK_INT < 26) return
         val nm = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
         val channel = NotificationChannel(
-            CHANNEL_ID, "Sun time in status bar", NotificationManager.IMPORTANCE_LOW,
+            CHANNEL_ID, getString(R.string.channel_name), NotificationManager.IMPORTANCE_LOW,
         ).apply {
-            description = "Shows the current sun time in the status bar."
+            description = getString(R.string.channel_description)
             setShowBadge(false)
             setSound(null, null)
             enableVibration(false)

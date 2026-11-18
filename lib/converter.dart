@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:timezone/timezone.dart' as tz;
 
 import 'clock_view.dart';
+import 'l10n/l10n.dart';
 import 'sun_clock.dart';
 import 'zone.dart';
 
@@ -22,11 +23,6 @@ void showConverter(BuildContext context,
     ),
   );
 }
-
-const _monthNames = [
-  'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
-  'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec',
-];
 
 String _hmOf(TimeOfDay t) => '${two(t.hour)}:${two(t.minute)}';
 
@@ -62,7 +58,7 @@ class _ConverterPanelState extends State<ConverterPanel> {
     final picked = await showTimePicker(
       context: context,
       initialTime: sun ? _sun : _local,
-      helpText: sun ? 'Sun time' : 'Local time',
+      helpText: sun ? context.l10n.sunTime : context.l10n.localTime,
       builder: (context, child) => MediaQuery(
         data: MediaQuery.of(context).copyWith(alwaysUse24HourFormat: true),
         child: child!,
@@ -73,19 +69,19 @@ class _ConverterPanelState extends State<ConverterPanel> {
   }
 
   /// Sun time at the picked local time today.
-  String _localToSun() {
+  String _localToSun(AppLocalizations l) {
     final z = widget.zone;
     final t = tz.TZDateTime(
         z, _today.year, _today.month, _today.day, _local.hour, _local.minute);
     final r = sunClock(t, widget.lat, widget.lon);
     final s = r.sunTime;
-    return '${two(s.inHours % 24)}:${two(s.inMinutes % 60)} sun time · '
-        '${r.isDay ? 'day' : 'night'}'
-        '${r.mode == SunClockMode.solarTimeFallback ? ' (solar time)' : ''}';
+    final time = '${two(s.inHours % 24)}:${two(s.inMinutes % 60)}';
+    return '${r.isDay ? l.resultSunDay(time) : l.resultSunNight(time)}'
+        '${r.mode == SunClockMode.solarTimeFallback ? ' ${l.solarParen}' : ''}';
   }
 
   /// Local times today at which the clock shows the picked sun time.
-  String _sunToLocal() {
+  String _sunToLocal(AppLocalizations l) {
     final z = widget.zone;
     final found = instantsForSunTime(
       Duration(hours: _sun.hour, minutes: _sun.minute),
@@ -94,45 +90,43 @@ class _ConverterPanelState extends State<ConverterPanel> {
       widget.lat,
       widget.lon,
     );
-    if (found.isEmpty) return 'Not today';
-    final times = found.map((t) => hm(inZone(t, z))).join(' and ');
+    if (found.isEmpty) return l.notToday;
+    final times = found.map((t) => hm(inZone(t, z))).join(' ${l.andWord} ');
     final solar = found.any((t) =>
         sunClock(t, widget.lat, widget.lon).mode ==
         SunClockMode.solarTimeFallback);
-    return '$times local time${solar ? ' (solar time)' : ''}';
+    return '${l.resultLocal(times)}${solar ? ' ${l.solarParen}' : ''}';
   }
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final l = context.l10n;
     final muted = theme.textTheme.bodyMedium
         ?.copyWith(color: theme.colorScheme.onSurfaceVariant);
     return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-      Text('Convert a time', style: theme.textTheme.headlineSmall),
+      Text(l.convertTime, style: theme.textTheme.headlineSmall),
       Text(
-          'Today, ${_today.day} ${_monthNames[_today.month - 1]} · '
-          '${widget.zone.name}',
+          l.todayLine(dayMonthLabel(l, _today), widget.zone.name),
           style: muted),
       const SizedBox(height: 20),
       _Row(
-        title: 'From local time to sun time',
+        title: l.fromLocalToSun,
         value: _hmOf(_local),
-        pickLabel: 'Pick a local time',
+        pickLabel: l.pickLocal,
         onPick: () => _pick(false),
-        result: _localToSun(),
+        result: _localToSun(l),
       ),
       const SizedBox(height: 20),
       _Row(
-        title: 'From sun time to local time',
+        title: l.fromSunToLocal,
         value: _hmOf(_sun),
-        pickLabel: 'Pick a sun time',
+        pickLabel: l.pickSun,
         onPick: () => _pick(true),
-        result: _sunToLocal(),
+        result: _sunToLocal(l),
       ),
       const SizedBox(height: 16),
-      Text(
-          'Sun time follows today\'s sunrise and sunset here: 06:00 is '
-          'sunrise, 18:00 sunset.',
+      Text(l.converterNote,
           style: theme.textTheme.bodySmall
               ?.copyWith(color: theme.colorScheme.onSurfaceVariant)),
     ]);

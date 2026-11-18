@@ -1,0 +1,353 @@
+// ignore: unused_import
+import 'package:intl/intl.dart' as intl;
+import 'app_localizations.dart';
+
+// ignore_for_file: type=lint
+
+/// The translations for German (`de`).
+class AppLocalizationsDe extends AppLocalizations {
+  AppLocalizationsDe([String locale = 'de']) : super(locale);
+
+  @override
+  String get sourceGpsApprox => 'GPS, ungefähr';
+
+  @override
+  String get sourceGps => 'GPS';
+
+  @override
+  String get sourceMap => 'auf der Karte gewählt';
+
+  @override
+  String get aboutTooltip => 'Über die Sonnenzeit';
+
+  @override
+  String get statusBarHide => 'Sonnenzeit in der Statusleiste ausblenden';
+
+  @override
+  String get statusBarShow => 'Sonnenzeit in der Statusleiste anzeigen';
+
+  @override
+  String get settings => 'Einstellungen';
+
+  @override
+  String get pickOnMapTooltip => 'Ort auf der Karte wählen';
+
+  @override
+  String get theYear => 'Das Jahr';
+
+  @override
+  String get findingPosition => 'Standort wird ermittelt …';
+
+  @override
+  String get needsPosition =>
+      'Sun Clock braucht einen Standort, um zu wissen, wann die Sonne auf- und untergeht.';
+
+  @override
+  String get retry => 'Erneut versuchen';
+
+  @override
+  String get pickPlaceOnMap => 'Ort auf der Karte wählen';
+
+  @override
+  String version(String build, String version) {
+    return 'Version $version ($build)';
+  }
+
+  @override
+  String get sunTime => 'Sonnenzeit';
+
+  @override
+  String get aboutBody =>
+      'Sun Clock teilt den Tag in 24 Stunden, die der Sonne folgen. Sonnenaufgang ist immer um 06:00 und Sonnenuntergang immer um 18:00. Die 12 Tagstunden teilen das echte Tageslicht gleichmäßig auf, die 12 Nachtstunden die Nacht.\n\nIm Winter sind die Tagstunden kurz und die Nachtstunden lang, im Sommer ist es umgekehrt. Zur Tagundnachtgleiche dauert jede Stunde etwa 60 Minuten.\n\nSonnenaufgang und Sonnenuntergang werden mit den Sonnenformeln der NOAA berechnet (der obere Sonnenrand berührt den Horizont, mit Standardrefraktion). Wenn die Sonne gar nicht auf- oder untergeht, zeigt die Uhr die wahre Sonnenzeit, mit 12:00 beim Sonnenhöchststand.';
+
+  @override
+  String get mapCredit => 'Kartendaten: Natural Earth (gemeinfrei).';
+
+  @override
+  String get licences => 'Open-Source-Lizenzen';
+
+  @override
+  String get gpsServicesOff => 'Die Standortdienste sind ausgeschaltet.';
+
+  @override
+  String get gpsPermissionDenied =>
+      'Die Standortberechtigung wurde nicht erteilt.';
+
+  @override
+  String get gpsNoFix => 'Es konnte kein GPS-Standort ermittelt werden.';
+
+  @override
+  String dialDay(String time) {
+    return 'Sonnenzeit $time, Tag';
+  }
+
+  @override
+  String dialNight(String time) {
+    return 'Sonnenzeit $time, Nacht';
+  }
+
+  @override
+  String get dialSolarSuffix => ', wahre Sonnenzeit';
+
+  @override
+  String get sunTimeDay => 'Sonnenzeit · Tag';
+
+  @override
+  String get sunTimeNight => 'Sonnenzeit · Nacht';
+
+  @override
+  String get convertTime => 'Zeit umrechnen';
+
+  @override
+  String get locationHint => 'Öffnet die Karte zur Ortswahl';
+
+  @override
+  String get noSunset =>
+      'Die Sonne geht hier heute nicht unter.\nAngezeigt wird die wahre Sonnenzeit (12:00 = Sonnenhöchststand).';
+
+  @override
+  String get noSunrise =>
+      'Die Sonne geht hier heute nicht auf.\nAngezeigt wird die wahre Sonnenzeit (12:00 = Sonnenhöchststand).';
+
+  @override
+  String get sunrise => 'Sonnenaufgang';
+
+  @override
+  String get sunset => 'Sonnenuntergang';
+
+  @override
+  String sunriseAt(String time) {
+    return 'Sonnenaufgang $time';
+  }
+
+  @override
+  String sunsetAt(String time) {
+    return 'Sonnenuntergang $time';
+  }
+
+  @override
+  String sunHourLength(String minutes) {
+    return '1 Sonnenstunde = $minutes echte Minuten';
+  }
+
+  @override
+  String get local => 'Ortszeit';
+
+  @override
+  String get localTime => 'Ortszeit';
+
+  @override
+  String resultSunDay(String time) {
+    return '$time Sonnenzeit · Tag';
+  }
+
+  @override
+  String resultSunNight(String time) {
+    return '$time Sonnenzeit · Nacht';
+  }
+
+  @override
+  String get solarParen => '(wahre Sonnenzeit)';
+
+  @override
+  String get notToday => 'Heute nicht';
+
+  @override
+  String get andWord => 'und';
+
+  @override
+  String resultLocal(String times) {
+    return '$times Ortszeit';
+  }
+
+  @override
+  String dayMonth(String day, String month) {
+    return '$day. $month';
+  }
+
+  @override
+  String todayLine(String date, String zone) {
+    return 'Heute, $date · $zone';
+  }
+
+  @override
+  String get monthsShort => 'Jan,Feb,Mär,Apr,Mai,Jun,Jul,Aug,Sep,Okt,Nov,Dez';
+
+  @override
+  String get fromLocalToSun => 'Von Ortszeit zu Sonnenzeit';
+
+  @override
+  String get pickLocal => 'Ortszeit wählen';
+
+  @override
+  String get fromSunToLocal => 'Von Sonnenzeit zu Ortszeit';
+
+  @override
+  String get pickSun => 'Sonnenzeit wählen';
+
+  @override
+  String get converterNote =>
+      'Die Sonnenzeit richtet sich nach dem heutigen Sonnenauf- und -untergang an diesem Ort: 06:00 ist Sonnenaufgang, 18:00 Sonnenuntergang.';
+
+  @override
+  String get locationAccuracy => 'Standortgenauigkeit';
+
+  @override
+  String get approximate => 'Ungefähr';
+
+  @override
+  String get precise => 'Genau';
+
+  @override
+  String get approximateHelp =>
+      'Nutzt einen groben Standort, auf etwa 1 km gerundet. Die Sonnenzeiten ändern sich nur um wenige Sekunden pro Kilometer; das ist genau genug und schont den Akku.';
+
+  @override
+  String get preciseHelp =>
+      'Nutzt GPS für den genauen Standort. Die Sonnenzeiten werden sekundengenau; braucht etwas mehr Akku.';
+
+  @override
+  String get privacyNote =>
+      'In beiden Fällen werden die Sonnenzeiten auf diesem Gerät berechnet und der Standort wird nirgendwohin gesendet. Die Karte ist in der App gespeichert; Sun Clock nutzt das Internet überhaupt nicht.';
+
+  @override
+  String get preciseDenied =>
+      'Das System erlaubt Sun Clock nur den ungefähren Standort. Schalte in der Standortberechtigung der App „Genauer Standort“ ein.';
+
+  @override
+  String get openSettings => 'Einstellungen öffnen';
+
+  @override
+  String get mapPlaceNote =>
+      'Du nutzt einen auf der Karte gewählten Ort; dies gilt, sobald du wieder auf GPS wechselst.';
+
+  @override
+  String get statusBarTitle => 'Sonnenzeit in der Statusleiste';
+
+  @override
+  String get statusBarHelp =>
+      'Zeigt die Sonnenzeit als Symbol in der Statusleiste und in den Benachrichtigungen. Läuft weiter und folgt deinem Standort, auch wenn die App geschlossen ist.';
+
+  @override
+  String get chipTitle => 'Als Text in der Statusleiste anzeigen';
+
+  @override
+  String get chipHelp =>
+      'Zeigt die Sonnenzeit als Live-Update-Chip, z. B. „14:27“, statt des kleinen gestapelten Symbols.';
+
+  @override
+  String get chipOff =>
+      'Live-Updates sind für Sun Clock ausgeschaltet, daher wird das gestapelte Symbol angezeigt.';
+
+  @override
+  String get followAfterRestart => 'Standort nach einem Neustart folgen';
+
+  @override
+  String get followAfterRestartHelp =>
+      'Nutzt deinen Standort im Hintergrund, damit die Uhr in der Statusleiste dem Telefon nach einem Neustart folgt, ohne dass die App geöffnet wird. Wenn aus, wird der letzte bekannte Standort verwendet, bis du die App öffnest.';
+
+  @override
+  String get backgroundOff =>
+      'Die Standortfreigabe „Immer zulassen“ ist aus; nach einem Neustart wird daher der letzte bekannte Standort verwendet.';
+
+  @override
+  String get backgroundTitle => 'Standort im Hintergrund verwenden?';
+
+  @override
+  String get backgroundDisclosure =>
+      'Sun Clock erfasst deinen Standort im Hintergrund, auch wenn die App geschlossen ist oder nicht verwendet wird, damit die Sonnenzeit in der Statusleiste nach einem Neustart des Telefons und unterwegs stimmt.\n\nDein Standort wird nur auf diesem Telefon zur Berechnung der Sonnenzeiten verwendet. Er verlässt das Telefon nie und wird mit niemandem geteilt.\n\nWähle auf dem nächsten Bildschirm „Immer zulassen“.';
+
+  @override
+  String get noThanks => 'Nein danke';
+
+  @override
+  String get continueLabel => 'Weiter';
+
+  @override
+  String get backgroundSnack =>
+      'Wähle in der Standortberechtigung von Sun Clock „Immer zulassen“, damit die Uhr dem Telefon nach einem Neustart folgt.';
+
+  @override
+  String get notificationsSnack =>
+      'Erlaube Benachrichtigungen für Sun Clock, um die Sonnenzeit in der Statusleiste anzuzeigen.';
+
+  @override
+  String get myLocation => 'Mein Standort';
+
+  @override
+  String get location => 'Ort';
+
+  @override
+  String get dragMapToPick => 'Karte verschieben, um einen Ort zu wählen';
+
+  @override
+  String get fullScreenMap => 'Karte im Vollbild';
+
+  @override
+  String get back => 'Zurück';
+
+  @override
+  String get done => 'Fertig';
+
+  @override
+  String get tapOrDragMap =>
+      'Tippe auf die Karte oder verschiebe sie, um einen Ort zu wählen.';
+
+  @override
+  String sunriseSunsetLine(String rise, String set) {
+    return 'Aufgang $rise · Untergang $set';
+  }
+
+  @override
+  String get polarDay => 'Polartag';
+
+  @override
+  String get polarNight => 'Polarnacht';
+
+  @override
+  String hourLine(String day, String night) {
+    return 'Stunde: Tag $day · Nacht $night';
+  }
+
+  @override
+  String minutesShort(String n) {
+    return '$n min';
+  }
+
+  @override
+  String get sunriseAndSunset => 'Sonnenaufgang und Sonnenuntergang';
+
+  @override
+  String chartLocalTime(String year, String zone) {
+    return '$year · Ortszeit, $zone';
+  }
+
+  @override
+  String get sunHourLengthTitle => 'Länge einer Sonnenstunde';
+
+  @override
+  String get sunHourLengthSubtitle => 'Echte Minuten pro Stunde Sonnenzeit';
+
+  @override
+  String get dayHour => 'Tagstunde';
+
+  @override
+  String get nightHour => 'Nachtstunde';
+
+  @override
+  String get polarGapsNote =>
+      'Lücken sind Polartag oder Polarnacht: Die Sonne geht dann nicht auf oder unter, und die Uhr zeigt die wahre Sonnenzeit.';
+
+  @override
+  String get today => 'heute';
+
+  @override
+  String dayHourValue(String minutes) {
+    return 'Tagstunde $minutes min';
+  }
+
+  @override
+  String nightHourValue(String minutes) {
+    return 'Nachtstunde $minutes min';
+  }
+}

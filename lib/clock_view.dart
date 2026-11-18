@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:timezone/timezone.dart' as tz;
 
 import 'converter.dart';
+import 'l10n/l10n.dart';
 import 'sun_clock.dart';
 import 'zone.dart';
 
@@ -103,11 +104,11 @@ double dialSize(Size screen, double maxWidth, double textScale) {
 }
 
 /// "Sun time 14:32, day": what a screen reader says for the dial.
-String dialLabel(SunClockReading r) {
+String dialLabel(AppLocalizations l, SunClockReading r) {
   final t = r.sunTime;
-  return 'Sun time ${two(t.inHours % 24)}:${two(t.inMinutes % 60)}, '
-      '${r.isDay ? 'day' : 'night'}'
-      '${r.mode == SunClockMode.solarTimeFallback ? ', solar time' : ''}';
+  final time = '${two(t.inHours % 24)}:${two(t.inMinutes % 60)}';
+  return '${r.isDay ? l.dialDay(time) : l.dialNight(time)}'
+      '${r.mode == SunClockMode.solarTimeFallback ? l.dialSolarSuffix : ''}';
 }
 
 /// The main clock: dial, sun time, local time and UTC, surrounding sun
@@ -151,7 +152,7 @@ class _ClockViewState extends State<ClockView> {
         _labelLat != widget.lat ||
         _labelLon != widget.lon;
     if (stale) {
-      _label = dialLabel(r);
+      _label = dialLabel(context.l10n, r);
       _labelTime = now;
       _labelLat = widget.lat;
       _labelLon = widget.lon;
@@ -195,7 +196,7 @@ class _ClockViewState extends State<ClockView> {
                     style: theme.textTheme.displayLarge
                         ?.copyWith(fontFeatures: tabular)),
               ),
-              Text(r.isDay ? 'Sun time · day' : 'Sun time · night',
+              Text(r.isDay ? context.l10n.sunTimeDay : context.l10n.sunTimeNight,
                   style: muted),
             ]),
           ),
@@ -209,16 +210,16 @@ class _ClockViewState extends State<ClockView> {
           onPressed: () =>
               showConverter(context, lat: lat, lon: lon, zone: zone),
           icon: const Icon(Icons.swap_horiz),
-          label: const Text('Convert a time'),
+          label: Text(context.l10n.convertTime),
         ),
         const SizedBox(height: 16),
-        ..._eventLines(r, zone, muted),
+        ..._eventLines(context.l10n, r, zone, muted),
         const SizedBox(height: 4),
         Semantics(
           button: widget.onLocationTap != null,
           hint: widget.onLocationTap == null
               ? null
-              : 'Opens the map to pick a place',
+              : context.l10n.locationHint,
           child: InkWell(
             onTap: widget.onLocationTap,
             borderRadius: BorderRadius.circular(8),
@@ -239,18 +240,18 @@ class _ClockViewState extends State<ClockView> {
   }
 
   List<Widget> _eventLines(
-      SunClockReading r, tz.Location zone, TextStyle? muted) {
+      AppLocalizations l, SunClockReading r, tz.Location zone, TextStyle? muted) {
     if (r.mode != SunClockMode.normal) {
       return [
-        Text(
-            'The sun does not ${r.isDay ? 'set' : 'rise'} here today.\n'
-            'Showing solar time (12:00 = solar noon).',
+        Text(r.isDay ? l.noSunset : l.noSunrise,
             textAlign: TextAlign.center,
             style: muted),
       ];
     }
     String ev(SunEvent e) =>
-        '${e.isSunrise ? 'Sunrise' : 'Sunset'} ${hm(inZone(e.time, zone))}';
+        e.isSunrise
+            ? l.sunriseAt(hm(inZone(e.time, zone)))
+            : l.sunsetAt(hm(inZone(e.time, zone)));
     return [
       // An icon instead of a "→" character, which sits off-centre in the font.
       // A Wrap, so large text breaks the line instead of overflowing.
@@ -267,9 +268,7 @@ class _ClockViewState extends State<ClockView> {
             Text(ev(r.next!), style: muted),
           ]),
       const SizedBox(height: 4),
-      Text(
-          '1 sun hour = ${r.realMinutesPerSunHour.toStringAsFixed(1)} '
-          'real minutes',
+      Text(l.sunHourLength(r.realMinutesPerSunHour.toStringAsFixed(1)),
           style: muted),
     ];
   }
@@ -301,7 +300,7 @@ class TimeLines extends StatelessWidget {
       defaultColumnWidth: const IntrinsicColumnWidth(),
       defaultVerticalAlignment: TableCellVerticalAlignment.baseline,
       textBaseline: TextBaseline.alphabetic,
-      children: [row('Local', local), row('UTC', utc)],
+      children: [row(context.l10n.local, local), row('UTC', utc)],
     );
   }
 }

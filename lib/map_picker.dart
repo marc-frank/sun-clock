@@ -3,6 +3,7 @@ import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
 
 import 'clock_view.dart';
+import 'l10n/l10n.dart';
 import 'location_model.dart';
 import 'sun_clock.dart';
 import 'world_map.dart';
@@ -157,10 +158,10 @@ class _GpsButton extends StatelessWidget {
                 heroTag: 'gps',
                 onPressed: model.useGps,
                 icon: icon,
-                label: const Text('My location'),
+                label: Text(context.l10n.myLocation),
               )
             : IconButton(
-                tooltip: 'My location',
+                tooltip: context.l10n.myLocation,
                 onPressed: model.useGps,
                 icon: icon,
               );
@@ -204,14 +205,14 @@ class _MapPanelState extends State<MapPanel> {
               child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text('Location', style: theme.textTheme.titleMedium),
+                    Text(context.l10n.location, style: theme.textTheme.titleMedium),
                     ListenableBuilder(
                       listenable: model,
                       builder: (context, _) => Text(
                         model.hasPosition
                             ? '${coords(model.latitude!, model.longitude!, approximate: model.isApproximate)}'
                                 ' · ${zoneCity(model.zone!)}'
-                            : 'Drag the map to pick a place',
+                            : context.l10n.dragMapToPick,
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                         style: theme.textTheme.bodySmall?.copyWith(
@@ -223,7 +224,7 @@ class _MapPanelState extends State<MapPanel> {
             ),
             _GpsButton(model: model),
             IconButton(
-              tooltip: 'Full-screen map',
+              tooltip: context.l10n.fullScreenMap,
               onPressed: _maximize,
               icon: const Icon(Icons.open_in_full),
             ),
@@ -255,7 +256,7 @@ class MapPickerPage extends StatelessWidget {
             child: Column(children: [
               Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
                 IconButton.filledTonal(
-                  tooltip: 'Back',
+                  tooltip: context.l10n.back,
                   onPressed: () => Navigator.pop(context),
                   icon: const Icon(Icons.arrow_back),
                 ),
@@ -270,7 +271,7 @@ class MapPickerPage extends StatelessWidget {
                   heroTag: 'done',
                   onPressed: () => Navigator.pop(context),
                   icon: const Icon(Icons.check),
-                  label: const Text('Done'),
+                  label: Text(context.l10n.done),
                 ),
               ]),
               const SizedBox(height: 24), // keep clear of the attribution
@@ -293,16 +294,17 @@ class _LivePreview extends StatelessWidget {
       listenable: model,
       builder: (context, _) {
         if (!model.hasPosition) {
-          return const Card(
+          return Card(
             child: Padding(
-              padding: EdgeInsets.all(16),
-              child: Text('Tap or drag the map to pick a place.'),
+              padding: const EdgeInsets.all(16),
+              child: Text(context.l10n.tapOrDragMap),
             ),
           );
         }
         final lat = model.latitude!, lon = model.longitude!;
         final zone = model.zone!;
         return Ticker(builder: (context, now) {
+          final l = context.l10n;
           final r = sunClock(now, lat, lon);
           final today = inZone(now, zone);
           final d = daySun(today, lat, lon, zone);
@@ -328,17 +330,16 @@ class _LivePreview extends StatelessWidget {
                                 ?.copyWith(fontFeatures: tabular)),
                         Text(
                           d.sunrise != null && d.sunset != null
-                              ? 'Sunrise ${hoursToHm(d.sunrise!)} · '
-                                  'sunset ${hoursToHm(d.sunset!)}'
+                              ? l.sunriseSunsetLine(
+                                  hoursToHm(d.sunrise!), hoursToHm(d.sunset!))
                               : d.polar == PolarState.polarDay
-                                  ? 'Polar day'
-                                  : 'Polar night',
+                                  ? l.polarDay
+                                  : l.polarNight,
                           style: theme.textTheme.bodyMedium
                               ?.copyWith(fontFeatures: tabular),
                         ),
                         Text(
-                          'Hour: day ${_min(d.dayHourMinutes)} · '
-                          'night ${_min(d.nightHourMinutes)}',
+                          l.hourLine(_min(l, d.dayHourMinutes), _min(l, d.nightHourMinutes)),
                           style: muted?.copyWith(fontFeatures: tabular),
                         ),
                         Text(
@@ -356,6 +357,6 @@ class _LivePreview extends StatelessWidget {
     );
   }
 
-  static String _min(double? m) =>
-      m == null ? '—' : '${m.toStringAsFixed(0)} min';
+  static String _min(AppLocalizations l, double? m) =>
+      m == null ? '—' : l.minutesShort(m.toStringAsFixed(0));
 }

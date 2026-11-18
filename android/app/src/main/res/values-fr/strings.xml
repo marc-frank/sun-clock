@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="widget_label">Heure du soleil</string>
+    <string name="widget_description">Heure du soleil actuelle et prochain lever ou coucher du soleil</string>
+    <string name="widget_day">Jour</string>
+    <string name="widget_night">Nuit</string>
+    <string name="widget_sunrise_at">lever %1$s</string>
+    <string name="widget_sunset_at">coucher %1$s</string>
+    <string name="widget_solar_time">temps solaire vrai</string>
+    <string name="widget_no_position">Ouvrez Sun Clock pour définir un lieu</string>
+    <string name="widget_preview_detail">Jour · coucher 17:42</string>
+    <string name="notif_title">%1$s heure du soleil</string>
+    <string name="notif_sunrise_in">lever dans %1$s</string>
+    <string name="notif_sunset_in">coucher dans %1$s</string>
+    <string name="notif_solar">temps solaire vrai (ni lever ni coucher)</string>
+    <string name="notif_hour_length">1 h = %1$d min</string>
+    <string name="duration_h_min">%1$d h %2$d min</string>
+    <string name="duration_min">%1$d min</string>
+    <string name="channel_name">Heure du soleil dans la barre d'état</string>
+    <string name="channel_description">Affiche l'heure du soleil actuelle dans la barre d'état.</string>
+</resources>

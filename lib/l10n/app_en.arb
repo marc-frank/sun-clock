@@ -1,0 +1,236 @@
+{
+  "@@locale": "en",
+  "sourceGpsApprox": "GPS, approximate",
+  "sourceGps": "GPS",
+  "sourceMap": "picked on map",
+  "aboutTooltip": "About sun time",
+  "statusBarHide": "Hide sun time from status bar",
+  "statusBarShow": "Show sun time in status bar",
+  "settings": "Settings",
+  "pickOnMapTooltip": "Pick location on map",
+  "theYear": "The year",
+  "findingPosition": "Finding your position…",
+  "needsPosition": "Sun Clock needs a position to know when the sun rises and sets.",
+  "retry": "Retry",
+  "pickPlaceOnMap": "Pick a place on the map",
+  "version": "Version {version} ({build})",
+  "@version": {
+    "placeholders": {
+      "build": {
+        "type": "String"
+      },
+      "version": {
+        "type": "String"
+      }
+    }
+  },
+  "sunTime": "Sun time",
+  "aboutBody": "Sun Clock divides the day into 24 hours that follow the sun. Sunrise is always 06:00 and sunset always 18:00. The 12 day hours share the real daylight evenly, and the 12 night hours share the night.\n\nIn winter, day hours are short and night hours long; in summer it is the other way round. At the equinoxes every hour is close to 60 minutes.\n\nSunrise and sunset are calculated with the NOAA solar formulas (the upper edge of the sun touching the horizon, with standard refraction). When the sun does not rise or set at all, the clock shows apparent solar time, with 12:00 at solar noon.",
+  "mapCredit": "Map data: Natural Earth (public domain).",
+  "licences": "Open-source licences",
+  "gpsServicesOff": "Location services are turned off.",
+  "gpsPermissionDenied": "Location permission was not granted.",
+  "gpsNoFix": "Could not get a GPS fix.",
+  "dialDay": "Sun time {time}, day",
+  "@dialDay": {
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "dialNight": "Sun time {time}, night",
+  "@dialNight": {
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "dialSolarSuffix": ", solar time",
+  "sunTimeDay": "Sun time · day",
+  "sunTimeNight": "Sun time · night",
+  "convertTime": "Convert a time",
+  "locationHint": "Opens the map to pick a place",
+  "noSunset": "The sun does not set here today.\nShowing solar time (12:00 = solar noon).",
+  "noSunrise": "The sun does not rise here today.\nShowing solar time (12:00 = solar noon).",
+  "sunrise": "Sunrise",
+  "sunset": "Sunset",
+  "sunriseAt": "Sunrise {time}",
+  "@sunriseAt": {
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "sunsetAt": "Sunset {time}",
+  "@sunsetAt": {
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "sunHourLength": "1 sun hour = {minutes} real minutes",
+  "@sunHourLength": {
+    "placeholders": {
+      "minutes": {
+        "type": "String"
+      }
+    }
+  },
+  "local": "Local",
+  "localTime": "Local time",
+  "resultSunDay": "{time} sun time · day",
+  "@resultSunDay": {
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "resultSunNight": "{time} sun time · night",
+  "@resultSunNight": {
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "solarParen": "(solar time)",
+  "notToday": "Not today",
+  "andWord": "and",
+  "resultLocal": "{times} local time",
+  "@resultLocal": {
+    "placeholders": {
+      "times": {
+        "type": "String"
+      }
+    }
+  },
+  "dayMonth": "{day} {month}",
+  "@dayMonth": {
+    "placeholders": {
+      "day": {
+        "type": "String"
+      },
+      "month": {
+        "type": "String"
+      }
+    }
+  },
+  "todayLine": "Today, {date} · {zone}",
+  "@todayLine": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      },
+      "zone": {
+        "type": "String"
+      }
+    }
+  },
+  "monthsShort": "Jan,Feb,Mar,Apr,May,Jun,Jul,Aug,Sep,Oct,Nov,Dec",
+  "fromLocalToSun": "From local time to sun time",
+  "pickLocal": "Pick a local time",
+  "fromSunToLocal": "From sun time to local time",
+  "pickSun": "Pick a sun time",
+  "converterNote": "Sun time follows today's sunrise and sunset here: 06:00 is sunrise, 18:00 sunset.",
+  "locationAccuracy": "Location accuracy",
+  "approximate": "Approximate",
+  "precise": "Precise",
+  "approximateHelp": "Uses a coarse fix, rounded to about 1 km. Sun times shift by only a few seconds per kilometre, so this is accurate enough and uses less battery.",
+  "preciseHelp": "Uses GPS for your exact position. Sun times become accurate to the second; uses a little more battery.",
+  "privacyNote": "Either way, sun times are calculated on this phone and your position is not sent anywhere. The map is stored in the app, so Sun Clock does not use the internet at all.",
+  "preciseDenied": "The system only allows approximate location for Sun Clock. Turn on \"Precise location\" in the app's location permission.",
+  "openSettings": "Open settings",
+  "mapPlaceNote": "You are using a place picked on the map; this applies when you switch back to GPS.",
+  "statusBarTitle": "Sun time in status bar",
+  "statusBarHelp": "Shows the sun time as a status-bar icon and in the notification shade. Keeps running and follows your location while the app is closed.",
+  "chipTitle": "Show as text in the status bar",
+  "chipHelp": "Shows the sun time as a Live Update chip, e.g. \"14:27\", instead of the small stacked icon.",
+  "chipOff": "Live Updates are turned off for Sun Clock, so the stacked icon is shown.",
+  "followAfterRestart": "Follow location after a restart",
+  "followAfterRestartHelp": "Uses your location in the background, so the status-bar clock follows the phone after a restart without opening the app. When off, it uses the last known position until you open the app.",
+  "backgroundOff": "Location \"Allow all the time\" is off, so after a restart the last known position is used.",
+  "backgroundTitle": "Use location in the background?",
+  "backgroundDisclosure": "Sun Clock collects your location in the background, also when the app is closed or not in use, to keep the sun time in the status bar right after the phone restarts and while you travel.\n\nYour position is only used on this phone to calculate sun times. It never leaves the phone and is not shared with anyone.\n\nOn the next screen, choose \"Allow all the time\".",
+  "noThanks": "No thanks",
+  "continueLabel": "Continue",
+  "backgroundSnack": "Choose \"Allow all the time\" in Sun Clock's location permission to follow the phone after a restart.",
+  "notificationsSnack": "Allow notifications for Sun Clock to show the sun time in the status bar.",
+  "myLocation": "My location",
+  "location": "Location",
+  "dragMapToPick": "Drag the map to pick a place",
+  "fullScreenMap": "Full-screen map",
+  "back": "Back",
+  "done": "Done",
+  "tapOrDragMap": "Tap or drag the map to pick a place.",
+  "sunriseSunsetLine": "Sunrise {rise} · sunset {set}",
+  "@sunriseSunsetLine": {
+    "placeholders": {
+      "rise": {
+        "type": "String"
+      },
+      "set": {
+        "type": "String"
+      }
+    }
+  },
+  "polarDay": "Polar day",
+  "polarNight": "Polar night",
+  "hourLine": "Hour: day {day} · night {night}",
+  "@hourLine": {
+    "placeholders": {
+      "day": {
+        "type": "String"
+      },
+      "night": {
+        "type": "String"
+      }
+    }
+  },
+  "minutesShort": "{n} min",
+  "@minutesShort": {
+    "placeholders": {
+      "n": {
+        "type": "String"
+      }
+    }
+  },
+  "sunriseAndSunset": "Sunrise and sunset",
+  "chartLocalTime": "{year} · local time, {zone}",
+  "@chartLocalTime": {
+    "placeholders": {
+      "year": {
+        "type": "String"
+      },
+      "zone": {
+        "type": "String"
+      }
+    }
+  },
+  "sunHourLengthTitle": "Length of one sun hour",
+  "sunHourLengthSubtitle": "Real minutes per hour of sun time",
+  "dayHour": "Day hour",
+  "nightHour": "Night hour",
+  "polarGapsNote": "Gaps are polar day or polar night, when the sun does not rise or set and the clock shows solar time.",
+  "today": "today",
+  "dayHourValue": "Day hour {minutes} min",
+  "@dayHourValue": {
+    "placeholders": {
+      "minutes": {
+        "type": "String"
+      }
+    }
+  },
+  "nightHourValue": "Night hour {minutes} min",
+  "@nightHourValue": {
+    "placeholders": {
+      "minutes": {
+        "type": "String"
+      }
+    }
+  }
+}

@@ -6,16 +6,10 @@ import 'package:flutter/material.dart';
 import 'package:timezone/timezone.dart' as tz;
 
 import 'clock_view.dart';
+import 'l10n/l10n.dart';
 import 'year_data.dart';
 import 'zone.dart';
 
-const _monthLetters = ['J', 'F', 'M', 'A', 'M', 'J', 'J', 'A', 'S', 'O', 'N', 'D'];
-const _monthNames = [
-  'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
-  'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec',
-];
-
-String _dateLabel(DateTime d) => '${d.day} ${_monthNames[d.month - 1]}';
 
 /// The two year charts shown below the clock.
 class YearCharts extends StatefulWidget {
@@ -119,6 +113,7 @@ class _YearChartsState extends State<YearCharts> {
 
   @override
   Widget build(BuildContext context) {
+    final l = context.l10n;
     final today = inZone(widget.clock(), _zone);
     final days = _cache.get(today.year, _lat, _lon, _zone);
     final todayIndex = DateTime.utc(today.year, today.month, today.day)
@@ -129,21 +124,21 @@ class _YearChartsState extends State<YearCharts> {
 
     return Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
       _Section(
-        title: 'Sunrise and sunset',
-        subtitle: '${today.year} · local time, ${_zone.name}',
-        legend: const [
-          _LegendItem(dayColor, 'Sunrise'),
-          _LegendItem(Color(0xFFFF7043), 'Sunset'),
+        title: l.sunriseAndSunset,
+        subtitle: l.chartLocalTime('${today.year}', _zone.name),
+        legend: [
+          _LegendItem(dayColor, l.sunrise),
+          _LegendItem(const Color(0xFFFF7043), l.sunset),
         ],
         chart: _SunTimesChart(days: days, todayIndex: todayIndex),
       ),
       const SizedBox(height: 16),
       _Section(
-        title: 'Length of one sun hour',
-        subtitle: 'Real minutes per hour of sun time',
-        legend: const [
-          _LegendItem(dayColor, 'Day hour'),
-          _LegendItem(nightColor, 'Night hour'),
+        title: l.sunHourLengthTitle,
+        subtitle: l.sunHourLengthSubtitle,
+        legend: [
+          _LegendItem(dayColor, l.dayHour),
+          _LegendItem(nightColor, l.nightHour),
         ],
         chart: _HourLengthChart(days: days, todayIndex: todayIndex),
       ),
@@ -151,8 +146,7 @@ class _YearChartsState extends State<YearCharts> {
         Padding(
           padding: const EdgeInsets.fromLTRB(8, 12, 8, 0),
           child: Text(
-            'Gaps are polar day or polar night, when the sun does not rise '
-            'or set and the clock shows solar time.',
+            l.polarGapsNote,
             style: Theme.of(context).textTheme.bodySmall?.copyWith(
                 color: Theme.of(context).colorScheme.onSurfaceVariant),
           ),
@@ -224,6 +218,10 @@ FlTitlesData _titles(BuildContext context,
     required int dayCount}) {
   final style = Theme.of(context).textTheme.labelSmall?.copyWith(
       color: Theme.of(context).colorScheme.onSurfaceVariant);
+  // First letter of each month: J F M A M J J A S O N D.
+  final months = [
+    for (final m in monthNames(context.l10n)) m.substring(0, 1).toUpperCase()
+  ];
   return FlTitlesData(
     topTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
     rightTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
@@ -254,7 +252,7 @@ FlTitlesData _titles(BuildContext context,
           if (m < 0 || m > 11) return const SizedBox.shrink();
           return Padding(
             padding: const EdgeInsets.only(top: 6),
-            child: Text(_monthLetters[m], style: style),
+            child: Text(months[m], style: style),
           );
         },
       ),
@@ -273,7 +271,9 @@ FlGridData _grid(BuildContext context, double yInterval, int dayCount) {
   );
 }
 
-VerticalLine _todayLine(BuildContext context, double x) => VerticalLine(
+VerticalLine _todayLine(BuildContext context, double x) {
+  final today = context.l10n.today;
+  return VerticalLine(
       x: x,
       color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.7),
       strokeWidth: 1.5,
@@ -281,10 +281,11 @@ VerticalLine _todayLine(BuildContext context, double x) => VerticalLine(
       label: VerticalLineLabel(
         show: true,
         alignment: Alignment.topRight,
-        labelResolver: (_) => 'today',
+        labelResolver: (_) => today,
         style: Theme.of(context).textTheme.labelSmall,
       ),
     );
+}
 
 /// Width of the y-axis labels; the plot starts this far from the left.
 const double _leftReserved = 40;
@@ -376,6 +377,7 @@ LineChartBarData _line(List<FlSpot> spots, Color color) => LineChartBarData(
 LineTouchData _touch(BuildContext context, List<DaySun> days,
     String Function(LineBarSpot s) valueText) {
   final theme = Theme.of(context);
+  final l = context.l10n;
   return LineTouchData(
     // Touch is handled by _ScrubChart; fl_chart's own recognizers lose
     // swipes to the page scroll and flicker on tap-cancel.
@@ -389,7 +391,7 @@ LineTouchData _touch(BuildContext context, List<DaySun> days,
         return [
           for (var i = 0; i < spots.length; i++)
             LineTooltipItem(
-              '${i == 0 ? '${_dateLabel(days[spots[i].x.toInt()].date)}\n' : ''}'
+              '${i == 0 ? '${dayMonthLabel(l, days[spots[i].x.toInt()].date)}\n' : ''}'
               '${valueText(spots[i])}',
               TextStyle(
                   color: spots[i].bar.color,
@@ -417,6 +419,7 @@ class _SunTimesChart extends StatelessWidget {
       set.add(d.sunset == null ? FlSpot.nullSpot : FlSpot(i.toDouble(), d.sunset!));
     }
     final n = days.length;
+    final l = context.l10n;
     return _ScrubChart(LineChartData(
       minX: 0,
       maxX: n - 1,
@@ -440,7 +443,9 @@ class _SunTimesChart extends StatelessWidget {
       extraLinesData:
           ExtraLinesData(verticalLines: [_todayLine(context, todayIndex)]),
       lineTouchData: _touch(context, days,
-          (s) => '${s.barIndex == 0 ? 'Sunrise' : 'Sunset'} ${hoursToHm(s.y)}'),
+          (s) => s.barIndex == 0
+              ? l.sunriseAt(hoursToHm(s.y))
+              : l.sunsetAt(hoursToHm(s.y))),
     ), reservedLeft: _leftReserved);
   }
 }
@@ -479,6 +484,7 @@ class _HourLengthChart extends StatelessWidget {
     final maxY = ((hi + 3) / interval).ceilToDouble() * interval;
     final n = days.length;
 
+    final l = context.l10n;
     return _ScrubChart(LineChartData(
       minX: 0,
       maxX: n - 1,
@@ -503,15 +509,16 @@ class _HourLengthChart extends StatelessWidget {
             label: HorizontalLineLabel(
               show: true,
               alignment: Alignment.topLeft,
-              labelResolver: (_) => '60 min',
+              labelResolver: (_) => l.minutesShort('60'),
               style: Theme.of(context).textTheme.labelSmall,
             ),
           ),
         ],
       ),
       lineTouchData: _touch(context, days,
-          (s) => '${s.barIndex == 0 ? 'Day' : 'Night'} hour '
-              '${s.y.toStringAsFixed(1)} min'),
+          (s) => s.barIndex == 0
+              ? l.dayHourValue(s.y.toStringAsFixed(1))
+              : l.nightHourValue(s.y.toStringAsFixed(1))),
     ), reservedLeft: _leftReserved);
   }
 }
