@@ -16,6 +16,6 @@
     <string name="notif_hour_length">1 h = %1$d min</string>
     <string name="duration_h_min">%1$d h %2$d min</string>
     <string name="duration_min">%1$d min</string>
-    <string name="channel_name">Heure du soleil dans la barre d'état</string>
-    <string name="channel_description">Affiche l'heure du soleil actuelle dans la barre d'état.</string>
+    <string name="channel_name">"Heure du soleil dans la barre d'état"</string>
+    <string name="channel_description">"Affiche l'heure du soleil actuelle dans la barre d'état."</string>
 </resources>
