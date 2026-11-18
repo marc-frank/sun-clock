@@ -112,6 +112,33 @@ void showSettings(
                       value: statusBar.enabled,
                       onChanged: (on) => toggleStatusBar(context, statusBar, on),
                     ),
+                    if (statusBar.enabled && statusBar.chipSupported) ...[
+                      SwitchListTile(
+                        contentPadding: EdgeInsets.zero,
+                        title: const Text('Show as text in the status bar'),
+                        subtitle: Text(
+                          'Shows the sun time as a Live Update chip, e.g. '
+                          '"14:27", instead of the small stacked icon.',
+                          style: muted,
+                        ),
+                        value: statusBar.chipOn,
+                        onChanged: statusBar.setTextChip,
+                      ),
+                      if (statusBar.chipOn && !statusBar.chipAllowed)
+                        Row(children: [
+                          Expanded(
+                            child: Text(
+                              'Live Updates are turned off for Sun Clock, so '
+                              'the stacked icon is shown.',
+                              style: muted,
+                            ),
+                          ),
+                          TextButton(
+                            onPressed: statusBar.openPromotionSettings,
+                            child: const Text('Settings'),
+                          ),
+                        ]),
+                    ],
                     if (statusBar.enabled &&
                         model.source == LocationSource.gps) ...[
                       SwitchListTile(

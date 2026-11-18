@@ -56,6 +56,19 @@ class SunClockService : Service() {
         private const val CHANNEL_ID = "sun_time"
         private const val NOTIFICATION_ID = 1
         private const val DAY_MS = 86_400_000L
+        /** Notification.EXTRA_REQUEST_PROMOTED_ONGOING (a constant from 36.1 on). */
+        private const val EXTRA_REQUEST_PROMOTED = "android.requestPromotedOngoing"
+
+        /**
+         * Android 16+ with the option on and Live Updates allowed for the app.
+         * Then the notification asks to be promoted, and the status bar shows
+         * a chip with the sun time as text instead of the stacked-digit icon.
+         */
+        fun wantsTextChip(c: Context): Boolean {
+            if (Build.VERSION.SDK_INT < 36 || !SunClockStore.textChip(c)) return false
+            val nm = c.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+            return nm.canPostPromotedNotifications()
+        }
 
         /** Read by the home-screen widget: while true, this service updates it. */
         @Volatile
@@ -76,6 +89,8 @@ class SunClockService : Service() {
     private var params: ClockParams? = null
     private var data: SunData? = null
     private var listening = false
+    /** The last posted notification was actually promoted (it shows the chip). */
+    private var promoted = false
 
     private val tick = object : Runnable {
         override fun run() {
@@ -276,11 +291,35 @@ class SunClockService : Service() {
             data = SolarCalc.build(p.lat, p.lon, now, p.label)
         }
         val nm = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
-        nm.notify(NOTIFICATION_ID, build(now))
+        val n = build(now)
+        nm.notify(NOTIFICATION_ID, n)
         SunWidget.updateAll(this, schedule = false)
+        checkPromoted(nm, n)
         val r = data?.let { SunTime.read(now, it) } ?: return 60_000L
         val toNextMinute = (1.0 - (r.sunMinutes - floor(r.sunMinutes))) * r.msPerSunMinute
         return ceil(toNextMinute).toLong().coerceIn(1_000L, 120_000L) + 50L
+    }
+
+    /**
+     * The system may still decline promotion (e.g. manufacturer rules), so
+     * the plain sun icon is only used once the posted notification carries
+     * FLAG_PROMOTED_ONGOING; until then the digit icon stays.
+     */
+    private fun checkPromoted(nm: NotificationManager, posted: Notification) {
+        if (Build.VERSION.SDK_INT < 36 || !posted.extras.getBoolean(EXTRA_REQUEST_PROMOTED)) {
+            promoted = false
+            return
+        }
+        // Posting is asynchronous: look a moment later and redraw on a change.
+        handler.postDelayed({
+            val active = nm.activeNotifications.firstOrNull { it.id == NOTIFICATION_ID }
+            val now = active != null &&
+                active.notification.flags and Notification.FLAG_PROMOTED_ONGOING != 0
+            if (now != promoted) {
+                promoted = now
+                nm.notify(NOTIFICATION_ID, build(System.currentTimeMillis()))
+            }
+        }, 500L)
     }
 
     private fun build(now: Long): Notification {
@@ -333,7 +372,21 @@ class SunClockService : Service() {
         builder.setContentTitle("$hh:$mm sun time")
             .setContentText(detail)
         if (d.label.isNotEmpty()) builder.setSubText(d.label)
-        builder.setSmallIcon(Icon.createWithBitmap(timeIcon(hh, mm)))
+        if (Build.VERSION.SDK_INT >= 36 && wantsTextChip(this)) {
+            // Live Update: standard style, ongoing, a title, not colourised,
+            // channel above IMPORTANCE_MIN. The chip shows the small icon
+            // plus this text (up to ~7 characters fit).
+            builder.setShortCriticalText("$hh:$mm")
+            builder.extras.putBoolean(EXTRA_REQUEST_PROMOTED, true)
+        } else {
+            promoted = false
+        }
+        // In the chip the time is already text: use the plain sun there.
+        if (promoted) {
+            builder.setSmallIcon(R.drawable.ic_stat_sun)
+        } else {
+            builder.setSmallIcon(Icon.createWithBitmap(timeIcon(hh, mm)))
+        }
         return builder.build()
     }
 

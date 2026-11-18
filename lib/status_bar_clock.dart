@@ -23,6 +23,9 @@ class StatusBarClock extends ChangeNotifier with WidgetsBindingObserver {
   bool _enabled = false;
   bool _backgroundOptIn = false;
   bool _backgroundGranted = false;
+  bool _chipSupported = false;
+  bool _chipOn = false;
+  bool _chipAllowed = false;
   Timer? _debounce;
 
   StatusBarClock(this.model) {
@@ -38,6 +41,13 @@ class StatusBarClock extends ChangeNotifier with WidgetsBindingObserver {
   /// Android grants "Allow all the time"; when this turns false after an
   /// opt-in, the service silently falls back to the stored position.
   bool get backgroundGranted => _backgroundGranted;
+
+  /// Android 16+: the status bar can show the sun time as a text chip.
+  bool get chipSupported => _chipSupported;
+  bool get chipOn => _chipOn;
+
+  /// Live Updates are allowed for the app in system settings.
+  bool get chipAllowed => _chipAllowed;
 
   Future<void> load() async {
     if (!supported) return;
@@ -77,6 +87,13 @@ class StatusBarClock extends ChangeNotifier with WidgetsBindingObserver {
   Future<void> refreshBackground() async {
     if (!supported) return;
     try {
+      final c =
+          await _channel.invokeMapMethod<String, bool>('textChipStatus');
+      _chipSupported = c?['supported'] ?? false;
+      _chipOn = c?['on'] ?? false;
+      _chipAllowed = c?['allowed'] ?? false;
+    } catch (_) {}
+    try {
       final s = await _channel
           .invokeMapMethod<String, bool>('backgroundLocationStatus');
       _backgroundOptIn = s?['optedIn'] ?? false;
@@ -111,6 +128,15 @@ class StatusBarClock extends ChangeNotifier with WidgetsBindingObserver {
     await refreshBackground();
     return true;
   }
+
+  Future<void> setTextChip(bool on) async {
+    if (!supported) return;
+    await _channel.invokeMethod<void>('setTextChip', {'on': on});
+    await refreshBackground();
+  }
+
+  Future<void> openPromotionSettings() =>
+      _channel.invokeMethod<void>('openPromotionSettings');
 
   void _onLocationChanged() {
     if (!supported) return;

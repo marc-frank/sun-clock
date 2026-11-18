@@ -27,6 +27,10 @@ after an in-app disclosure. Google Play requires a matching declaration in
 the Play Console (App content → Location permissions) with a short video of
 the feature.
 
+On Android 16+ the status-bar clock can instead show the sun time as text in
+a Live Update chip (opt-in in Settings, `POST_PROMOTED_NOTIFICATIONS`).
+Without promotion it keeps the stacked-digit icon.
+
 ## Code
 
 | File | What it does |

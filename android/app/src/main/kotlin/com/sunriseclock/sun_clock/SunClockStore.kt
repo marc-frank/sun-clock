@@ -37,6 +37,7 @@ object SunClockStore {
     private const val K_FOLLOW = "follow"
     private const val K_PRECISE = "precise"
     private const val K_BACKGROUND = "background_location"
+    private const val K_CHIP = "text_chip"
 
     private fun prefs(c: Context) = c.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
 
@@ -54,6 +55,12 @@ object SunClockStore {
 
     fun setBackgroundLocation(c: Context, on: Boolean) =
         prefs(c).edit().putBoolean(K_BACKGROUND, on).apply()
+
+    /** Android 16+: show the sun time as a Live Update chip (text). */
+    fun textChip(c: Context) = prefs(c).getBoolean(K_CHIP, false)
+
+    fun setTextChip(c: Context, on: Boolean) =
+        prefs(c).edit().putBoolean(K_CHIP, on).apply()
 
     fun save(c: Context, p: ClockParams) {
         prefs(c).edit()

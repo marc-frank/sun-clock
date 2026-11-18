@@ -15,6 +15,9 @@
          it was started after a reboot, before the app is opened. -->
     <uses-permission android:name="android.permission.ACCESS_BACKGROUND_LOCATION" />
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
+    <!-- Android 16+ opt-in: the status-bar clock as a Live Update chip with
+         the sun time as text (install-time permission). -->
+    <uses-permission android:name="android.permission.POST_PROMOTED_NOTIFICATIONS" />
     <application
         android:label="Sun Clock"
         android:name="${applicationName}"

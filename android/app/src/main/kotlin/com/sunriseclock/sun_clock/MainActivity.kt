@@ -1,8 +1,11 @@
 package com.sunriseclock.sun_clock
 
 import android.Manifest
+import android.content.ActivityNotFoundException
+import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Build
+import android.provider.Settings
 import io.flutter.embedding.android.FlutterActivity
 import io.flutter.embedding.engine.FlutterEngine
 import io.flutter.plugin.common.MethodCall
@@ -64,6 +67,23 @@ class MainActivity : FlutterActivity() {
                         SunClockStore.setBackgroundLocation(this, call.argument<Boolean>("on") == true)
                         result.success(null)
                     }
+                    // Live Update chip (Android 16+).
+                    "textChipStatus" -> result.success(
+                        mapOf(
+                            "supported" to (Build.VERSION.SDK_INT >= 36),
+                            "on" to SunClockStore.textChip(this),
+                            "allowed" to promotionAllowed(),
+                        ),
+                    )
+                    "setTextChip" -> {
+                        SunClockStore.setTextChip(this, call.argument<Boolean>("on") == true)
+                        if (SunClockStore.isEnabled(this)) SunClockService.start(this)
+                        result.success(null)
+                    }
+                    "openPromotionSettings" -> {
+                        openPromotionSettings()
+                        result.success(null)
+                    }
                     "stop" -> {
                         SunClockStore.setEnabled(this, false)
                         SunClockService.stop(this)
@@ -109,6 +129,29 @@ class MainActivity : FlutterActivity() {
         pendingLocation = result
         val perms = if (precise) arrayOf(fine, coarse) else arrayOf(coarse)
         requestPermissions(perms, REQUEST_LOCATION)
+    }
+
+    private fun promotionAllowed(): Boolean {
+        if (Build.VERSION.SDK_INT < 36) return false
+        val nm = getSystemService(NOTIFICATION_SERVICE) as android.app.NotificationManager
+        return nm.canPostPromotedNotifications()
+    }
+
+    /** The app's Live Updates switch in system settings, else its notification page. */
+    private fun openPromotionSettings() {
+        val action = if (Build.VERSION.SDK_INT >= 36) {
+            Settings.ACTION_APP_NOTIFICATION_PROMOTION_SETTINGS
+        } else {
+            Settings.ACTION_APP_NOTIFICATION_SETTINGS
+        }
+        try {
+            startActivity(Intent(action).putExtra(Settings.EXTRA_APP_PACKAGE, packageName))
+        } catch (_: ActivityNotFoundException) {
+            startActivity(
+                Intent(Settings.ACTION_APP_NOTIFICATION_SETTINGS)
+                    .putExtra(Settings.EXTRA_APP_PACKAGE, packageName),
+            )
+        }
     }
 
     private fun hasBackgroundLocation(): Boolean {
