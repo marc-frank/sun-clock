@@ -245,7 +245,7 @@ String gpsErrorText(AppLocalizations l, GpsError e) => switch (e) {
       GpsError.noFix => l.gpsNoFix,
     };
 
-/// "Version 1.1.0 (2)", read from the installed app (set in pubspec.yaml).
+/// "Version 1.2.0 (3)", read from the installed app (set in pubspec.yaml).
 Future<String> appVersion(AppLocalizations l) async {
   try {
     final info = await PackageInfo.fromPlatform();
