@@ -2,7 +2,9 @@
 // (SunClockService.kt) computes sun times itself with a Kotlin port of the
 // NOAA formulas (SolarCalc.kt), so it only needs the position and settings.
 // When the app uses GPS, the service also follows the phone's location while
-// the app is closed.
+// the app is closed. The position is stored natively whenever it changes,
+// also with the status-bar clock off, for the home-screen widget
+// (SunWidget.kt).
 
 import 'dart:async';
 import 'dart:io' show Platform;
@@ -35,7 +37,8 @@ class StatusBarClock extends ChangeNotifier {
       _enabled = false;
     }
     notifyListeners();
-    if (_enabled) await _sync(); // refresh the event horizon on every launch
+    // Refresh the service's event horizon (or the widget's position).
+    await _sync();
   }
 
   /// Returns false when notifications were not allowed.
@@ -58,15 +61,17 @@ class StatusBarClock extends ChangeNotifier {
   }
 
   void _onLocationChanged() {
-    if (!_enabled) return;
+    if (!supported) return;
     _debounce?.cancel();
     _debounce = Timer(const Duration(seconds: 2), _sync);
   }
 
+  /// Sends the position: 'start' (re)starts the status-bar service,
+  /// 'setPosition' only stores it for the home-screen widget.
   Future<void> _sync() async {
-    if (!_enabled || !model.hasPosition) return;
+    if (!supported || !model.hasPosition) return;
     try {
-      await _channel.invokeMethod<void>('start', {
+      await _channel.invokeMethod<void>(_enabled ? 'start' : 'setPosition', {
         'lat': model.latitude!,
         'lon': model.longitude!,
         'label': zoneCity(model.zone!),

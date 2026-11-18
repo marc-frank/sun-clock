@@ -12,7 +12,11 @@ data class SunData(
     val computedAt: Long,
 )
 
-/** What the service needs to run, persisted so it survives reboots. */
+/**
+ * What the service and the home-screen widget need, persisted so it survives
+ * reboots. The app stores it whenever its position changes, whether or not
+ * the status-bar clock is on ([SunClockStore.isEnabled] is a separate flag).
+ */
 data class ClockParams(
     val lat: Double,
     val lon: Double,
@@ -48,7 +52,6 @@ object SunClockStore {
             .putString(K_LABEL, p.label)
             .putBoolean(K_FOLLOW, p.followLocation)
             .putBoolean(K_PRECISE, p.precise)
-            .putBoolean(K_ENABLED, true)
             .apply()
     }
 

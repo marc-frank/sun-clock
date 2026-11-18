@@ -49,6 +49,11 @@ class SunClockService : Service() {
         private const val NOTIFICATION_ID = 1
         private const val DAY_MS = 86_400_000L
 
+        /** Read by the home-screen widget: while true, this service updates it. */
+        @Volatile
+        var running = false
+            private set
+
         fun start(c: Context) {
             val i = Intent(c, SunClockService::class.java)
             if (Build.VERSION.SDK_INT >= 26) c.startForegroundService(i) else c.startService(i)
@@ -93,6 +98,7 @@ class SunClockService : Service() {
 
     override fun onCreate() {
         super.onCreate()
+        running = true
         createChannel()
         val filter = IntentFilter().apply {
             addAction(Intent.ACTION_SCREEN_ON)
@@ -129,6 +135,8 @@ class SunClockService : Service() {
         handler.removeCallbacks(tick)
         stopLocation()
         unregisterReceiver(refresh)
+        running = false
+        SunWidget.updateAll(this) // hand the widget back its own alarms
         super.onDestroy()
     }
 
@@ -252,6 +260,7 @@ class SunClockService : Service() {
         }
         val nm = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
         nm.notify(NOTIFICATION_ID, build(now))
+        SunWidget.updateAll(this, schedule = false)
         val r = data?.let { SunTime.read(now, it) } ?: return 60_000L
         val toNextMinute = (1.0 - (r.sunMinutes - floor(r.sunMinutes))) * r.msPerSunMinute
         return ceil(toNextMinute).toLong().coerceIn(1_000L, 120_000L) + 50L

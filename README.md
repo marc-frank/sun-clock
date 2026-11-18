@@ -11,6 +11,13 @@ panel to pick any place, so the charts can be watched changing while you drag;
 it can be maximized to a full-screen map (also behind the map button). The
 clock and charts follow the pin live, and the picked place is remembered.
 
+On Android there is also a home-screen widget (`SunWidget.kt`) with the sun
+time, day or night, and the next sunrise or sunset. It uses the last position
+the app stored, so open the app once after installing. It updates with
+non-wakeup alarms at each sun-minute while the screen is on (no exact-alarm
+permission; to about a second), and from the status-bar service when that
+is on.
+
 ## Code
 
 | File | What it does |

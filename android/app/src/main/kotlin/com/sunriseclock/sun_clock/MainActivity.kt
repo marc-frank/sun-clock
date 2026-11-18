@@ -5,6 +5,7 @@ import android.content.pm.PackageManager
 import android.os.Build
 import io.flutter.embedding.android.FlutterActivity
 import io.flutter.embedding.engine.FlutterEngine
+import io.flutter.plugin.common.MethodCall
 import io.flutter.plugin.common.MethodChannel
 
 class MainActivity : FlutterActivity() {
@@ -35,17 +36,16 @@ class MainActivity : FlutterActivity() {
                 when (call.method) {
                     "isEnabled" -> result.success(SunClockStore.isEnabled(this))
                     "requestNotificationPermission" -> requestNotifications(result)
+                    // The position changed: store it for the home-screen
+                    // widget even while the status-bar clock is off.
+                    "setPosition" -> {
+                        SunClockStore.save(this, params(call))
+                        SunWidget.updateAll(this)
+                        result.success(null)
+                    }
                     "start" -> {
-                        SunClockStore.save(
-                            this,
-                            ClockParams(
-                                lat = call.argument<Double>("lat")!!,
-                                lon = call.argument<Double>("lon")!!,
-                                label = call.argument<String>("label") ?: "",
-                                followLocation = call.argument<Boolean>("followLocation") == true,
-                                precise = call.argument<Boolean>("precise") == true,
-                            ),
-                        )
+                        SunClockStore.save(this, params(call))
+                        SunClockStore.setEnabled(this, true)
                         SunClockService.start(this)
                         result.success(null)
                     }
@@ -58,6 +58,14 @@ class MainActivity : FlutterActivity() {
                 }
             }
     }
+
+    private fun params(call: MethodCall) = ClockParams(
+        lat = call.argument<Double>("lat")!!,
+        lon = call.argument<Double>("lon")!!,
+        label = call.argument<String>("label") ?: "",
+        followLocation = call.argument<Boolean>("followLocation") == true,
+        precise = call.argument<Boolean>("precise") == true,
+    )
 
     private fun requestNotifications(result: MethodChannel.Result) {
         if (Build.VERSION.SDK_INT < 33 ||
