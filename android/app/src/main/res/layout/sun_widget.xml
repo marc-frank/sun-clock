@@ -22,7 +22,8 @@
         android:gravity="center"
         android:maxLines="1"
         android:text="@string/widget_preview_time"
-        android:textColor="#FFB300" />
+        android:textColor="#FFB300"
+        android:textSize="32sp" />
 
     <TextView
         android:id="@+id/widget_detail"
