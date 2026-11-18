@@ -153,3 +153,53 @@ class SunClockCache {
 
 double _declinationSign(DateTime utc) =>
     solarParams(julianDay(utc)).declination;
+
+/// The instants in [from, to) at which the clock reads [sunTime]: the
+/// inverse of [sunClock]. Usually one per day, but a local day that is
+/// shorter or longer than a sun day (DST changes, or days and nights
+/// changing length) can hold none or two. Where the clock falls back to
+/// solar time (polar day or night), the inverse uses solar time too.
+List<DateTime> instantsForSunTime(
+    Duration sunTime, DateTime from, DateTime to, double lat, double lon) {
+  final fromUtc = from.toUtc(), toUtc = to.toUtc();
+  final target = sunTime.inMicroseconds % (24 * _sunHour);
+  bool inRange(DateTime t) => !t.isBefore(fromUtc) && t.isBefore(toUtc);
+  final out = <DateTime>[];
+
+  // Normal segments: sunrise → sunset covers 06:00–18:00, sunset → sunrise
+  // 18:00–06:00 (across sun-midnight), each stretched over its real span.
+  final mid = fromUtc.add(toUtc.difference(fromUtc) ~/ 2);
+  final days = toUtc.difference(fromUtc).inDays + 2;
+  final events = sunEventsAround(mid, lat, lon, days: days);
+  for (var i = 0; i + 1 < events.length; i++) {
+    final a = events[i], b = events[i + 1];
+    final span = b.time.difference(a.time);
+    if (a.isSunrise == b.isSunrise || span >= const Duration(hours: 24)) {
+      continue;
+    }
+    final start = (a.isSunrise ? 6 : 18) * _sunHour;
+    final offset = (target - start) % (24 * _sunHour);
+    if (offset >= 12 * _sunHour) continue;
+    final t = a.time.add(Duration(
+        microseconds: (span.inMicroseconds * (offset / (12 * _sunHour)))
+            .round()));
+    if (inRange(t)) out.add(t);
+  }
+
+  // Solar-time fallback: the clock measures from the solar noon of the UTC
+  // date it is read on, so each UTC date has exactly one candidate. Keep it
+  // only where the clock really is in fallback mode.
+  for (var d = DateTime.utc(fromUtc.year, fromUtc.month, fromUtc.day - 1);
+      d.isBefore(toUtc);
+      d = d.add(const Duration(days: 1))) {
+    final noon = solarNoon(d, lon).difference(d).inMicroseconds;
+    final t = d.add(Duration(
+        microseconds: (noon - 12 * _sunHour + target) % (24 * _sunHour)));
+    if (inRange(t) &&
+        sunClock(t, lat, lon).mode == SunClockMode.solarTimeFallback) {
+      out.add(t);
+    }
+  }
+  out.sort();
+  return out;
+}

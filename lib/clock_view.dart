@@ -4,6 +4,7 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:timezone/timezone.dart' as tz;
 
+import 'converter.dart';
 import 'sun_clock.dart';
 import 'zone.dart';
 
@@ -139,8 +140,14 @@ class _ClockViewState extends State<ClockView> {
                 ?.copyWith(fontFeatures: tabular)),
         Text(r.isDay ? 'Sun time · day' : 'Sun time · night', style: muted),
         const SizedBox(height: 24),
-        UtcLine(now: now),
-        const SizedBox(height: 24),
+        TimeLines(now: now, zone: zone),
+        TextButton.icon(
+          onPressed: () =>
+              showConverter(context, lat: lat, lon: lon, zone: zone),
+          icon: const Icon(Icons.swap_horiz),
+          label: const Text('Convert a time'),
+        ),
+        const SizedBox(height: 16),
         ..._eventLines(r, zone, muted),
         const SizedBox(height: 4),
         InkWell(
@@ -190,6 +197,37 @@ class _ClockViewState extends State<ClockView> {
           'real minutes',
           style: muted),
     ];
+  }
+}
+
+/// Local wall-clock time of [zone] and UTC, one line each.
+class TimeLines extends StatelessWidget {
+  final DateTime now;
+  final tz.Location zone;
+  const TimeLines({super.key, required this.now, required this.zone});
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final style =
+        theme.textTheme.headlineSmall?.copyWith(fontFeatures: tabular);
+    final label = style?.copyWith(color: theme.colorScheme.onSurfaceVariant);
+    final local = inZone(now, zone);
+    final utc = now.toUtc();
+    TableRow row(String name, DateTime t) => TableRow(children: [
+          Padding(
+            padding: const EdgeInsets.only(right: 12),
+            child: Text(name, style: label),
+          ),
+          Text(hms(Duration(hours: t.hour, minutes: t.minute, seconds: t.second)),
+              style: style),
+        ]);
+    return Table(
+      defaultColumnWidth: const IntrinsicColumnWidth(),
+      defaultVerticalAlignment: TableCellVerticalAlignment.baseline,
+      textBaseline: TextBaseline.alphabetic,
+      children: [row('Local', local), row('UTC', utc)],
+    );
   }
 }
 
