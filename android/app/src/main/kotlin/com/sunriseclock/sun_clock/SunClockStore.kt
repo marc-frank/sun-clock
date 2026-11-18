@@ -36,6 +36,7 @@ object SunClockStore {
     private const val K_LABEL = "label"
     private const val K_FOLLOW = "follow"
     private const val K_PRECISE = "precise"
+    private const val K_BACKGROUND = "background_location"
 
     private fun prefs(c: Context) = c.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
 
@@ -43,6 +44,16 @@ object SunClockStore {
 
     fun setEnabled(c: Context, on: Boolean) =
         prefs(c).edit().putBoolean(K_ENABLED, on).apply()
+
+    /**
+     * The user opted in to background location ("Allow all the time") so
+     * the service can follow the phone when started without the app, e.g.
+     * after a reboot. Whether Android still grants it is checked separately.
+     */
+    fun backgroundLocation(c: Context) = prefs(c).getBoolean(K_BACKGROUND, false)
+
+    fun setBackgroundLocation(c: Context, on: Boolean) =
+        prefs(c).edit().putBoolean(K_BACKGROUND, on).apply()
 
     fun save(c: Context, p: ClockParams) {
         prefs(c).edit()

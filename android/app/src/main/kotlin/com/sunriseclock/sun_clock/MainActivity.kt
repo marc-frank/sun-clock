@@ -13,10 +13,13 @@ class MainActivity : FlutterActivity() {
         const val CHANNEL = "sun_clock/status_bar"
         const val REQUEST_NOTIFICATIONS = 41
         const val REQUEST_LOCATION = 42
+        const val REQUEST_FOREGROUND_FOR_BACKGROUND = 43
+        const val REQUEST_BACKGROUND = 44
     }
 
     private var pendingPermission: MethodChannel.Result? = null
     private var pendingLocation: MethodChannel.Result? = null
+    private var pendingBackground: MethodChannel.Result? = null
 
     override fun configureFlutterEngine(flutterEngine: FlutterEngine) {
         super.configureFlutterEngine(flutterEngine)
@@ -47,6 +50,18 @@ class MainActivity : FlutterActivity() {
                         SunClockStore.save(this, params(call))
                         SunClockStore.setEnabled(this, true)
                         SunClockService.start(this)
+                        result.success(null)
+                    }
+                    "backgroundLocationStatus" -> result.success(
+                        mapOf(
+                            "optedIn" to SunClockStore.backgroundLocation(this),
+                            "granted" to hasBackgroundLocation(),
+                        ),
+                    )
+                    "requestBackgroundLocation" ->
+                        requestBackgroundLocation(call.argument<Boolean>("precise") == true, result)
+                    "setBackgroundLocation" -> {
+                        SunClockStore.setBackgroundLocation(this, call.argument<Boolean>("on") == true)
                         result.success(null)
                     }
                     "stop" -> {
@@ -96,6 +111,52 @@ class MainActivity : FlutterActivity() {
         requestPermissions(perms, REQUEST_LOCATION)
     }
 
+    private fun hasBackgroundLocation(): Boolean {
+        val foreground = granted(Manifest.permission.ACCESS_COARSE_LOCATION)
+        // Before Android 10 the foreground permission covers the background.
+        return foreground && (Build.VERSION.SDK_INT < 29 ||
+            granted(Manifest.permission.ACCESS_BACKGROUND_LOCATION))
+    }
+
+    /**
+     * "Allow all the time", the way Android 11+ requires: the while-in-use
+     * permission first, then the background one in a separate request, which
+     * opens the app's location page in system settings. Android 10 offers
+     * both in one dialog. The Dart side shows the prominent disclosure before
+     * calling this.
+     */
+    private fun requestBackgroundLocation(precise: Boolean, result: MethodChannel.Result) {
+        pendingBackground?.success(false)
+        pendingBackground = result
+        val coarse = Manifest.permission.ACCESS_COARSE_LOCATION
+        val fine = Manifest.permission.ACCESS_FINE_LOCATION
+        if (!granted(coarse)) {
+            val perms = if (precise) arrayOf(fine, coarse) else arrayOf(coarse)
+            if (Build.VERSION.SDK_INT == 29) {
+                requestPermissions(
+                    perms + Manifest.permission.ACCESS_BACKGROUND_LOCATION, REQUEST_BACKGROUND,
+                )
+            } else {
+                requestPermissions(perms, REQUEST_FOREGROUND_FOR_BACKGROUND)
+            }
+            return
+        }
+        requestBackgroundStep()
+    }
+
+    private fun requestBackgroundStep() {
+        if (hasBackgroundLocation()) {
+            finishBackground()
+            return
+        }
+        requestPermissions(arrayOf(Manifest.permission.ACCESS_BACKGROUND_LOCATION), REQUEST_BACKGROUND)
+    }
+
+    private fun finishBackground() {
+        pendingBackground?.success(hasBackgroundLocation())
+        pendingBackground = null
+    }
+
     override fun onRequestPermissionsResult(
         requestCode: Int, permissions: Array<out String>, grantResults: IntArray,
     ) {
@@ -106,6 +167,14 @@ class MainActivity : FlutterActivity() {
             )
             pendingPermission = null
         }
+        if (requestCode == REQUEST_FOREGROUND_FOR_BACKGROUND) {
+            if (granted(Manifest.permission.ACCESS_COARSE_LOCATION)) {
+                requestBackgroundStep()
+            } else {
+                finishBackground()
+            }
+        }
+        if (requestCode == REQUEST_BACKGROUND) finishBackground()
         if (requestCode == REQUEST_LOCATION) {
             pendingLocation?.success(
                 grantResults.any { it == PackageManager.PERMISSION_GRANTED },

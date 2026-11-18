@@ -7,6 +7,7 @@ import 'status_bar_clock.dart';
 /// Bottom sheet with location precision and the status-bar clock switch.
 void showSettings(
     BuildContext context, LocationModel model, StatusBarClock statusBar) {
+  statusBar.refreshBackground();
   showModalBottomSheet<void>(
     context: context,
     showDragHandle: true,
@@ -105,13 +106,44 @@ void showSettings(
                       subtitle: Text(
                         'Shows the sun time as a status-bar icon and in the '
                         'notification shade. Keeps running and follows your '
-                        'location while the app is closed (after a restart '
-                        'of the phone, once you open the app again).',
+                        'location while the app is closed.',
                         style: muted,
                       ),
                       value: statusBar.enabled,
                       onChanged: (on) => toggleStatusBar(context, statusBar, on),
                     ),
+                    if (statusBar.enabled &&
+                        model.source == LocationSource.gps) ...[
+                      SwitchListTile(
+                        contentPadding: EdgeInsets.zero,
+                        title: const Text('Follow location after a restart'),
+                        subtitle: Text(
+                          'Uses your location in the background, so the '
+                          'status-bar clock follows the phone after a restart '
+                          'without opening the app. When off, it uses the '
+                          'last known position until you open the app.',
+                          style: muted,
+                        ),
+                        value: statusBar.backgroundOptIn,
+                        onChanged: (on) =>
+                            toggleBackgroundLocation(context, statusBar, on),
+                      ),
+                      if (statusBar.backgroundOptIn &&
+                          !statusBar.backgroundGranted)
+                        Row(children: [
+                          Expanded(
+                            child: Text(
+                              'Location "Allow all the time" is off, so after '
+                              'a restart the last known position is used.',
+                              style: muted,
+                            ),
+                          ),
+                          const TextButton(
+                            onPressed: Geolocator.openAppSettings,
+                            child: Text('Settings'),
+                          ),
+                        ]),
+                    ],
                   ],
                 ]),
           );
@@ -119,6 +151,48 @@ void showSettings(
       ),
     ),
   );
+}
+
+/// Google Play's prominent disclosure, shown before Android's own prompt.
+Future<void> toggleBackgroundLocation(
+    BuildContext context, StatusBarClock statusBar, bool on) async {
+  if (on) {
+    final accepted = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        icon: const Icon(Icons.location_on_outlined),
+        title: const Text('Use location in the background?'),
+        content: const Text(
+          'Sun Clock collects your location in the background, also when the '
+          'app is closed or not in use, to keep the sun time in the status '
+          'bar right after the phone restarts and while you travel.\n\n'
+          'Your position is only used on this phone to calculate sun times. '
+          'It never leaves the phone and is not shared with anyone.\n\n'
+          'On the next screen, choose "Allow all the time".',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('No thanks'),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.pop(context, true),
+            child: const Text('Continue'),
+          ),
+        ],
+      ),
+    );
+    if (accepted != true) return;
+  }
+  final ok = await statusBar.setBackgroundLocation(on);
+  if (!ok && context.mounted) {
+    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+      content: Text('Choose "Allow all the time" in Sun Clock\'s location '
+          'permission to follow the phone after a restart.'),
+      action: SnackBarAction(
+          label: 'Settings', onPressed: Geolocator.openAppSettings),
+    ));
+  }
 }
 
 Future<void> toggleStatusBar(

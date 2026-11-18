@@ -18,6 +18,15 @@ non-wakeup alarms at each sun-minute while the screen is on (no exact-alarm
 permission; to about a second), and from the status-bar service when that
 is on.
 
+The status-bar clock follows the phone's location with the while-in-use
+permission. After a reboot Android does not give that to a service started
+in the background, so it uses the last position until the app is opened,
+unless "Follow location after a restart" is on in Settings: that asks for
+background location ("Allow all the time", `ACCESS_BACKGROUND_LOCATION`)
+after an in-app disclosure. Google Play requires a matching declaration in
+the Play Console (App content → Location permissions) with a short video of
+the feature.
+
 ## Code
 
 | File | What it does |

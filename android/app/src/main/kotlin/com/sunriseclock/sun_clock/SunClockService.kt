@@ -39,8 +39,16 @@ import kotlin.math.floor
  * and, when the app uses GPS, follows the device location with low-power
  * updates so the sun times stay right after travelling with the app closed.
  * Location access relies on the app's while-in-use permission: the service
- * runs with the "location" foreground type when started from the app. After
- * a reboot it can only use the last stored position until the app is opened.
+ * runs with the "location" foreground type when started from the app.
+ *
+ * Started from BootReceiver it may not use that type: Android 14+ throws for a
+ * "location" service created in the background (BOOT_COMPLETED is not one of
+ * the while-in-use exemptions), and Android 10-13 create it without location
+ * access. It then runs as "specialUse" only (still allowed from BOOT_COMPLETED
+ * on Android 15+, unlike e.g. dataSync) and uses the last stored position,
+ * unless the user opted in to background location and Android grants it
+ * ("Allow all the time"): then the same listener receives updates as a
+ * background app. If that permission is revoked it falls back silently.
  */
 class SunClockService : Service() {
 
@@ -118,7 +126,8 @@ class SunClockService : Service() {
         data = p?.let { SolarCalc.build(it.lat, it.lon, System.currentTimeMillis(), it.label) }
 
         val wantLocation = p != null && p.followLocation && hasLocationPermission()
-        val withLocation = goForeground(build(System.currentTimeMillis()), wantLocation)
+        val withLocation = goForeground(build(System.currentTimeMillis()), wantLocation) ||
+            (wantLocation && hasBackgroundLocation())
 
         if (p == null) {
             stopSelf()
@@ -176,6 +185,14 @@ class SunClockService : Service() {
     private fun hasLocationPermission() =
         granted(Manifest.permission.ACCESS_COARSE_LOCATION) ||
             granted(Manifest.permission.ACCESS_FINE_LOCATION)
+
+    /** Opted in, and "Allow all the time" is (still) granted. */
+    private fun hasBackgroundLocation(): Boolean {
+        if (!SunClockStore.backgroundLocation(this)) return false
+        // Before Android 10 any location permission includes the background.
+        return Build.VERSION.SDK_INT < 29 ||
+            granted(Manifest.permission.ACCESS_BACKGROUND_LOCATION)
+    }
 
     /**
      * Low-power updates: approximate uses the network provider every 15 min

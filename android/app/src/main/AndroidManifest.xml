@@ -8,8 +8,12 @@
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_SPECIAL_USE" />
     <!-- Lets the status-bar clock follow the phone with the app closed, using
-         the while-in-use location permission (no "all the time" access). -->
+         the while-in-use location permission. -->
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_LOCATION" />
+    <!-- Opt-in ("Follow location after a restart" in Settings, after an
+         in-app disclosure): lets the status-bar clock follow the phone when
+         it was started after a reboot, before the app is opened. -->
+    <uses-permission android:name="android.permission.ACCESS_BACKGROUND_LOCATION" />
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
     <application
         android:label="Sun Clock"

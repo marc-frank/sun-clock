@@ -4,7 +4,11 @@ import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 
-/** Restarts the status-bar clock and the widget after a reboot or an app update. */
+/**
+ * Restarts the status-bar clock and the widget after a reboot or an app
+ * update. The service follows the location from here only with background
+ * location (see SunClockService); otherwise it uses the stored position.
+ */
 class BootReceiver : BroadcastReceiver() {
     override fun onReceive(context: Context, intent: Intent) {
         when (intent.action) {

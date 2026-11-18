@@ -11,15 +11,18 @@ import 'dart:io' show Platform;
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter/widgets.dart';
 
 import 'location_model.dart';
 import 'zone.dart';
 
-class StatusBarClock extends ChangeNotifier {
+class StatusBarClock extends ChangeNotifier with WidgetsBindingObserver {
   static const _channel = MethodChannel('sun_clock/status_bar');
 
   final LocationModel model;
   bool _enabled = false;
+  bool _backgroundOptIn = false;
+  bool _backgroundGranted = false;
   Timer? _debounce;
 
   StatusBarClock(this.model) {
@@ -29,13 +32,22 @@ class StatusBarClock extends ChangeNotifier {
   bool get supported => !kIsWeb && Platform.isAndroid;
   bool get enabled => _enabled;
 
+  /// The user turned on "Follow location after a restart".
+  bool get backgroundOptIn => _backgroundOptIn;
+
+  /// Android grants "Allow all the time"; when this turns false after an
+  /// opt-in, the service silently falls back to the stored position.
+  bool get backgroundGranted => _backgroundGranted;
+
   Future<void> load() async {
     if (!supported) return;
+    WidgetsBinding.instance.addObserver(this);
     try {
       _enabled = await _channel.invokeMethod<bool>('isEnabled') ?? false;
     } catch (_) {
       _enabled = false;
     }
+    await refreshBackground();
     notifyListeners();
     // Refresh the service's event horizon (or the widget's position).
     await _sync();
@@ -57,6 +69,46 @@ class StatusBarClock extends ChangeNotifier {
       notifyListeners();
       await _channel.invokeMethod<void>('stop');
     }
+    return true;
+  }
+
+  /// Re-reads the background-location state; the permission can be changed
+  /// in system settings at any time.
+  Future<void> refreshBackground() async {
+    if (!supported) return;
+    try {
+      final s = await _channel
+          .invokeMapMethod<String, bool>('backgroundLocationStatus');
+      _backgroundOptIn = s?['optedIn'] ?? false;
+      _backgroundGranted = s?['granted'] ?? false;
+    } catch (_) {
+      return;
+    }
+    notifyListeners();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) refreshBackground();
+  }
+
+  /// Turning on asks for "Allow all the time" (the caller shows the
+  /// disclosure first). Returns false when Android did not grant it.
+  Future<bool> setBackgroundLocation(bool on) async {
+    if (!supported) return false;
+    if (on) {
+      final granted = await _channel.invokeMethod<bool>(
+              'requestBackgroundLocation', {
+            'precise': model.precision == LocationPrecision.precise,
+          }) ??
+          false;
+      if (!granted) {
+        await refreshBackground();
+        return false;
+      }
+    }
+    await _channel.invokeMethod<void>('setBackgroundLocation', {'on': on});
+    await refreshBackground();
     return true;
   }
 
@@ -85,6 +137,7 @@ class StatusBarClock extends ChangeNotifier {
 
   @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
     model.removeListener(_onLocationChanged);
     _debounce?.cancel();
     super.dispose();
