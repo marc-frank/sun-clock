@@ -8,9 +8,16 @@
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_SPECIAL_USE" />
     <!-- Lets the status-bar clock follow the phone with the app closed, using
-         the while-in-use location permission (no "all the time" access). -->
+         the while-in-use location permission. -->
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_LOCATION" />
+    <!-- Opt-in ("Follow location after a restart" in Settings, after an
+         in-app disclosure): lets the status-bar clock follow the phone when
+         it was started after a reboot, before the app is opened. -->
+    <uses-permission android:name="android.permission.ACCESS_BACKGROUND_LOCATION" />
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
+    <!-- Android 16+ opt-in: the status-bar clock as a Live Update chip with
+         the sun time as text (install-time permission). -->
+    <uses-permission android:name="android.permission.POST_PROMOTED_NOTIFICATIONS" />
     <application
         android:label="Sun Clock"
         android:name="${applicationName}"
@@ -56,6 +63,22 @@
                 <action android:name="android.intent.action.BOOT_COMPLETED" />
                 <action android:name="android.intent.action.MY_PACKAGE_REPLACED" />
             </intent-filter>
+        </receiver>
+        <!-- Home-screen widget. The time broadcasts are exempt from the
+             implicit-broadcast limits, so they still reach it. -->
+        <receiver
+            android:name=".SunWidget"
+            android:exported="false"
+            android:label="@string/widget_label">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+                <action android:name="android.intent.action.TIME_SET" />
+                <action android:name="android.intent.action.TIMEZONE_CHANGED" />
+                <action android:name="android.intent.action.LOCALE_CHANGED" />
+            </intent-filter>
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/sun_widget_info" />
         </receiver>
     </application>
 </manifest>

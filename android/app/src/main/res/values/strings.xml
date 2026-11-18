@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Home-screen widget (SunWidget.kt). -->
+    <string name="widget_label">Sun time</string>
+    <string name="widget_description">Current sun time and the next sunrise or sunset</string>
+    <string name="widget_day">Day</string>
+    <string name="widget_night">Night</string>
+    <!-- %1$s is a local clock time, e.g. 17:42 or 5:42 PM. -->
+    <string name="widget_sunrise_at">sunrise %1$s</string>
+    <string name="widget_sunset_at">sunset %1$s</string>
+    <!-- Polar day or night: no sunrise/sunset, the widget shows solar time. -->
+    <string name="widget_solar_time">solar time</string>
+    <string name="widget_no_position">Open Sun Clock to set a location</string>
+    <string name="widget_preview_time" translatable="false">14:27</string>
+    <string name="widget_preview_detail">Day · sunset 17:42</string>
+</resources>

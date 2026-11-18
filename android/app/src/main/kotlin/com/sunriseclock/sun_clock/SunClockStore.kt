@@ -14,7 +14,11 @@ data class SunData(
     val computedAt: Long,
 )
 
-/** What the service needs to run, persisted so it survives reboots. */
+/**
+ * What the service and the home-screen widget need, persisted so it survives
+ * reboots. The app stores it whenever its position changes, whether or not
+ * the status-bar clock is on ([SunClockStore.isEnabled] is a separate flag).
+ */
 data class ClockParams(
     val lat: Double,
     val lon: Double,
@@ -34,6 +38,8 @@ object SunClockStore {
     private const val K_LABEL = "label"
     private const val K_FOLLOW = "follow"
     private const val K_PRECISE = "precise"
+    private const val K_BACKGROUND = "background_location"
+    private const val K_CHIP = "text_chip"
 
     private fun prefs(c: Context) = c.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
 
@@ -41,6 +47,22 @@ object SunClockStore {
 
     fun setEnabled(c: Context, on: Boolean) =
         prefs(c).edit().putBoolean(K_ENABLED, on).apply()
+
+    /**
+     * The user opted in to background location ("Allow all the time") so
+     * the service can follow the phone when started without the app, e.g.
+     * after a reboot. Whether Android still grants it is checked separately.
+     */
+    fun backgroundLocation(c: Context) = prefs(c).getBoolean(K_BACKGROUND, false)
+
+    fun setBackgroundLocation(c: Context, on: Boolean) =
+        prefs(c).edit().putBoolean(K_BACKGROUND, on).apply()
+
+    /** Android 16+: show the sun time as a Live Update chip (text). */
+    fun textChip(c: Context) = prefs(c).getBoolean(K_CHIP, false)
+
+    fun setTextChip(c: Context, on: Boolean) =
+        prefs(c).edit().putBoolean(K_CHIP, on).apply()
 
     fun save(c: Context, p: ClockParams) {
         prefs(c).edit()
@@ -50,7 +72,6 @@ object SunClockStore {
             .putString(K_LABEL, p.label)
             .putBoolean(K_FOLLOW, p.followLocation)
             .putBoolean(K_PRECISE, p.precise)
-            .putBoolean(K_ENABLED, true)
             .apply()
     }
 

@@ -39,8 +39,16 @@ import kotlin.math.floor
  * and, when the app uses GPS, follows the device location with low-power
  * updates so the sun times stay right after travelling with the app closed.
  * Location access relies on the app's while-in-use permission: the service
- * runs with the "location" foreground type when started from the app. After
- * a reboot it can only use the last stored position until the app is opened.
+ * runs with the "location" foreground type when started from the app.
+ *
+ * Started from BootReceiver it may not use that type: Android 14+ throws for a
+ * "location" service created in the background (BOOT_COMPLETED is not one of
+ * the while-in-use exemptions), and Android 10-13 create it without location
+ * access. It then runs as "specialUse" only (still allowed from BOOT_COMPLETED
+ * on Android 15+, unlike e.g. dataSync) and uses the last stored position,
+ * unless the user opted in to background location and Android grants it
+ * ("Allow all the time"): then the same listener receives updates as a
+ * background app. If that permission is revoked it falls back silently.
  */
 class SunClockService : Service() {
 
@@ -48,6 +56,24 @@ class SunClockService : Service() {
         private const val CHANNEL_ID = "sun_time"
         private const val NOTIFICATION_ID = 1
         private const val DAY_MS = 86_400_000L
+        /** Notification.EXTRA_REQUEST_PROMOTED_ONGOING (a constant from 36.1 on). */
+        private const val EXTRA_REQUEST_PROMOTED = "android.requestPromotedOngoing"
+
+        /**
+         * Android 16+ with the option on and Live Updates allowed for the app.
+         * Then the notification asks to be promoted, and the status bar shows
+         * a chip with the sun time as text instead of the stacked-digit icon.
+         */
+        fun wantsTextChip(c: Context): Boolean {
+            if (Build.VERSION.SDK_INT < 36 || !SunClockStore.textChip(c)) return false
+            val nm = c.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+            return nm.canPostPromotedNotifications()
+        }
+
+        /** Read by the home-screen widget: while true, this service updates it. */
+        @Volatile
+        var running = false
+            private set
 
         fun start(c: Context) {
             val i = Intent(c, SunClockService::class.java)
@@ -63,6 +89,8 @@ class SunClockService : Service() {
     private var params: ClockParams? = null
     private var data: SunData? = null
     private var listening = false
+    /** The last posted notification was actually promoted (it shows the chip). */
+    private var promoted = false
 
     private val tick = object : Runnable {
         override fun run() {
@@ -93,6 +121,7 @@ class SunClockService : Service() {
 
     override fun onCreate() {
         super.onCreate()
+        running = true
         createChannel()
         val filter = IntentFilter().apply {
             addAction(Intent.ACTION_SCREEN_ON)
@@ -112,7 +141,8 @@ class SunClockService : Service() {
         data = p?.let { SolarCalc.build(it.lat, it.lon, System.currentTimeMillis(), it.label) }
 
         val wantLocation = p != null && p.followLocation && hasLocationPermission()
-        val withLocation = goForeground(build(System.currentTimeMillis()), wantLocation)
+        val withLocation = goForeground(build(System.currentTimeMillis()), wantLocation) ||
+            (wantLocation && hasBackgroundLocation())
 
         if (p == null) {
             stopSelf()
@@ -129,6 +159,8 @@ class SunClockService : Service() {
         handler.removeCallbacks(tick)
         stopLocation()
         unregisterReceiver(refresh)
+        running = false
+        SunWidget.updateAll(this) // hand the widget back its own alarms
         super.onDestroy()
     }
 
@@ -168,6 +200,14 @@ class SunClockService : Service() {
     private fun hasLocationPermission() =
         granted(Manifest.permission.ACCESS_COARSE_LOCATION) ||
             granted(Manifest.permission.ACCESS_FINE_LOCATION)
+
+    /** Opted in, and "Allow all the time" is (still) granted. */
+    private fun hasBackgroundLocation(): Boolean {
+        if (!SunClockStore.backgroundLocation(this)) return false
+        // Before Android 10 any location permission includes the background.
+        return Build.VERSION.SDK_INT < 29 ||
+            granted(Manifest.permission.ACCESS_BACKGROUND_LOCATION)
+    }
 
     /**
      * Low-power updates: approximate uses the network provider every 15 min
@@ -251,10 +291,35 @@ class SunClockService : Service() {
             data = SolarCalc.build(p.lat, p.lon, now, p.label)
         }
         val nm = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
-        nm.notify(NOTIFICATION_ID, build(now))
+        val n = build(now)
+        nm.notify(NOTIFICATION_ID, n)
+        SunWidget.updateAll(this, schedule = false)
+        checkPromoted(nm, n)
         val r = data?.let { SunTime.read(now, it) } ?: return 60_000L
         val toNextMinute = (1.0 - (r.sunMinutes - floor(r.sunMinutes))) * r.msPerSunMinute
         return ceil(toNextMinute).toLong().coerceIn(1_000L, 120_000L) + 50L
+    }
+
+    /**
+     * The system may still decline promotion (e.g. manufacturer rules), so
+     * the plain sun icon is only used once the posted notification carries
+     * FLAG_PROMOTED_ONGOING; until then the digit icon stays.
+     */
+    private fun checkPromoted(nm: NotificationManager, posted: Notification) {
+        if (Build.VERSION.SDK_INT < 36 || !posted.extras.getBoolean(EXTRA_REQUEST_PROMOTED)) {
+            promoted = false
+            return
+        }
+        // Posting is asynchronous: look a moment later and redraw on a change.
+        handler.postDelayed({
+            val active = nm.activeNotifications.firstOrNull { it.id == NOTIFICATION_ID }
+            val now = active != null &&
+                active.notification.flags and Notification.FLAG_PROMOTED_ONGOING != 0
+            if (now != promoted) {
+                promoted = now
+                nm.notify(NOTIFICATION_ID, build(System.currentTimeMillis()))
+            }
+        }, 500L)
     }
 
     private fun build(now: Long): Notification {
@@ -307,7 +372,21 @@ class SunClockService : Service() {
         builder.setContentTitle("$hh:$mm sun time")
             .setContentText(detail)
         if (d.label.isNotEmpty()) builder.setSubText(d.label)
-        builder.setSmallIcon(Icon.createWithBitmap(timeIcon(hh, mm)))
+        if (Build.VERSION.SDK_INT >= 36 && wantsTextChip(this)) {
+            // Live Update: standard style, ongoing, a title, not colourised,
+            // channel above IMPORTANCE_MIN. The chip shows the small icon
+            // plus this text (up to ~7 characters fit).
+            builder.setShortCriticalText("$hh:$mm")
+            builder.extras.putBoolean(EXTRA_REQUEST_PROMOTED, true)
+        } else {
+            promoted = false
+        }
+        // In the chip the time is already text: use the plain sun there.
+        if (promoted) {
+            builder.setSmallIcon(R.drawable.ic_stat_sun)
+        } else {
+            builder.setSmallIcon(Icon.createWithBitmap(timeIcon(hh, mm)))
+        }
         return builder.build()
     }
 

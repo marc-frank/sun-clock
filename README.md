@@ -11,6 +11,26 @@ panel to pick any place, so the charts can be watched changing while you drag;
 it can be maximized to a full-screen map (also behind the map button). The
 clock and charts follow the pin live, and the picked place is remembered.
 
+On Android there is also a home-screen widget (`SunWidget.kt`) with the sun
+time, day or night, and the next sunrise or sunset. It uses the last position
+the app stored, so open the app once after installing. It updates with
+non-wakeup alarms at each sun-minute while the screen is on (no exact-alarm
+permission; to about a second), and from the status-bar service when that
+is on.
+
+The status-bar clock follows the phone's location with the while-in-use
+permission. After a reboot Android does not give that to a service started
+in the background, so it uses the last position until the app is opened,
+unless "Follow location after a restart" is on in Settings: that asks for
+background location ("Allow all the time", `ACCESS_BACKGROUND_LOCATION`)
+after an in-app disclosure. Google Play requires a matching declaration in
+the Play Console (App content → Location permissions) with a short video of
+the feature.
+
+On Android 16+ the status-bar clock can instead show the sun time as text in
+a Live Update chip (opt-in in Settings, `POST_PROMOTED_NOTIFICATIONS`).
+Without promotion it keeps the stacked-digit icon.
+
 ## Code
 
 | File | What it does |
