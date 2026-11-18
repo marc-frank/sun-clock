@@ -6,7 +6,8 @@ import kotlin.math.abs
  * Same rule as lib/sun_clock.dart: between a sunrise and the following sunset
  * the 12 hours 06:00–18:00 are spread evenly, between a sunset and the next
  * sunrise the hours 18:00–06:00. Without such a pair (polar day/night) it
- * falls back to apparent solar time, 12:00 at solar noon.
+ * falls back to apparent solar time, 12:00 at solar noon, and it is day
+ * when the sun is over the observer's hemisphere (lat * declination > 0).
  */
 data class SunReading(
     /** Sun time in minutes since sun-midnight, in [0, 1440). */
@@ -50,7 +51,7 @@ object SunTime {
         val m = ((720.0 + (now - noon) / 60000.0) % 1440.0 + 1440.0) % 1440.0
         return SunReading(
             sunMinutes = m,
-            isDay = m in 360.0..1080.0,
+            isDay = data.lat * SolarCalc.solarParams(SolarCalc.julianDay(now)).first > 0,
             msPerSunMinute = 60000.0,
             next = null,
             realMinutesPerHour = null,

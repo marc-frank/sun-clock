@@ -87,6 +87,6 @@ object SolarCalc {
             noons.add(solarNoon(day, lon))
         }
         events.sortBy { it.first }
-        return SunData(events, noons, label, computedAt = now)
+        return SunData(events, noons, lat, label, computedAt = now)
     }
 }

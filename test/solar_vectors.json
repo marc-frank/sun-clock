@@ -1,0 +1,625 @@
+{
+  "generator": "tool/gen_solar_vectors.dart",
+  "cases": [
+    {
+      "name": "boulder-noaa-row",
+      "instant": "2010-06-21T06:06:00.000Z",
+      "lat": 40.0,
+      "lon": -105.0,
+      "julianDay": 2455368.754166667,
+      "declination": 23.438312159513934,
+      "equationOfTime": -1.7063078407232164,
+      "sunrise": "2010-06-21T11:31:18.797Z",
+      "sunset": "2010-06-22T02:32:19.652Z",
+      "solarNoon": "2010-06-21T19:01:49.403Z",
+      "sunClock": {
+        "sunTimeMs": 81936286.616,
+        "isDay": false,
+        "mode": "normal",
+        "realMinutesPerSunHour": 44.93326805555556,
+        "next": "2010-06-21T11:31:18.797Z",
+        "nextIsSunrise": true
+      }
+    },
+    {
+      "name": "boulder-solstice-day",
+      "instant": "2010-06-21T18:00:00.000Z",
+      "lat": 40.0,
+      "lon": -105.0,
+      "julianDay": 2455369.25,
+      "declination": 23.438232038479374,
+      "equationOfTime": -1.8140623431998828,
+      "sunrise": "2010-06-21T11:31:18.797Z",
+      "sunset": "2010-06-22T02:32:19.652Z",
+      "solarNoon": "2010-06-21T19:01:49.403Z",
+      "sunClock": {
+        "sunTimeMs": 40235960.708,
+        "isDay": true,
+        "mode": "normal",
+        "realMinutesPerSunHour": 75.08452083333333,
+        "next": "2010-06-22T02:32:19.652Z",
+        "nextIsSunrise": false
+      }
+    },
+    {
+      "name": "equator-equinox-day",
+      "instant": "2026-03-20T17:00:00.000Z",
+      "lat": 0.0,
+      "lon": -78.5,
+      "julianDay": 2461120.2083333335,
+      "declination": 0.039047058643972794,
+      "equationOfTime": -7.371271993068403,
+      "sunrise": "2026-03-20T11:18:06.576Z",
+      "sunset": "2026-03-20T23:24:37.442Z",
+      "solarNoon": "2026-03-20T17:21:22.012Z",
+      "sunClock": {
+        "sunTimeMs": 41929486.384,
+        "isDay": true,
+        "mode": "normal",
+        "realMinutesPerSunHour": 60.54286944444444,
+        "next": "2026-03-20T23:24:37.442Z",
+        "nextIsSunrise": false
+      }
+    },
+    {
+      "name": "equator-equinox-night",
+      "instant": "2026-09-23T00:00:00.000Z",
+      "lat": 0.0,
+      "lon": 0.0,
+      "julianDay": 2461306.5,
+      "declination": 0.00262353018553495,
+      "equationOfTime": 7.437092480736723,
+      "sunrise": "2026-09-23T05:49:08.735Z",
+      "sunset": "2026-09-23T17:55:37.947Z",
+      "solarNoon": "2026-09-23T11:52:23.336Z",
+      "sunClock": {
+        "sunTimeMs": 450390.711,
+        "isDay": false,
+        "mode": "normal",
+        "realMinutesPerSunHour": 59.43013333333333,
+        "next": "2026-09-23T05:49:08.735Z",
+        "nextIsSunrise": true
+      }
+    },
+    {
+      "name": "berlin-november-day",
+      "instant": "2026-11-08T12:00:00.000Z",
+      "lat": 52.52,
+      "lon": 13.405,
+      "julianDay": 2461353.0,
+      "declination": -16.652812593727898,
+      "equationOfTime": 16.305939406739885,
+      "sunrise": "2026-11-08T06:15:18.372Z",
+      "sunset": "2026-11-08T15:24:09.960Z",
+      "solarNoon": "2026-11-08T10:50:04.233Z",
+      "sunClock": {
+        "sunTimeMs": 48730374.934,
+        "isDay": true,
+        "mode": "normal",
+        "realMinutesPerSunHour": 45.73831666666667,
+        "next": "2026-11-08T15:24:09.960Z",
+        "nextIsSunrise": false
+      }
+    },
+    {
+      "name": "berlin-november-night",
+      "instant": "2026-11-08T20:00:00.000Z",
+      "lat": 52.52,
+      "lon": 13.405,
+      "julianDay": 2461353.3333333335,
+      "declination": -16.748899225856402,
+      "equationOfTime": 16.280917591738746,
+      "sunrise": "2026-11-08T06:15:18.372Z",
+      "sunset": "2026-11-08T15:24:09.960Z",
+      "solarNoon": "2026-11-08T10:50:04.233Z",
+      "sunClock": {
+        "sunTimeMs": 78144273.013,
+        "isDay": false,
+        "mode": "normal",
+        "realMinutesPerSunHour": 74.414125,
+        "next": "2026-11-09T06:17:08.130Z",
+        "nextIsSunrise": true
+      }
+    },
+    {
+      "name": "berlin-summer-morning",
+      "instant": "2026-06-21T03:00:00.000Z",
+      "lat": 52.52,
+      "lon": 13.405,
+      "julianDay": 2461212.625,
+      "declination": 23.437961356148044,
+      "equationOfTime": -1.7426985417908567,
+      "sunrise": "2026-06-21T02:43:05.151Z",
+      "sunset": "2026-06-21T19:33:18.158Z",
+      "solarNoon": "2026-06-21T11:08:11.787Z",
+      "sunClock": {
+        "sunTimeMs": 22323301.466,
+        "isDay": true,
+        "mode": "normal",
+        "realMinutesPerSunHour": 84.18473194444445,
+        "next": "2026-06-21T19:33:18.158Z",
+        "nextIsSunrise": false
+      }
+    },
+    {
+      "name": "sydney-january-day",
+      "instant": "2026-01-15T03:00:00.000Z",
+      "lat": -33.87,
+      "lon": 151.21,
+      "julianDay": 2461055.625,
+      "declination": -21.13700951097714,
+      "equationOfTime": -9.274097270352721,
+      "sunrise": "2026-01-14T18:59:29.384Z",
+      "sunset": "2026-01-15T09:08:59.979Z",
+      "solarNoon": "2026-01-15T02:04:25.223Z",
+      "sunClock": {
+        "sunTimeMs": 46035316.307,
+        "isDay": true,
+        "mode": "normal",
+        "realMinutesPerSunHour": 70.79249305555555,
+        "next": "2026-01-15T09:08:59.979Z",
+        "nextIsSunrise": false
+      }
+    },
+    {
+      "name": "sydney-july-night",
+      "instant": "2026-07-15T12:00:00.000Z",
+      "lat": -33.87,
+      "lon": 151.21,
+      "julianDay": 2461237.0,
+      "declination": 21.472170145631072,
+      "equationOfTime": -6.01582189189855,
+      "sunrise": "2026-07-14T20:58:12.031Z",
+      "sunset": "2026-07-15T07:04:16.546Z",
+      "solarNoon": "2026-07-15T02:01:08.014Z",
+      "sunClock": {
+        "sunTimeMs": 80126859.541,
+        "isDay": false,
+        "mode": "normal",
+        "realMinutesPerSunHour": 69.46023333333333,
+        "next": "2026-07-15T20:57:47.914Z",
+        "nextIsSunrise": true
+      }
+    },
+    {
+      "name": "buenos-aires-june-day",
+      "instant": "2026-06-21T15:00:00.000Z",
+      "lat": -34.6,
+      "lon": -58.4,
+      "julianDay": 2461213.125,
+      "declination": 23.437866440778695,
+      "equationOfTime": -1.8514564019700328,
+      "sunrise": "2026-06-21T11:00:24.801Z",
+      "sunset": "2026-06-21T20:50:30.558Z",
+      "solarNoon": "2026-06-21T15:55:27.590Z",
+      "sunClock": {
+        "sunTimeMs": 39139763.288,
+        "isDay": true,
+        "mode": "normal",
+        "realMinutesPerSunHour": 49.1746625,
+        "next": "2026-06-21T20:50:30.558Z",
+        "nextIsSunrise": false
+      }
+    },
+    {
+      "name": "rovaniemi-june-solstice",
+      "instant": "2026-06-21T10:00:00.000Z",
+      "lat": 66.5,
+      "lon": 25.7,
+      "julianDay": 2461212.9166666665,
+      "declination": 23.43811533476723,
+      "equationOfTime": -1.8061572257462453,
+      "sunrise": null,
+      "sunset": null,
+      "solarNoon": "2026-06-21T10:19:00.542Z",
+      "sunClock": {
+        "sunTimeMs": 42059458.0,
+        "isDay": true,
+        "mode": "fallback",
+        "realMinutesPerSunHour": 60.0,
+        "next": null,
+        "nextIsSunrise": null
+      }
+    },
+    {
+      "name": "rovaniemi-december-solstice",
+      "instant": "2026-12-21T10:00:00.000Z",
+      "lat": 66.5,
+      "lon": 25.7,
+      "julianDay": 2461395.9166666665,
+      "declination": -23.437041594521247,
+      "equationOfTime": 1.9642565603557105,
+      "sunrise": "2026-12-21T09:07:57.886Z",
+      "sunset": "2026-12-21T11:22:30.305Z",
+      "solarNoon": "2026-12-21T10:15:14.459Z",
+      "sunClock": {
+        "sunTimeMs": 38308167.007,
+        "isDay": true,
+        "mode": "normal",
+        "realMinutesPerSunHour": 11.211693055555557,
+        "next": "2026-12-21T11:22:30.305Z",
+        "nextIsSunrise": false
+      }
+    },
+    {
+      "name": "tromso-before-polar-night",
+      "instant": "2026-11-25T10:30:00.000Z",
+      "lat": 69.65,
+      "lon": 18.96,
+      "julianDay": 2461369.9375,
+      "declination": -20.788215606419612,
+      "equationOfTime": 13.050105357581945,
+      "sunrise": "2026-11-25T09:43:27.509Z",
+      "sunset": "2026-11-25T11:17:59.840Z",
+      "solarNoon": "2026-11-25T10:31:06.608Z",
+      "sunClock": {
+        "sunTimeMs": 42867378.649,
+        "isDay": true,
+        "mode": "normal",
+        "realMinutesPerSunHour": 7.8782375,
+        "next": "2026-11-25T11:17:59.840Z",
+        "nextIsSunrise": false
+      }
+    },
+    {
+      "name": "tromso-polar-night-start",
+      "instant": "2026-11-28T10:30:00.000Z",
+      "lat": 69.65,
+      "lon": 18.96,
+      "julianDay": 2461372.9375,
+      "declination": -21.341518722932342,
+      "equationOfTime": 12.075408258364053,
+      "sunrise": null,
+      "sunset": null,
+      "solarNoon": "2026-11-28T10:32:05.105Z",
+      "sunClock": {
+        "sunTimeMs": 43074895.0,
+        "isDay": false,
+        "mode": "fallback",
+        "realMinutesPerSunHour": 60.0,
+        "next": null,
+        "nextIsSunrise": null
+      }
+    },
+    {
+      "name": "tromso-polar-night-solar-noon",
+      "instant": "2026-12-21T10:45:00.000Z",
+      "lat": 69.65,
+      "lon": 18.96,
+      "julianDay": 2461395.9479166665,
+      "declination": -23.437148245992883,
+      "equationOfTime": 1.9487739072395183,
+      "sunrise": null,
+      "sunset": null,
+      "solarNoon": "2026-12-21T10:42:12.616Z",
+      "sunClock": {
+        "sunTimeMs": 43367384.0,
+        "isDay": false,
+        "mode": "fallback",
+        "realMinutesPerSunHour": 60.0,
+        "next": null,
+        "nextIsSunrise": null
+      }
+    },
+    {
+      "name": "tromso-after-polar-night",
+      "instant": "2027-01-15T10:45:00.000Z",
+      "lat": 69.65,
+      "lon": 18.96,
+      "julianDay": 2461420.9479166665,
+      "declination": -21.12155878256005,
+      "equationOfTime": -9.299903732456807,
+      "sunrise": "2027-01-15T10:35:00.755Z",
+      "sunset": "2027-01-15T11:12:38.043Z",
+      "solarNoon": "2027-01-15T10:53:27.719Z",
+      "sunClock": {
+        "sunTimeMs": 33068356.718,
+        "isDay": true,
+        "mode": "normal",
+        "realMinutesPerSunHour": 3.1351222222222224,
+        "next": "2027-01-15T11:12:38.043Z",
+        "nextIsSunrise": false
+      }
+    },
+    {
+      "name": "tromso-before-midnight-sun",
+      "instant": "2026-05-17T21:30:00.000Z",
+      "lat": 69.65,
+      "lon": 18.96,
+      "julianDay": 2461178.3958333335,
+      "declination": 19.48481934037325,
+      "equationOfTime": 3.571641843623941,
+      "sunrise": "2026-05-16T23:17:10.250Z",
+      "sunset": "2026-05-17T22:29:13.665Z",
+      "solarNoon": "2026-05-17T10:40:34.382Z",
+      "sunClock": {
+        "sunTimeMs": 62961972.568,
+        "isDay": true,
+        "mode": "normal",
+        "realMinutesPerSunHour": 116.00474305555555,
+        "next": "2026-05-17T22:29:13.665Z",
+        "nextIsSunrise": false
+      }
+    },
+    {
+      "name": "tromso-midnight-sun",
+      "instant": "2026-05-23T21:30:00.000Z",
+      "lat": 69.65,
+      "lon": 18.96,
+      "julianDay": 2461184.3958333335,
+      "declination": 20.7116003442326,
+      "equationOfTime": 3.19303621392191,
+      "sunrise": null,
+      "sunset": null,
+      "solarNoon": "2026-05-23T10:40:55.653Z",
+      "sunClock": {
+        "sunTimeMs": 82144347.0,
+        "isDay": true,
+        "mode": "fallback",
+        "realMinutesPerSunHour": 60.0,
+        "next": null,
+        "nextIsSunrise": null
+      }
+    },
+    {
+      "name": "antarctic-circle-june",
+      "instant": "2026-06-21T03:00:00.000Z",
+      "lat": -66.6,
+      "lon": 140.0,
+      "julianDay": 2461212.625,
+      "declination": 23.437961356148044,
+      "equationOfTime": -1.7426985417908567,
+      "sunrise": "2026-06-21T01:38:16.572Z",
+      "sunset": "2026-06-21T03:45:11.878Z",
+      "solarNoon": "2026-06-21T02:41:44.396Z",
+      "sunClock": {
+        "sunTimeMs": 49416096.897,
+        "isDay": true,
+        "mode": "normal",
+        "realMinutesPerSunHour": 10.57681388888889,
+        "next": "2026-06-21T03:45:11.878Z",
+        "nextIsSunrise": false
+      }
+    },
+    {
+      "name": "antarctic-circle-december",
+      "instant": "2026-12-21T12:00:00.000Z",
+      "lat": -66.6,
+      "lon": 140.0,
+      "julianDay": 2461396.0,
+      "declination": -23.437308973625385,
+      "equationOfTime": 1.9229678054733899,
+      "sunrise": null,
+      "sunset": null,
+      "solarNoon": "2026-12-21T02:37:53.020Z",
+      "sunClock": {
+        "sunTimeMs": 76926980.0,
+        "isDay": true,
+        "mode": "fallback",
+        "realMinutesPerSunHour": 60.0,
+        "next": null,
+        "nextIsSunrise": null
+      }
+    },
+    {
+      "name": "svalbard-polar-day",
+      "instant": "2026-06-21T12:00:00.000Z",
+      "lat": 78.22,
+      "lon": 15.65,
+      "julianDay": 2461213.0,
+      "declination": 23.43805166315756,
+      "equationOfTime": -1.8242799980127842,
+      "sunrise": null,
+      "sunset": null,
+      "solarNoon": "2026-06-21T10:59:12.906Z",
+      "sunClock": {
+        "sunTimeMs": 46847094.0,
+        "isDay": true,
+        "mode": "fallback",
+        "realMinutesPerSunHour": 60.0,
+        "next": null,
+        "nextIsSunrise": null
+      }
+    },
+    {
+      "name": "svalbard-polar-day-late",
+      "instant": "2026-06-21T22:00:00.000Z",
+      "lat": 78.22,
+      "lon": 15.65,
+      "julianDay": 2461213.4166666665,
+      "declination": 23.43701562021136,
+      "equationOfTime": -1.9148278390819835,
+      "sunrise": null,
+      "sunset": null,
+      "solarNoon": "2026-06-21T10:59:12.906Z",
+      "sunClock": {
+        "sunTimeMs": 82847094.0,
+        "isDay": true,
+        "mode": "fallback",
+        "realMinutesPerSunHour": 60.0,
+        "next": null,
+        "nextIsSunrise": null
+      }
+    },
+    {
+      "name": "svalbard-polar-night",
+      "instant": "2026-12-21T12:00:00.000Z",
+      "lat": 78.22,
+      "lon": 15.65,
+      "julianDay": 2461396.0,
+      "declination": -23.437308973625385,
+      "equationOfTime": 1.9229678054733899,
+      "sunrise": null,
+      "sunset": null,
+      "solarNoon": "2026-12-21T10:55:27.289Z",
+      "sunClock": {
+        "sunTimeMs": 47072711.0,
+        "isDay": false,
+        "mode": "fallback",
+        "realMinutesPerSunHour": 60.0,
+        "next": null,
+        "nextIsSunrise": null
+      }
+    },
+    {
+      "name": "mcmurdo-polar-day",
+      "instant": "2026-12-21T00:30:00.000Z",
+      "lat": -77.85,
+      "lon": 166.67,
+      "julianDay": 2461395.5208333335,
+      "declination": -23.435027631569028,
+      "equationOfTime": 2.160297258885472,
+      "sunrise": null,
+      "sunset": null,
+      "solarNoon": "2026-12-21T00:51:10.019Z",
+      "sunClock": {
+        "sunTimeMs": 41929981.0,
+        "isDay": true,
+        "mode": "fallback",
+        "realMinutesPerSunHour": 60.0,
+        "next": null,
+        "nextIsSunrise": null
+      }
+    },
+    {
+      "name": "mcmurdo-polar-night",
+      "instant": "2026-06-21T01:00:00.000Z",
+      "lat": -77.85,
+      "lon": 166.67,
+      "julianDay": 2461212.5416666665,
+      "declination": 23.437809690793394,
+      "equationOfTime": -1.7245601484937176,
+      "sunrise": null,
+      "sunset": null,
+      "solarNoon": "2026-06-21T00:55:02.629Z",
+      "sunClock": {
+        "sunTimeMs": 43497371.0,
+        "isDay": false,
+        "mode": "fallback",
+        "realMinutesPerSunHour": 60.0,
+        "next": null,
+        "nextIsSunrise": null
+      }
+    },
+    {
+      "name": "fiji-morning",
+      "instant": "2026-02-10T22:00:00.000Z",
+      "lat": -18.0,
+      "lon": 178.4,
+      "julianDay": 2461082.4166666665,
+      "declination": -14.117109430349357,
+      "equationOfTime": -14.22501832839386,
+      "sunrise": "2026-02-09T17:57:41.881Z",
+      "sunset": "2026-02-10T06:43:17.234Z",
+      "solarNoon": "2026-02-10T00:20:36.871Z",
+      "sunClock": {
+        "sunTimeMs": 35262249.772,
+        "isDay": true,
+        "mode": "normal",
+        "realMinutesPerSunHour": 63.722054166666666,
+        "next": "2026-02-11T06:42:50.102Z",
+        "nextIsSunrise": false
+      }
+    },
+    {
+      "name": "samoa-noon",
+      "instant": "2026-02-10T23:00:00.000Z",
+      "lat": -13.8,
+      "lon": -171.8,
+      "julianDay": 2461082.4583333335,
+      "declination": -14.10344588735486,
+      "equationOfTime": -14.225247243767367,
+      "sunrise": "2026-02-10T17:23:38.628Z",
+      "sunset": "2026-02-11T05:59:01.387Z",
+      "solarNoon": "2026-02-10T23:41:25.524Z",
+      "sunClock": {
+        "sunTimeMs": 40836147.349,
+        "isDay": true,
+        "mode": "normal",
+        "realMinutesPerSunHour": 62.94827638888889,
+        "next": "2026-02-11T05:59:01.387Z",
+        "nextIsSunrise": false
+      }
+    },
+    {
+      "name": "dateline-east-noon",
+      "instant": "2026-08-01T00:10:00.000Z",
+      "lat": 10.0,
+      "lon": 179.9,
+      "julianDay": 2461253.5069444445,
+      "declination": 18.059251361386824,
+      "equationOfTime": -6.392368830309197,
+      "sunrise": "2026-07-31T17:50:00.267Z",
+      "sunset": "2026-08-01T06:23:28.474Z",
+      "solarNoon": "2026-08-01T00:06:47.550Z",
+      "sunClock": {
+        "sunTimeMs": 43386939.385,
+        "isDay": true,
+        "mode": "normal",
+        "realMinutesPerSunHour": 62.78917638888889,
+        "next": "2026-08-01T06:23:28.474Z",
+        "nextIsSunrise": false
+      }
+    },
+    {
+      "name": "dateline-west-day",
+      "instant": "2026-08-01T23:50:00.000Z",
+      "lat": 10.0,
+      "lon": -179.9,
+      "julianDay": 2461254.4930555555,
+      "declination": 17.809615145096945,
+      "equationOfTime": -6.3294197825362035,
+      "sunrise": "2026-08-01T17:49:20.711Z",
+      "sunset": "2026-08-02T06:22:24.270Z",
+      "solarNoon": "2026-08-02T00:05:55.719Z",
+      "sunClock": {
+        "sunTimeMs": 42289323.849,
+        "isDay": true,
+        "mode": "normal",
+        "realMinutesPerSunHour": 62.75494305555556,
+        "next": "2026-08-02T06:22:24.270Z",
+        "nextIsSunrise": false
+      }
+    },
+    {
+      "name": "dateline-west-polar-night",
+      "instant": "2026-12-21T23:00:00.000Z",
+      "lat": 72.0,
+      "lon": -179.5,
+      "julianDay": 2461396.4583333335,
+      "declination": -23.437805646348934,
+      "equationOfTime": 1.6957952695111203,
+      "sunrise": null,
+      "sunset": null,
+      "solarNoon": "2026-12-21T23:56:19.416Z",
+      "sunClock": {
+        "sunTimeMs": 39820584.0,
+        "isDay": false,
+        "mode": "fallback",
+        "realMinutesPerSunHour": 60.0,
+        "next": null,
+        "nextIsSunrise": null
+      }
+    },
+    {
+      "name": "dateline-east-polar-day",
+      "instant": "2026-06-21T00:30:00.000Z",
+      "lat": 71.0,
+      "lon": 179.5,
+      "julianDay": 2461212.5208333335,
+      "declination": 23.437764296959884,
+      "equationOfTime": -1.7200250968349882,
+      "sunrise": null,
+      "sunset": null,
+      "solarNoon": "2026-06-21T00:03:42.963Z",
+      "sunClock": {
+        "sunTimeMs": 44777037.0,
+        "isDay": true,
+        "mode": "fallback",
+        "realMinutesPerSunHour": 60.0,
+        "next": null,
+        "nextIsSunrise": null
+      }
+    }
+  ]
+}
