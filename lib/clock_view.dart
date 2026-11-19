@@ -268,7 +268,9 @@ class _ClockViewState extends State<ClockView> {
             Text(ev(r.next!), style: muted),
           ]),
       const SizedBox(height: 4),
-      Text(l.sunHourLength(r.realMinutesPerSunHour.toStringAsFixed(1)),
+      Text(
+          (r.isDay ? l.dayHourLength : l.nightHourLength)(
+              r.realMinutesPerSunHour.toStringAsFixed(1)),
           style: muted),
     ];
   }

@@ -17,7 +17,7 @@ On Android there is also a home-screen widget (`SunWidget.kt`). Each widget
 has its own settings (Settings → Home-screen widget, or long-press the widget
 on Android 12+): sun time, local time or both (one large and one small, or
 side by side), clock names, an information line (day or night, next sunrise
-or sunset, length of a sun hour, how far sun time is ahead of local time,
+or sunset, length of the current day or night hour, how far sun time is ahead of local time,
 place name), a progress bar for the day or night, and background colour,
 opacity, corners and text colours. It uses the last position
 the app stored, so open the app once after installing. It updates with

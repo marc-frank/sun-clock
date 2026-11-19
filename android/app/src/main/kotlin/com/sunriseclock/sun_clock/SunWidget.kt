@@ -23,7 +23,7 @@ import kotlin.math.floor
 /**
  * Home-screen widget: the sun time and/or the local time, with a line of
  * information (day or night, the next sunrise or sunset, the length of a
- * sun hour, how far sun time is ahead of local time, the place) and a bar
+ * day or night hour, how far sun time is ahead of local time, the place) and a bar
  * for the day or night. Each widget has its own choice of these and of
  * colours ([WidgetConfig], edited in the app). It uses the position the app
  * stores in [SunClockStore], so it works without the status-bar clock.
@@ -235,7 +235,10 @@ class SunWidget : AppWidgetProvider() {
             }
             if (cfg.hourLength) {
                 r.realMinutesPerHour?.let {
-                    parts += lc.getString(R.string.notif_hour_length, Math.round(it).toInt())
+                    parts += lc.getString(
+                        if (r.isDay) R.string.notif_day_hour else R.string.notif_night_hour,
+                        Math.round(it).toInt(),
+                    )
                 }
             }
             if (cfg.offset) {

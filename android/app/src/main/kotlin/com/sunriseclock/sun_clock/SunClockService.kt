@@ -374,7 +374,10 @@ class SunClockService : Service() {
                 append(" · ").append(loc.getString(R.string.notif_solar))
             }
             r.realMinutesPerHour?.let {
-                append(" · ").append(loc.getString(R.string.notif_hour_length, Math.round(it).toInt()))
+                append(" · ").append(loc.getString(
+                    if (r.isDay) R.string.notif_day_hour else R.string.notif_night_hour,
+                    Math.round(it).toInt(),
+                ))
             }
         }
 

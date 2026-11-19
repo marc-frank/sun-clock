@@ -306,12 +306,6 @@ abstract class AppLocalizations {
   /// **'Sunset {time}'**
   String sunsetAt(String time);
 
-  /// No description provided for @sunHourLength.
-  ///
-  /// In en, this message translates to:
-  /// **'1 sun hour = {minutes} real minutes'**
-  String sunHourLength(String minutes);
-
   /// No description provided for @local.
   ///
   /// In en, this message translates to:
@@ -633,13 +627,13 @@ abstract class AppLocalizations {
   /// No description provided for @sunHourLengthTitle.
   ///
   /// In en, this message translates to:
-  /// **'Length of one sun hour'**
+  /// **'Length of day and night hours'**
   String get sunHourLengthTitle;
 
   /// No description provided for @sunHourLengthSubtitle.
   ///
   /// In en, this message translates to:
-  /// **'Real minutes per hour of sun time'**
+  /// **'Real minutes in one day hour and one night hour'**
   String get sunHourLengthSubtitle;
 
   /// No description provided for @dayHour.
@@ -867,7 +861,7 @@ abstract class AppLocalizations {
   /// No description provided for @infoHourLength.
   ///
   /// In en, this message translates to:
-  /// **'Length of a sun hour'**
+  /// **'Length of a day or night hour'**
   String get infoHourLength;
 
   /// No description provided for @infoOffset.
@@ -984,12 +978,6 @@ abstract class AppLocalizations {
   /// **'solar time'**
   String get widgetSolar;
 
-  /// No description provided for @hourEquals.
-  ///
-  /// In en, this message translates to:
-  /// **'1 h = {n} min'**
-  String hourEquals(String n);
-
   /// No description provided for @widgetOffset.
   ///
   /// In en, this message translates to:
@@ -1001,6 +989,30 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Open Sun Clock to set a location'**
   String get widgetNoPosition;
+
+  /// No description provided for @dayHourLength.
+  ///
+  /// In en, this message translates to:
+  /// **'1 day hour = {minutes} real minutes'**
+  String dayHourLength(String minutes);
+
+  /// No description provided for @nightHourLength.
+  ///
+  /// In en, this message translates to:
+  /// **'1 night hour = {minutes} real minutes'**
+  String nightHourLength(String minutes);
+
+  /// No description provided for @dayHourEquals.
+  ///
+  /// In en, this message translates to:
+  /// **'day hour = {n} min'**
+  String dayHourEquals(String n);
+
+  /// No description provided for @nightHourEquals.
+  ///
+  /// In en, this message translates to:
+  /// **'night hour = {n} min'**
+  String nightHourEquals(String n);
 }
 
 class _AppLocalizationsDelegate

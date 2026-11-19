@@ -129,11 +129,6 @@ class AppLocalizationsFr extends AppLocalizations {
   }
 
   @override
-  String sunHourLength(String minutes) {
-    return '1 heure du soleil = $minutes minutes réelles';
-  }
-
-  @override
   String get local => 'Locale';
 
   @override
@@ -327,10 +322,11 @@ class AppLocalizationsFr extends AppLocalizations {
   }
 
   @override
-  String get sunHourLengthTitle => 'Durée d\'une heure du soleil';
+  String get sunHourLengthTitle => 'Durée des heures de jour et de nuit';
 
   @override
-  String get sunHourLengthSubtitle => 'Minutes réelles par heure du soleil';
+  String get sunHourLengthSubtitle =>
+      'Minutes réelles par heure de jour et par heure de nuit';
 
   @override
   String get dayHour => 'Heure de jour';
@@ -464,7 +460,7 @@ class AppLocalizationsFr extends AppLocalizations {
   String get infoNext => 'Prochain lever ou coucher du soleil';
 
   @override
-  String get infoHourLength => 'Durée d\'une heure du soleil';
+  String get infoHourLength => 'Durée d\'une heure de jour ou de nuit';
 
   @override
   String get infoOffset => 'Avance ou retard sur l\'heure locale';
@@ -530,15 +526,30 @@ class AppLocalizationsFr extends AppLocalizations {
   String get widgetSolar => 'temps solaire vrai';
 
   @override
-  String hourEquals(String n) {
-    return '1 h = $n min';
-  }
-
-  @override
   String widgetOffset(String offset) {
     return 'heure du soleil $offset';
   }
 
   @override
   String get widgetNoPosition => 'Ouvrez Sun Clock pour définir un lieu';
+
+  @override
+  String dayHourLength(String minutes) {
+    return '1 heure de jour = $minutes minutes réelles';
+  }
+
+  @override
+  String nightHourLength(String minutes) {
+    return '1 heure de nuit = $minutes minutes réelles';
+  }
+
+  @override
+  String dayHourEquals(String n) {
+    return 'heure de jour = $n min';
+  }
+
+  @override
+  String nightHourEquals(String n) {
+    return 'heure de nuit = $n min';
+  }
 }

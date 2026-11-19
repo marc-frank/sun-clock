@@ -532,7 +532,8 @@ String widgetDetail(
       }
     }
     if (c.hourLength && r.mode == SunClockMode.normal) {
-      parts.add(l.hourEquals('${r.realMinutesPerSunHour.round()}'));
+      final n = '${r.realMinutesPerSunHour.round()}';
+      parts.add(r.isDay ? l.dayHourEquals(n) : l.nightHourEquals(n));
     }
     if (c.offset) {
       final local = now.hour * 60 + now.minute + now.second / 60;

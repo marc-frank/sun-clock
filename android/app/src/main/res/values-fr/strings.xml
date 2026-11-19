@@ -13,7 +13,6 @@
     <string name="notif_sunrise_in">lever dans %1$s</string>
     <string name="notif_sunset_in">coucher dans %1$s</string>
     <string name="notif_solar">temps solaire vrai (ni lever ni coucher)</string>
-    <string name="notif_hour_length">1 h = %1$d min</string>
     <string name="duration_h_min">%1$d h %2$d min</string>
     <string name="duration_min">%1$d min</string>
     <string name="channel_name">"Heure du soleil dans la barre d'état"</string>
@@ -23,4 +22,6 @@
     <string name="widget_offset_ahead">"heure du soleil %1$s d'avance"</string>
     <string name="widget_offset_behind">heure du soleil %1$s de retard</string>
     <string name="widget_offset_same">"heure du soleil à l'heure"</string>
+    <string name="notif_day_hour">heure de jour = %1$d min</string>
+    <string name="notif_night_hour">heure de nuit = %1$d min</string>
 </resources>

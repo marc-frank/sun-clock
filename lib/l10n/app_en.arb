@@ -72,14 +72,6 @@
       }
     }
   },
-  "sunHourLength": "1 sun hour = {minutes} real minutes",
-  "@sunHourLength": {
-    "placeholders": {
-      "minutes": {
-        "type": "String"
-      }
-    }
-  },
   "local": "Local",
   "localTime": "Local time",
   "resultSunDay": "{time} sun time · day",
@@ -211,8 +203,8 @@
       }
     }
   },
-  "sunHourLengthTitle": "Length of one sun hour",
-  "sunHourLengthSubtitle": "Real minutes per hour of sun time",
+  "sunHourLengthTitle": "Length of day and night hours",
+  "sunHourLengthSubtitle": "Real minutes in one day hour and one night hour",
   "dayHour": "Day hour",
   "nightHour": "Night hour",
   "polarGapsNote": "Gaps are polar day or polar night, when the sun does not rise or set and the clock shows solar time.",
@@ -312,7 +304,7 @@
   "sectionInfo": "Information",
   "infoDayNight": "Day or night",
   "infoNext": "Next sunrise or sunset",
-  "infoHourLength": "Length of a sun hour",
+  "infoHourLength": "Length of a day or night hour",
   "infoOffset": "Sun time ahead of or behind local time",
   "infoPlace": "Place name",
   "infoProgress": "Progress of the day or night",
@@ -353,14 +345,6 @@
     }
   },
   "widgetSolar": "solar time",
-  "hourEquals": "1 h = {n} min",
-  "@hourEquals": {
-    "placeholders": {
-      "n": {
-        "type": "String"
-      }
-    }
-  },
   "widgetOffset": "sun time {offset}",
   "@widgetOffset": {
     "placeholders": {
@@ -369,5 +353,37 @@
       }
     }
   },
-  "widgetNoPosition": "Open Sun Clock to set a location"
+  "widgetNoPosition": "Open Sun Clock to set a location",
+  "dayHourLength": "1 day hour = {minutes} real minutes",
+  "@dayHourLength": {
+    "placeholders": {
+      "minutes": {
+        "type": "String"
+      }
+    }
+  },
+  "nightHourLength": "1 night hour = {minutes} real minutes",
+  "@nightHourLength": {
+    "placeholders": {
+      "minutes": {
+        "type": "String"
+      }
+    }
+  },
+  "dayHourEquals": "day hour = {n} min",
+  "@dayHourEquals": {
+    "placeholders": {
+      "n": {
+        "type": "String"
+      }
+    }
+  },
+  "nightHourEquals": "night hour = {n} min",
+  "@nightHourEquals": {
+    "placeholders": {
+      "n": {
+        "type": "String"
+      }
+    }
+  }
 }

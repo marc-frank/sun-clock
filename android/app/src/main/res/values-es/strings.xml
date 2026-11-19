@@ -13,7 +13,6 @@
     <string name="notif_sunrise_in">salida en %1$s</string>
     <string name="notif_sunset_in">puesta en %1$s</string>
     <string name="notif_solar">hora solar verdadera (sin salida ni puesta)</string>
-    <string name="notif_hour_length">1 h = %1$d min</string>
     <string name="duration_h_min">%1$d h %2$d min</string>
     <string name="duration_min">%1$d min</string>
     <string name="channel_name">Hora del sol en la barra de estado</string>
@@ -23,4 +22,6 @@
     <string name="widget_offset_ahead">hora del sol %1$s adelantada</string>
     <string name="widget_offset_behind">hora del sol %1$s atrasada</string>
     <string name="widget_offset_same">hora del sol igual</string>
+    <string name="notif_day_hour">hora de día = %1$d min</string>
+    <string name="notif_night_hour">hora de noche = %1$d min</string>
 </resources>

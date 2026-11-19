@@ -19,7 +19,6 @@
     <string name="notif_sunrise_in">sunrise in %1$s</string>
     <string name="notif_sunset_in">sunset in %1$s</string>
     <string name="notif_solar">solar time (no sunrise/sunset)</string>
-    <string name="notif_hour_length">1 h = %1$d min</string>
     <string name="duration_h_min">%1$d h %2$d min</string>
     <string name="duration_min">%1$d min</string>
     <string name="channel_name">Sun time in status bar</string>
@@ -29,4 +28,6 @@
     <string name="widget_offset_ahead">sun time %1$s ahead</string>
     <string name="widget_offset_behind">sun time %1$s behind</string>
     <string name="widget_offset_same">sun time in step</string>
+    <string name="notif_day_hour">day hour = %1$d min</string>
+    <string name="notif_night_hour">night hour = %1$d min</string>
 </resources>
