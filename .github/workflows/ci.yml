@@ -20,9 +20,12 @@ jobs:
           distribution: temurin
           java-version: "17"
 
+      # The version the app is built and released with (tool/build_release.sh
+      # on the developer's machine); newer releases deprecate APIs it uses.
       - uses: subosito/flutter-action@v2
         with:
           channel: stable
+          flutter-version: 3.47.9
           cache: true
 
       - uses: gradle/actions/setup-gradle@v4
@@ -54,3 +57,23 @@ jobs:
           name: kotlin-test-reports
           path: build/app/reports/tests/
           if-no-files-found: ignore
+
+  # Keeps the iOS app compiling. No signing: there is no Apple developer
+  # account; see release-ios.yml for the unsigned build attached to releases.
+  ios:
+    runs-on: macos-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          flutter-version: 3.47.9
+          cache: true
+
+      - name: flutter pub get
+        run: flutter pub get
+
+      - name: Build iOS app (unsigned)
+        run: flutter build ios --release --no-codesign
