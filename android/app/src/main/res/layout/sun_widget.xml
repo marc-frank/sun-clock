@@ -1,38 +1,128 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Home-screen widget (SunWidget.kt). The texts here are what the widget
-     picker previews on Android 12+; SunWidget fills in the real values. -->
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<!-- Home-screen widget (SunWidget.kt). SunWidget shows or hides the parts
+     each widget's settings ask for (WidgetConfig.kt). The texts and the
+     visibility here are what the widget picker previews on Android 12+:
+     the default settings, sun time with the information line.
+
+     Sun times are plain TextViews that SunWidget fills in every sun-minute;
+     local times are TextClocks, which keep themselves up to date. The time
+     views auto-size on Android 8+; 32sp is the size on older versions. -->
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:id="@+id/widget_root"
     android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    android:background="@drawable/widget_background"
-    android:gravity="center"
-    android:orientation="vertical"
-    android:padding="8dp">
+    android:layout_height="match_parent">
 
-    <TextView
-        android:id="@+id/widget_time"
+    <!-- White rounded shape, tinted and faded to the chosen background. -->
+    <ImageView
+        android:id="@+id/widget_bg"
         android:layout_width="match_parent"
-        android:layout_height="0dp"
-        android:layout_weight="1"
-        android:autoSizeMaxTextSize="64sp"
-        android:autoSizeMinTextSize="16sp"
-        android:autoSizeTextType="uniform"
-        android:fontFamily="sans-serif-medium"
-        android:gravity="center"
-        android:maxLines="1"
-        android:text="@string/widget_preview_time"
-        android:textColor="#FFB300"
-        android:textSize="32sp" />
+        android:layout_height="match_parent"
+        android:importantForAccessibility="no"
+        android:scaleType="fitXY"
+        android:src="@drawable/widget_bg_16"
+        android:tint="#1C1B17" />
 
-    <TextView
-        android:id="@+id/widget_detail"
+    <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:ellipsize="end"
+        android:layout_height="match_parent"
         android:gravity="center"
-        android:maxLines="2"
-        android:text="@string/widget_preview_detail"
-        android:textColor="#B3FFFFFF"
-        android:textSize="12sp" />
-</LinearLayout>
+        android:orientation="vertical"
+        android:padding="8dp">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1"
+            android:orientation="horizontal">
+
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:orientation="vertical">
+
+                <TextView
+                    android:id="@+id/widget_sun_1"
+                    style="@style/WidgetTime"
+                    android:text="@string/widget_preview_time" />
+
+                <TextClock
+                    android:id="@+id/widget_local_1"
+                    style="@style/WidgetTime"
+                    android:visibility="gone" />
+
+                <TextView
+                    android:id="@+id/widget_label_1"
+                    style="@style/WidgetLabel"
+                    android:visibility="gone" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:id="@+id/widget_col_2"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:orientation="vertical"
+                android:visibility="gone">
+
+                <TextView
+                    android:id="@+id/widget_sun_2"
+                    style="@style/WidgetTime" />
+
+                <TextClock
+                    android:id="@+id/widget_local_2"
+                    style="@style/WidgetTime"
+                    android:visibility="gone" />
+
+                <TextView
+                    android:id="@+id/widget_label_2"
+                    style="@style/WidgetLabel"
+                    android:visibility="gone" />
+            </LinearLayout>
+        </LinearLayout>
+
+        <!-- The second clock when both are shown one large, one small. -->
+        <LinearLayout
+            android:id="@+id/widget_small_row"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:gravity="center"
+            android:orientation="horizontal"
+            android:visibility="gone">
+
+            <TextView
+                android:id="@+id/widget_small_label"
+                style="@style/WidgetSmall"
+                android:layout_marginEnd="6dp" />
+
+            <TextView
+                android:id="@+id/widget_small_sun"
+                style="@style/WidgetSmall" />
+
+            <TextClock
+                android:id="@+id/widget_small_local"
+                style="@style/WidgetSmall"
+                android:visibility="gone" />
+        </LinearLayout>
+
+        <TextView
+            android:id="@+id/widget_detail"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:ellipsize="end"
+            android:gravity="center"
+            android:maxLines="2"
+            android:text="@string/widget_preview_detail"
+            android:textColor="#B3FFFFFF"
+            android:textSize="12sp" />
+
+        <ProgressBar
+            android:id="@+id/widget_progress"
+            style="?android:attr/progressBarStyleHorizontal"
+            android:layout_width="match_parent"
+            android:layout_height="4dp"
+            android:layout_marginTop="4dp"
+            android:max="1000"
+            android:visibility="gone" />
+    </LinearLayout>
+</FrameLayout>

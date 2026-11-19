@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="widget_label">Heure du soleil</string>
-    <string name="widget_description">Heure du soleil actuelle et prochain lever ou coucher du soleil</string>
+    <string name="widget_description">Heure du soleil et heure locale, avec lever, coucher du soleil et plus</string>
     <string name="widget_day">Jour</string>
     <string name="widget_night">Nuit</string>
     <string name="widget_sunrise_at">lever %1$s</string>
@@ -18,4 +18,9 @@
     <string name="duration_min">%1$d min</string>
     <string name="channel_name">"Heure du soleil dans la barre d'état"</string>
     <string name="channel_description">"Affiche l'heure du soleil actuelle dans la barre d'état."</string>
+    <string name="widget_name_sun">Heure du soleil</string>
+    <string name="widget_name_local">Heure locale</string>
+    <string name="widget_offset_ahead">"heure du soleil %1$s d'avance"</string>
+    <string name="widget_offset_behind">heure du soleil %1$s de retard</string>
+    <string name="widget_offset_same">"heure du soleil à l'heure"</string>
 </resources>

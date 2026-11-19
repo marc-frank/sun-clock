@@ -6,13 +6,20 @@ The 12 day hours split the real daylight evenly, and the 12 night hours split
 the real night evenly. The current UTC time is shown alongside.
 
 Scroll down for charts of the year: sunrise and sunset times, and how long
-one day hour and one night hour last. Under the charts is a map
+one day hour and one night hour last. Between them, a day chart shows how far
+sun time runs ahead of or behind the local clock through today; while you
+drag a finger along a year chart it shows that day instead. Under the charts is a map
 panel to pick any place, so the charts can be watched changing while you drag;
 it can be maximized to a full-screen map (also behind the map button). The
 clock and charts follow the pin live, and the picked place is remembered.
 
-On Android there is also a home-screen widget (`SunWidget.kt`) with the sun
-time, day or night, and the next sunrise or sunset. It uses the last position
+On Android there is also a home-screen widget (`SunWidget.kt`). Each widget
+has its own settings (Settings → Home-screen widget, or long-press the widget
+on Android 12+): sun time, local time or both (one large and one small, or
+side by side), clock names, an information line (day or night, next sunrise
+or sunset, length of a sun hour, how far sun time is ahead of local time,
+place name), a progress bar for the day or night, and background colour,
+opacity, corners and text colours. It uses the last position
 the app stored, so open the app once after installing. It updates with
 non-wakeup alarms at each sun-minute while the screen is on (no exact-alarm
 permission; to about a second), and from the status-bar service when that
@@ -42,6 +49,9 @@ Without promotion it keeps the stacked-digit icon.
 | `lib/location_model.dart` | GPS or map-picked position, saved with `shared_preferences` |
 | `lib/clock_view.dart` | Dial, sun time, UTC |
 | `lib/year_charts.dart` | Year charts (`fl_chart`) |
+| `lib/day_offset.dart`, `lib/day_offset_chart.dart` | Sun time minus local time through a day, and its chart |
+| `lib/home_widget.dart`, `lib/widget_editor.dart` | Home-screen widget settings and their editor with a live preview (Android: `WidgetConfig.kt`, `SunWidget.kt`) |
+| `lib/language.dart` | Language: the phone's or one chosen in Settings (also used by the widget and notification) |
 | `lib/map_picker.dart` | Map panel under the charts and full-screen map picker (`flutter_map`) |
 | `lib/world_map.dart` | Offline world map drawn from the bundled Natural Earth data (`assets/map/world.bin`) |
 | `lib/converter.dart` | Converter between local time and sun time |

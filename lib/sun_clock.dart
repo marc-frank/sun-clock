@@ -69,6 +69,15 @@ SunClockReading sunClock(DateTime now, double lat, double lon) {
   return _reading(nowUtc, prev, next, lat, lon);
 }
 
+/// [sunClock] with the sun events already computed (by [sunEventsAround]
+/// for a time near [now]), for reading the clock at many instants.
+SunClockReading sunClockWithEvents(
+    DateTime now, List<SunEvent> events, double lat, double lon) {
+  final nowUtc = now.toUtc();
+  final (prev, next) = _bracket(events, nowUtc);
+  return _reading(nowUtc, prev, next, lat, lon);
+}
+
 /// The last event at or before [nowUtc] and the first one after it.
 (SunEvent?, SunEvent?) _bracket(List<SunEvent> events, DateTime nowUtc) {
   SunEvent? prev;

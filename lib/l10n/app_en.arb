@@ -232,5 +232,142 @@
         "type": "String"
       }
     }
-  }
+  },
+  "offsetTitle": "Sun time vs local time",
+  "offsetSubtitle": "{day} · ahead (+) or behind (−) the local clock, {zone}",
+  "@offsetSubtitle": {
+    "placeholders": {
+      "day": {
+        "type": "String"
+      },
+      "zone": {
+        "type": "String"
+      }
+    }
+  },
+  "offsetToday": "Today",
+  "offsetAhead": "{duration} ahead",
+  "@offsetAhead": {
+    "placeholders": {
+      "duration": {
+        "type": "String"
+      }
+    }
+  },
+  "offsetBehind": "{duration} behind",
+  "@offsetBehind": {
+    "placeholders": {
+      "duration": {
+        "type": "String"
+      }
+    }
+  },
+  "offsetInStep": "in step",
+  "offsetNow": "Now: {value}",
+  "@offsetNow": {
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
+  "legendAhead": "Sun time ahead",
+  "legendBehind": "Sun time behind",
+  "nowLabel": "now",
+  "hoursMinutes": "{h} h {m} min",
+  "@hoursMinutes": {
+    "placeholders": {
+      "h": {
+        "type": "String"
+      },
+      "m": {
+        "type": "String"
+      }
+    }
+  },
+  "language": "Language",
+  "phoneLanguage": "Phone language",
+  "widgetsTitle": "Home-screen widget",
+  "widgetsTileHelp": "Clocks, information and colours",
+  "widgetsHelp": "Tap a widget to change it. You can also long-press it on the home screen.",
+  "noWidgets": "There is no Sun Clock widget on the home screen yet.",
+  "addWidget": "Add to home screen",
+  "addWidgetManual": "Long-press the home screen, choose Widgets and drag Sun Clock onto it.",
+  "widgetN": "Widget {n}",
+  "@widgetN": {
+    "placeholders": {
+      "n": {
+        "type": "String"
+      }
+    }
+  },
+  "sectionClocks": "Clocks",
+  "clockBoth": "Both",
+  "clockLayout": "Arrangement",
+  "layoutStacked": "Large and small",
+  "layoutSide": "Side by side",
+  "largeClock": "Large clock",
+  "leftClock": "Left clock",
+  "clockNames": "Show clock names",
+  "sectionInfo": "Information",
+  "infoDayNight": "Day or night",
+  "infoNext": "Next sunrise or sunset",
+  "infoHourLength": "Length of a sun hour",
+  "infoOffset": "Sun time ahead of or behind local time",
+  "infoPlace": "Place name",
+  "infoProgress": "Progress of the day or night",
+  "sectionLook": "Look",
+  "background": "Background",
+  "opacity": "Opacity {percent} %",
+  "@opacity": {
+    "placeholders": {
+      "percent": {
+        "type": "String"
+      }
+    }
+  },
+  "corners": "Corners",
+  "cornersNone": "Square",
+  "cornersSmall": "Small",
+  "cornersMedium": "Medium",
+  "cornersLarge": "Large",
+  "autoColors": "Clocks amber by day, blue by night",
+  "clockColor": "Clock colour",
+  "textColor": "Text colour",
+  "dayWord": "Day",
+  "nightWord": "Night",
+  "widgetSunriseAt": "sunrise {time}",
+  "@widgetSunriseAt": {
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "widgetSunsetAt": "sunset {time}",
+  "@widgetSunsetAt": {
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "widgetSolar": "solar time",
+  "hourEquals": "1 h = {n} min",
+  "@hourEquals": {
+    "placeholders": {
+      "n": {
+        "type": "String"
+      }
+    }
+  },
+  "widgetOffset": "sun time {offset}",
+  "@widgetOffset": {
+    "placeholders": {
+      "offset": {
+        "type": "String"
+      }
+    }
+  },
+  "widgetNoPosition": "Open Sun Clock to set a location"
 }

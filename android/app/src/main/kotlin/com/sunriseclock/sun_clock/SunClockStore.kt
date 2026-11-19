@@ -1,6 +1,8 @@
 package com.sunriseclock.sun_clock
 
 import android.content.Context
+import android.content.res.Configuration
+import java.util.Locale
 
 /** Sun events computed for one position, used to interpolate sun time. */
 data class SunData(
@@ -40,6 +42,7 @@ object SunClockStore {
     private const val K_PRECISE = "precise"
     private const val K_BACKGROUND = "background_location"
     private const val K_CHIP = "text_chip"
+    private const val K_LANGUAGE = "language"
 
     private fun prefs(c: Context) = c.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
 
@@ -63,6 +66,29 @@ object SunClockStore {
 
     fun setTextChip(c: Context, on: Boolean) =
         prefs(c).edit().putBoolean(K_CHIP, on).apply()
+
+    /** The language chosen in the app ("" follows the phone). */
+    fun language(c: Context): String = prefs(c).getString(K_LANGUAGE, "") ?: ""
+
+    fun setLanguage(c: Context, code: String) =
+        prefs(c).edit().putString(K_LANGUAGE, code).apply()
+
+    private var localizedFor: Pair<String, Context>? = null
+
+    /**
+     * [c] with the app's language for string lookups, so the notification
+     * and the widget follow the language chosen in the app.
+     */
+    fun localized(c: Context): Context {
+        val lang = language(c)
+        if (lang.isEmpty()) return c
+        localizedFor?.let { (l, ctx) -> if (l == lang) return ctx }
+        val conf = Configuration(c.resources.configuration)
+        conf.setLocale(Locale.forLanguageTag(lang))
+        return c.applicationContext.createConfigurationContext(conf).also {
+            localizedFor = lang to it
+        }
+    }
 
     fun save(c: Context, p: ClockParams) {
         prefs(c).edit()

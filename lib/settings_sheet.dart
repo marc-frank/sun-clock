@@ -1,13 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
 
+import 'home_widget.dart';
 import 'l10n/l10n.dart';
+import 'language.dart';
 import 'location_model.dart';
 import 'status_bar_clock.dart';
+import 'widget_editor.dart';
 
 /// Bottom sheet with location precision and the status-bar clock switch.
-void showSettings(
-    BuildContext context, LocationModel model, StatusBarClock statusBar) {
+void showSettings(BuildContext context, LocationModel model,
+    StatusBarClock statusBar, LanguageSetting language) {
   statusBar.refreshBackground();
   showModalBottomSheet<void>(
     context: context,
@@ -15,7 +18,7 @@ void showSettings(
     isScrollControlled: true,
     builder: (context) => SafeArea(
       child: ListenableBuilder(
-        listenable: Listenable.merge([model, statusBar]),
+        listenable: Listenable.merge([model, statusBar, language]),
         builder: (context, _) {
           final theme = Theme.of(context);
           final l = context.l10n;
@@ -27,7 +30,37 @@ void showSettings(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(l.settings, style: theme.textTheme.headlineSmall),
-                  const SizedBox(height: 20),
+                  const SizedBox(height: 12),
+                  ListTile(
+                    contentPadding: EdgeInsets.zero,
+                    leading: const Icon(Icons.translate),
+                    title: Text(l.language),
+                    trailing: DropdownButton<String>(
+                      value: language.code,
+                      underline: const SizedBox.shrink(),
+                      items: [
+                        DropdownMenuItem(
+                            value: '', child: Text(l.phoneLanguage)),
+                        for (final e in appLanguages.entries)
+                          DropdownMenuItem(value: e.key, child: Text(e.value)),
+                      ],
+                      onChanged: (c) => language.set(c ?? ''),
+                    ),
+                  ),
+                  if (HomeWidgets.supported)
+                    ListTile(
+                      contentPadding: EdgeInsets.zero,
+                      leading: const Icon(Icons.widgets_outlined),
+                      title: Text(l.widgetsTitle),
+                      subtitle: Text(l.widgetsTileHelp, style: muted),
+                      trailing: const Icon(Icons.chevron_right),
+                      onTap: () => Navigator.of(context).push(
+                          MaterialPageRoute<void>(
+                              builder: (_) => WidgetsPage(model: model))),
+                    ),
+                  const SizedBox(height: 8),
+                  const Divider(),
+                  const SizedBox(height: 8),
                   Text(l.locationAccuracy, style: theme.textTheme.titleMedium),
                   const SizedBox(height: 8),
                   SizedBox(

@@ -1,6 +1,8 @@
 package com.sunriseclock.sun_clock
 
 import android.Manifest
+import android.appwidget.AppWidgetManager
+import android.content.ComponentName
 import android.content.ActivityNotFoundException
 import android.content.Intent
 import android.content.pm.PackageManager
@@ -11,7 +13,10 @@ import io.flutter.embedding.engine.FlutterEngine
 import io.flutter.plugin.common.MethodCall
 import io.flutter.plugin.common.MethodChannel
 
-class MainActivity : FlutterActivity() {
+open class MainActivity : FlutterActivity() {
+    /** The widget the launcher asked to set up ([WidgetConfigActivity]). */
+    protected open val configWidgetId: Int? = null
+
     private companion object {
         const val CHANNEL = "sun_clock/status_bar"
         const val REQUEST_NOTIFICATIONS = 41
@@ -37,9 +42,20 @@ class MainActivity : FlutterActivity() {
                     result.notImplemented()
                 }
             }
+        MethodChannel(flutterEngine.dartExecutor.binaryMessenger, "sun_clock/widgets")
+            .setMethodCallHandler { call, result -> widgets(call, result) }
         MethodChannel(flutterEngine.dartExecutor.binaryMessenger, CHANNEL)
             .setMethodCallHandler { call, result ->
                 when (call.method) {
+                    "setLanguage" -> {
+                        val code = call.argument<String>("code") ?: ""
+                        if (code != SunClockStore.language(this)) {
+                            SunClockStore.setLanguage(this, code)
+                            SunWidget.updateAll(this)
+                            if (SunClockStore.isEnabled(this)) SunClockService.start(this)
+                        }
+                        result.success(null)
+                    }
                     "isEnabled" -> result.success(SunClockStore.isEnabled(this))
                     "requestNotificationPermission" -> requestNotifications(result)
                     // The position changed: store it for the home-screen
@@ -92,6 +108,37 @@ class MainActivity : FlutterActivity() {
                     else -> result.notImplemented()
                 }
             }
+    }
+
+    /** The home-screen widgets' settings (lib/home_widget.dart). */
+    private fun widgets(call: MethodCall, result: MethodChannel.Result) {
+        val manager = AppWidgetManager.getInstance(this)
+        when (call.method) {
+            "ids" -> result.success(
+                manager.getAppWidgetIds(ComponentName(this, SunWidget::class.java)).toList(),
+            )
+            "getConfig" -> result.success(
+                WidgetStore.load(this, call.argument<Int>("id")!!).toMap(),
+            )
+            "setConfig" -> {
+                val map = call.argument<Map<String, Any?>>("config") ?: emptyMap()
+                WidgetStore.save(this, call.argument<Int>("id")!!, WidgetConfig.from(map))
+                SunWidget.updateAll(this)
+                result.success(null)
+            }
+            "pin" -> result.success(
+                Build.VERSION.SDK_INT >= 26 && manager.isRequestPinAppWidgetSupported &&
+                    manager.requestPinAppWidget(
+                        ComponentName(this, SunWidget::class.java), null, null,
+                    ),
+            )
+            "configLaunchId" -> result.success(configWidgetId)
+            "finishConfig" -> {
+                result.success(null)
+                finish()
+            }
+            else -> result.notImplemented()
+        }
     }
 
     private fun params(call: MethodCall) = ClockParams(

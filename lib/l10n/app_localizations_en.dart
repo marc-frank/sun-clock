@@ -348,4 +348,191 @@ class AppLocalizationsEn extends AppLocalizations {
   String nightHourValue(String minutes) {
     return 'Night hour $minutes min';
   }
+
+  @override
+  String get offsetTitle => 'Sun time vs local time';
+
+  @override
+  String offsetSubtitle(String day, String zone) {
+    return '$day · ahead (+) or behind (−) the local clock, $zone';
+  }
+
+  @override
+  String get offsetToday => 'Today';
+
+  @override
+  String offsetAhead(String duration) {
+    return '$duration ahead';
+  }
+
+  @override
+  String offsetBehind(String duration) {
+    return '$duration behind';
+  }
+
+  @override
+  String get offsetInStep => 'in step';
+
+  @override
+  String offsetNow(String value) {
+    return 'Now: $value';
+  }
+
+  @override
+  String get legendAhead => 'Sun time ahead';
+
+  @override
+  String get legendBehind => 'Sun time behind';
+
+  @override
+  String get nowLabel => 'now';
+
+  @override
+  String hoursMinutes(String h, String m) {
+    return '$h h $m min';
+  }
+
+  @override
+  String get language => 'Language';
+
+  @override
+  String get phoneLanguage => 'Phone language';
+
+  @override
+  String get widgetsTitle => 'Home-screen widget';
+
+  @override
+  String get widgetsTileHelp => 'Clocks, information and colours';
+
+  @override
+  String get widgetsHelp =>
+      'Tap a widget to change it. You can also long-press it on the home screen.';
+
+  @override
+  String get noWidgets =>
+      'There is no Sun Clock widget on the home screen yet.';
+
+  @override
+  String get addWidget => 'Add to home screen';
+
+  @override
+  String get addWidgetManual =>
+      'Long-press the home screen, choose Widgets and drag Sun Clock onto it.';
+
+  @override
+  String widgetN(String n) {
+    return 'Widget $n';
+  }
+
+  @override
+  String get sectionClocks => 'Clocks';
+
+  @override
+  String get clockBoth => 'Both';
+
+  @override
+  String get clockLayout => 'Arrangement';
+
+  @override
+  String get layoutStacked => 'Large and small';
+
+  @override
+  String get layoutSide => 'Side by side';
+
+  @override
+  String get largeClock => 'Large clock';
+
+  @override
+  String get leftClock => 'Left clock';
+
+  @override
+  String get clockNames => 'Show clock names';
+
+  @override
+  String get sectionInfo => 'Information';
+
+  @override
+  String get infoDayNight => 'Day or night';
+
+  @override
+  String get infoNext => 'Next sunrise or sunset';
+
+  @override
+  String get infoHourLength => 'Length of a sun hour';
+
+  @override
+  String get infoOffset => 'Sun time ahead of or behind local time';
+
+  @override
+  String get infoPlace => 'Place name';
+
+  @override
+  String get infoProgress => 'Progress of the day or night';
+
+  @override
+  String get sectionLook => 'Look';
+
+  @override
+  String get background => 'Background';
+
+  @override
+  String opacity(String percent) {
+    return 'Opacity $percent %';
+  }
+
+  @override
+  String get corners => 'Corners';
+
+  @override
+  String get cornersNone => 'Square';
+
+  @override
+  String get cornersSmall => 'Small';
+
+  @override
+  String get cornersMedium => 'Medium';
+
+  @override
+  String get cornersLarge => 'Large';
+
+  @override
+  String get autoColors => 'Clocks amber by day, blue by night';
+
+  @override
+  String get clockColor => 'Clock colour';
+
+  @override
+  String get textColor => 'Text colour';
+
+  @override
+  String get dayWord => 'Day';
+
+  @override
+  String get nightWord => 'Night';
+
+  @override
+  String widgetSunriseAt(String time) {
+    return 'sunrise $time';
+  }
+
+  @override
+  String widgetSunsetAt(String time) {
+    return 'sunset $time';
+  }
+
+  @override
+  String get widgetSolar => 'solar time';
+
+  @override
+  String hourEquals(String n) {
+    return '1 h = $n min';
+  }
+
+  @override
+  String widgetOffset(String offset) {
+    return 'sun time $offset';
+  }
+
+  @override
+  String get widgetNoPosition => 'Open Sun Clock to set a location';
 }

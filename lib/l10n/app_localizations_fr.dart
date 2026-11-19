@@ -354,4 +354,191 @@ class AppLocalizationsFr extends AppLocalizations {
   String nightHourValue(String minutes) {
     return 'Heure de nuit $minutes min';
   }
+
+  @override
+  String get offsetTitle => 'Heure du soleil et heure locale';
+
+  @override
+  String offsetSubtitle(String day, String zone) {
+    return '$day · en avance (+) ou en retard (−) sur l\'heure locale, $zone';
+  }
+
+  @override
+  String get offsetToday => 'Aujourd\'hui';
+
+  @override
+  String offsetAhead(String duration) {
+    return '$duration d\'avance';
+  }
+
+  @override
+  String offsetBehind(String duration) {
+    return '$duration de retard';
+  }
+
+  @override
+  String get offsetInStep => 'à l\'heure';
+
+  @override
+  String offsetNow(String value) {
+    return 'Maintenant : $value';
+  }
+
+  @override
+  String get legendAhead => 'Heure du soleil en avance';
+
+  @override
+  String get legendBehind => 'Heure du soleil en retard';
+
+  @override
+  String get nowLabel => 'maint.';
+
+  @override
+  String hoursMinutes(String h, String m) {
+    return '$h h $m min';
+  }
+
+  @override
+  String get language => 'Langue';
+
+  @override
+  String get phoneLanguage => 'Langue du téléphone';
+
+  @override
+  String get widgetsTitle => 'Widget d\'écran d\'accueil';
+
+  @override
+  String get widgetsTileHelp => 'Horloges, informations et couleurs';
+
+  @override
+  String get widgetsHelp =>
+      'Touchez un widget pour le modifier. Vous pouvez aussi appuyer longuement dessus sur l\'écran d\'accueil.';
+
+  @override
+  String get noWidgets =>
+      'Il n\'y a pas encore de widget Sun Clock sur l\'écran d\'accueil.';
+
+  @override
+  String get addWidget => 'Ajouter à l\'accueil';
+
+  @override
+  String get addWidgetManual =>
+      'Appuyez longuement sur l\'écran d\'accueil, choisissez Widgets et faites-y glisser Sun Clock.';
+
+  @override
+  String widgetN(String n) {
+    return 'Widget $n';
+  }
+
+  @override
+  String get sectionClocks => 'Horloges';
+
+  @override
+  String get clockBoth => 'Les deux';
+
+  @override
+  String get clockLayout => 'Disposition';
+
+  @override
+  String get layoutStacked => 'Grande et petite';
+
+  @override
+  String get layoutSide => 'Côte à côte';
+
+  @override
+  String get largeClock => 'Grande horloge';
+
+  @override
+  String get leftClock => 'Horloge de gauche';
+
+  @override
+  String get clockNames => 'Afficher le nom des horloges';
+
+  @override
+  String get sectionInfo => 'Informations';
+
+  @override
+  String get infoDayNight => 'Jour ou nuit';
+
+  @override
+  String get infoNext => 'Prochain lever ou coucher du soleil';
+
+  @override
+  String get infoHourLength => 'Durée d\'une heure du soleil';
+
+  @override
+  String get infoOffset => 'Avance ou retard sur l\'heure locale';
+
+  @override
+  String get infoPlace => 'Nom du lieu';
+
+  @override
+  String get infoProgress => 'Avancement du jour ou de la nuit';
+
+  @override
+  String get sectionLook => 'Apparence';
+
+  @override
+  String get background => 'Arrière-plan';
+
+  @override
+  String opacity(String percent) {
+    return 'Opacité $percent %';
+  }
+
+  @override
+  String get corners => 'Coins';
+
+  @override
+  String get cornersNone => 'Carrés';
+
+  @override
+  String get cornersSmall => 'Petits';
+
+  @override
+  String get cornersMedium => 'Moyens';
+
+  @override
+  String get cornersLarge => 'Grands';
+
+  @override
+  String get autoColors => 'Horloges ambre le jour, bleues la nuit';
+
+  @override
+  String get clockColor => 'Couleur des horloges';
+
+  @override
+  String get textColor => 'Couleur du texte';
+
+  @override
+  String get dayWord => 'Jour';
+
+  @override
+  String get nightWord => 'Nuit';
+
+  @override
+  String widgetSunriseAt(String time) {
+    return 'lever $time';
+  }
+
+  @override
+  String widgetSunsetAt(String time) {
+    return 'coucher $time';
+  }
+
+  @override
+  String get widgetSolar => 'temps solaire vrai';
+
+  @override
+  String hourEquals(String n) {
+    return '1 h = $n min';
+  }
+
+  @override
+  String widgetOffset(String offset) {
+    return 'heure du soleil $offset';
+  }
+
+  @override
+  String get widgetNoPosition => 'Ouvrez Sun Clock pour définir un lieu';
 }

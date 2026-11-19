@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:timezone/timezone.dart' as tz;
 
 import 'clock_view.dart';
+import 'day_offset_chart.dart';
 import 'l10n/l10n.dart';
 import 'year_data.dart';
 import 'zone.dart';
@@ -33,6 +34,10 @@ class YearCharts extends StatefulWidget {
 
 class _YearChartsState extends State<YearCharts> {
   final _cache = YearDataCache();
+
+  /// The day under the finger in a year chart, or null: the day chart
+  /// between the year charts shows that day, and today otherwise.
+  final _scrubDay = ValueNotifier<int?>(null);
 
   /// At most this many chart updates per second while the map is dragged.
   static const _minInterval = Duration(milliseconds: 100);
@@ -68,6 +73,8 @@ class _YearChartsState extends State<YearCharts> {
     // later ones wait for the cooldown to end.
     if (_cooldown == null && _behind) _follow();
   }
+
+  void _onScrub(int? i) => _scrubDay.value = i;
 
   bool get _behind =>
       widget.lat != _lat || widget.lon != _lon || widget.zone != _zone;
@@ -108,6 +115,7 @@ class _YearChartsState extends State<YearCharts> {
     _midnight?.cancel();
     _cooldown?.cancel();
     _lifecycle.dispose();
+    _scrubDay.dispose();
     super.dispose();
   }
 
@@ -130,7 +138,23 @@ class _YearChartsState extends State<YearCharts> {
           _LegendItem(dayColor, l.sunrise),
           _LegendItem(const Color(0xFFFF7043), l.sunset),
         ],
-        chart: _SunTimesChart(days: days, todayIndex: todayIndex),
+        chart: _SunTimesChart(
+            days: days, todayIndex: todayIndex, onScrub: _onScrub),
+      ),
+      const SizedBox(height: 16),
+      // Between the year charts, so it stays in view while either is
+      // scrubbed.
+      ValueListenableBuilder<int?>(
+        valueListenable: _scrubDay,
+        builder: (context, i, _) => DayOffsetSection(
+          lat: _lat,
+          lon: _lon,
+          zone: _zone,
+          day: i == null || i >= days.length ? null : days[i].date,
+          clock: widget.clock,
+          section: (title, subtitle, legend, chart) => _Section(
+              title: title, subtitle: subtitle, legend: legend, chart: chart),
+        ),
       ),
       const SizedBox(height: 16),
       _Section(
@@ -140,7 +164,8 @@ class _YearChartsState extends State<YearCharts> {
           _LegendItem(dayColor, l.dayHour),
           _LegendItem(nightColor, l.nightHour),
         ],
-        chart: _HourLengthChart(days: days, todayIndex: todayIndex),
+        chart: _HourLengthChart(
+            days: days, todayIndex: todayIndex, onScrub: _onScrub),
       ),
       if (hasPolar)
         Padding(
@@ -158,7 +183,7 @@ class _YearChartsState extends State<YearCharts> {
 class _Section extends StatelessWidget {
   final String title;
   final String subtitle;
-  final List<_LegendItem> legend;
+  final List<Widget> legend;
   final Widget chart;
 
   const _Section(
@@ -298,7 +323,10 @@ const double _leftReserved = 40;
 class _ScrubChart extends StatefulWidget {
   final LineChartData data;
   final double reservedLeft;
-  const _ScrubChart(this.data, {required this.reservedLeft});
+
+  /// The day index under the finger, null when let go.
+  final ValueChanged<int?>? onScrub;
+  const _ScrubChart(this.data, {required this.reservedLeft, this.onScrub});
 
   @override
   State<_ScrubChart> createState() => _ScrubChartState();
@@ -313,11 +341,17 @@ class _ScrubChartState extends State<_ScrubChart> {
     if (plotWidth <= 0) return;
     final x = d.minX + (dx - widget.reservedLeft) / plotWidth * (d.maxX - d.minX);
     final i = x.round().clamp(d.minX.toInt(), d.maxX.toInt());
-    if (i != _index) setState(() => _index = i);
+    if (i != _index) {
+      setState(() => _index = i);
+      widget.onScrub?.call(i);
+    }
   }
 
   void _hide() {
-    if (_index != null) setState(() => _index = null);
+    if (_index != null) {
+      setState(() => _index = null);
+      widget.onScrub?.call(null);
+    }
   }
 
   LineChartData _withIndicators(LineChartData d) {
@@ -407,7 +441,9 @@ LineTouchData _touch(BuildContext context, List<DaySun> days,
 class _SunTimesChart extends StatelessWidget {
   final List<DaySun> days;
   final double todayIndex;
-  const _SunTimesChart({required this.days, required this.todayIndex});
+  final ValueChanged<int?> onScrub;
+  const _SunTimesChart(
+      {required this.days, required this.todayIndex, required this.onScrub});
 
   @override
   Widget build(BuildContext context) {
@@ -446,14 +482,16 @@ class _SunTimesChart extends StatelessWidget {
           (s) => s.barIndex == 0
               ? l.sunriseAt(hoursToHm(s.y))
               : l.sunsetAt(hoursToHm(s.y))),
-    ), reservedLeft: _leftReserved);
+    ), reservedLeft: _leftReserved, onScrub: onScrub);
   }
 }
 
 class _HourLengthChart extends StatelessWidget {
   final List<DaySun> days;
   final double todayIndex;
-  const _HourLengthChart({required this.days, required this.todayIndex});
+  final ValueChanged<int?> onScrub;
+  const _HourLengthChart(
+      {required this.days, required this.todayIndex, required this.onScrub});
 
   @override
   Widget build(BuildContext context) {
@@ -519,6 +557,6 @@ class _HourLengthChart extends StatelessWidget {
           (s) => s.barIndex == 0
               ? l.dayHourValue(s.y.toStringAsFixed(1))
               : l.nightHourValue(s.y.toStringAsFixed(1))),
-    ), reservedLeft: _leftReserved);
+    ), reservedLeft: _leftReserved, onScrub: onScrub);
   }
 }

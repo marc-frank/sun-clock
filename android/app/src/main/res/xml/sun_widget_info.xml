@@ -1,6 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!-- 2×1 cells by default, resizable. updatePeriodMillis is only a safety
-     net (the widget sets its own alarms, see SunWidget.kt). -->
+     net (the widget sets its own alarms, see SunWidget.kt).
+     configure: the app's widget editor. On Android 12+ a new widget starts
+     with the settings saved last (configuration_optional) and the editor
+     opens from long-press → reconfigure; before Android 12 it opens when
+     the widget is added. -->
 <appwidget-provider xmlns:android="http://schemas.android.com/apk/res/android"
     android:description="@string/widget_description"
     android:initialLayout="@layout/sun_widget"
@@ -14,4 +18,6 @@
     android:targetCellHeight="1"
     android:targetCellWidth="2"
     android:updatePeriodMillis="3600000"
-    android:widgetCategory="home_screen" />
+    android:widgetCategory="home_screen"
+    android:configure="com.sunriseclock.sun_clock.WidgetConfigActivity"
+    android:widgetFeatures="reconfigurable|configuration_optional" />

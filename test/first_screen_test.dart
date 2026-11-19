@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:sun_clock/clock_view.dart';
+import 'package:sun_clock/language.dart';
 import 'package:sun_clock/location_model.dart';
 import 'package:sun_clock/main.dart';
 import 'package:sun_clock/status_bar_clock.dart';
@@ -20,7 +21,9 @@ void main() {
     addTearDown(tester.platformDispatcher.clearTextScaleFactorTestValue);
     final model = LocationModel()..setFromMap(52.52, 13.405);
     await tester.pumpWidget(SunClockApp(
-        model: model, statusBar: StatusBarClock(model)));
+        model: model,
+        statusBar: StatusBarClock(model),
+        language: LanguageSetting()));
     await tester.pump();
   }
 

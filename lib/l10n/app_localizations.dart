@@ -677,6 +677,330 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Night hour {minutes} min'**
   String nightHourValue(String minutes);
+
+  /// No description provided for @offsetTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Sun time vs local time'**
+  String get offsetTitle;
+
+  /// No description provided for @offsetSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'{day} · ahead (+) or behind (−) the local clock, {zone}'**
+  String offsetSubtitle(String day, String zone);
+
+  /// No description provided for @offsetToday.
+  ///
+  /// In en, this message translates to:
+  /// **'Today'**
+  String get offsetToday;
+
+  /// No description provided for @offsetAhead.
+  ///
+  /// In en, this message translates to:
+  /// **'{duration} ahead'**
+  String offsetAhead(String duration);
+
+  /// No description provided for @offsetBehind.
+  ///
+  /// In en, this message translates to:
+  /// **'{duration} behind'**
+  String offsetBehind(String duration);
+
+  /// No description provided for @offsetInStep.
+  ///
+  /// In en, this message translates to:
+  /// **'in step'**
+  String get offsetInStep;
+
+  /// No description provided for @offsetNow.
+  ///
+  /// In en, this message translates to:
+  /// **'Now: {value}'**
+  String offsetNow(String value);
+
+  /// No description provided for @legendAhead.
+  ///
+  /// In en, this message translates to:
+  /// **'Sun time ahead'**
+  String get legendAhead;
+
+  /// No description provided for @legendBehind.
+  ///
+  /// In en, this message translates to:
+  /// **'Sun time behind'**
+  String get legendBehind;
+
+  /// No description provided for @nowLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'now'**
+  String get nowLabel;
+
+  /// No description provided for @hoursMinutes.
+  ///
+  /// In en, this message translates to:
+  /// **'{h} h {m} min'**
+  String hoursMinutes(String h, String m);
+
+  /// No description provided for @language.
+  ///
+  /// In en, this message translates to:
+  /// **'Language'**
+  String get language;
+
+  /// No description provided for @phoneLanguage.
+  ///
+  /// In en, this message translates to:
+  /// **'Phone language'**
+  String get phoneLanguage;
+
+  /// No description provided for @widgetsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Home-screen widget'**
+  String get widgetsTitle;
+
+  /// No description provided for @widgetsTileHelp.
+  ///
+  /// In en, this message translates to:
+  /// **'Clocks, information and colours'**
+  String get widgetsTileHelp;
+
+  /// No description provided for @widgetsHelp.
+  ///
+  /// In en, this message translates to:
+  /// **'Tap a widget to change it. You can also long-press it on the home screen.'**
+  String get widgetsHelp;
+
+  /// No description provided for @noWidgets.
+  ///
+  /// In en, this message translates to:
+  /// **'There is no Sun Clock widget on the home screen yet.'**
+  String get noWidgets;
+
+  /// No description provided for @addWidget.
+  ///
+  /// In en, this message translates to:
+  /// **'Add to home screen'**
+  String get addWidget;
+
+  /// No description provided for @addWidgetManual.
+  ///
+  /// In en, this message translates to:
+  /// **'Long-press the home screen, choose Widgets and drag Sun Clock onto it.'**
+  String get addWidgetManual;
+
+  /// No description provided for @widgetN.
+  ///
+  /// In en, this message translates to:
+  /// **'Widget {n}'**
+  String widgetN(String n);
+
+  /// No description provided for @sectionClocks.
+  ///
+  /// In en, this message translates to:
+  /// **'Clocks'**
+  String get sectionClocks;
+
+  /// No description provided for @clockBoth.
+  ///
+  /// In en, this message translates to:
+  /// **'Both'**
+  String get clockBoth;
+
+  /// No description provided for @clockLayout.
+  ///
+  /// In en, this message translates to:
+  /// **'Arrangement'**
+  String get clockLayout;
+
+  /// No description provided for @layoutStacked.
+  ///
+  /// In en, this message translates to:
+  /// **'Large and small'**
+  String get layoutStacked;
+
+  /// No description provided for @layoutSide.
+  ///
+  /// In en, this message translates to:
+  /// **'Side by side'**
+  String get layoutSide;
+
+  /// No description provided for @largeClock.
+  ///
+  /// In en, this message translates to:
+  /// **'Large clock'**
+  String get largeClock;
+
+  /// No description provided for @leftClock.
+  ///
+  /// In en, this message translates to:
+  /// **'Left clock'**
+  String get leftClock;
+
+  /// No description provided for @clockNames.
+  ///
+  /// In en, this message translates to:
+  /// **'Show clock names'**
+  String get clockNames;
+
+  /// No description provided for @sectionInfo.
+  ///
+  /// In en, this message translates to:
+  /// **'Information'**
+  String get sectionInfo;
+
+  /// No description provided for @infoDayNight.
+  ///
+  /// In en, this message translates to:
+  /// **'Day or night'**
+  String get infoDayNight;
+
+  /// No description provided for @infoNext.
+  ///
+  /// In en, this message translates to:
+  /// **'Next sunrise or sunset'**
+  String get infoNext;
+
+  /// No description provided for @infoHourLength.
+  ///
+  /// In en, this message translates to:
+  /// **'Length of a sun hour'**
+  String get infoHourLength;
+
+  /// No description provided for @infoOffset.
+  ///
+  /// In en, this message translates to:
+  /// **'Sun time ahead of or behind local time'**
+  String get infoOffset;
+
+  /// No description provided for @infoPlace.
+  ///
+  /// In en, this message translates to:
+  /// **'Place name'**
+  String get infoPlace;
+
+  /// No description provided for @infoProgress.
+  ///
+  /// In en, this message translates to:
+  /// **'Progress of the day or night'**
+  String get infoProgress;
+
+  /// No description provided for @sectionLook.
+  ///
+  /// In en, this message translates to:
+  /// **'Look'**
+  String get sectionLook;
+
+  /// No description provided for @background.
+  ///
+  /// In en, this message translates to:
+  /// **'Background'**
+  String get background;
+
+  /// No description provided for @opacity.
+  ///
+  /// In en, this message translates to:
+  /// **'Opacity {percent} %'**
+  String opacity(String percent);
+
+  /// No description provided for @corners.
+  ///
+  /// In en, this message translates to:
+  /// **'Corners'**
+  String get corners;
+
+  /// No description provided for @cornersNone.
+  ///
+  /// In en, this message translates to:
+  /// **'Square'**
+  String get cornersNone;
+
+  /// No description provided for @cornersSmall.
+  ///
+  /// In en, this message translates to:
+  /// **'Small'**
+  String get cornersSmall;
+
+  /// No description provided for @cornersMedium.
+  ///
+  /// In en, this message translates to:
+  /// **'Medium'**
+  String get cornersMedium;
+
+  /// No description provided for @cornersLarge.
+  ///
+  /// In en, this message translates to:
+  /// **'Large'**
+  String get cornersLarge;
+
+  /// No description provided for @autoColors.
+  ///
+  /// In en, this message translates to:
+  /// **'Clocks amber by day, blue by night'**
+  String get autoColors;
+
+  /// No description provided for @clockColor.
+  ///
+  /// In en, this message translates to:
+  /// **'Clock colour'**
+  String get clockColor;
+
+  /// No description provided for @textColor.
+  ///
+  /// In en, this message translates to:
+  /// **'Text colour'**
+  String get textColor;
+
+  /// No description provided for @dayWord.
+  ///
+  /// In en, this message translates to:
+  /// **'Day'**
+  String get dayWord;
+
+  /// No description provided for @nightWord.
+  ///
+  /// In en, this message translates to:
+  /// **'Night'**
+  String get nightWord;
+
+  /// No description provided for @widgetSunriseAt.
+  ///
+  /// In en, this message translates to:
+  /// **'sunrise {time}'**
+  String widgetSunriseAt(String time);
+
+  /// No description provided for @widgetSunsetAt.
+  ///
+  /// In en, this message translates to:
+  /// **'sunset {time}'**
+  String widgetSunsetAt(String time);
+
+  /// No description provided for @widgetSolar.
+  ///
+  /// In en, this message translates to:
+  /// **'solar time'**
+  String get widgetSolar;
+
+  /// No description provided for @hourEquals.
+  ///
+  /// In en, this message translates to:
+  /// **'1 h = {n} min'**
+  String hourEquals(String n);
+
+  /// No description provided for @widgetOffset.
+  ///
+  /// In en, this message translates to:
+  /// **'sun time {offset}'**
+  String widgetOffset(String offset);
+
+  /// No description provided for @widgetNoPosition.
+  ///
+  /// In en, this message translates to:
+  /// **'Open Sun Clock to set a location'**
+  String get widgetNoPosition;
 }
 
 class _AppLocalizationsDelegate

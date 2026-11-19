@@ -5,17 +5,20 @@ import 'package:geolocator/geolocator.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 
 import 'clock_view.dart';
+import 'home_widget.dart';
 import 'l10n/l10n.dart';
+import 'language.dart';
 import 'location_model.dart';
 import 'map_picker.dart';
 import 'settings_sheet.dart';
 import 'status_bar_clock.dart';
+import 'widget_editor.dart';
 import 'year_charts.dart';
 import 'zone.dart';
 
 const appBackground = Color(0xFF1C1B17);
 
-void main() {
+Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   initZones();
   SystemChrome.setSystemUIOverlayStyle(const SystemUiOverlayStyle(
@@ -27,21 +30,43 @@ void main() {
   ));
   final model = LocationModel()..load();
   final statusBar = StatusBarClock(model)..load();
-  runApp(SunClockApp(model: model, statusBar: statusBar));
+  final language = LanguageSetting();
+  // Before the first frame, so the app never flashes in the wrong language
+  // or shows the home page when the launcher asked to set up a widget.
+  await language.load();
+  final configuring = await HomeWidgets.configLaunchId();
+  runApp(SunClockApp(
+      model: model,
+      statusBar: statusBar,
+      language: language,
+      configureWidget: configuring));
 }
 
 class SunClockApp extends StatelessWidget {
   final LocationModel model;
   final StatusBarClock statusBar;
-  const SunClockApp({super.key, required this.model, required this.statusBar});
+  final LanguageSetting language;
+
+  /// The widget to set up when the launcher opened the app for that.
+  final int? configureWidget;
+
+  const SunClockApp(
+      {super.key,
+      required this.model,
+      required this.statusBar,
+      required this.language,
+      this.configureWidget});
 
   @override
   Widget build(BuildContext context) {
     final scheme = ColorScheme.fromSeed(
             seedColor: Colors.amber, brightness: Brightness.dark)
         .copyWith(surface: appBackground);
-    return MaterialApp(
+    return ListenableBuilder(
+      listenable: language,
+      builder: (context, _) => MaterialApp(
       title: 'Sun Clock',
+      locale: language.locale,
       debugShowCheckedModeBanner: false,
       localizationsDelegates: const [
         AppLocalizations.delegate,
@@ -55,15 +80,23 @@ class SunClockApp extends StatelessWidget {
         scaffoldBackgroundColor: appBackground,
         useMaterial3: true,
       ),
-      home: HomePage(model: model, statusBar: statusBar),
-    );
+      home: configureWidget != null
+          ? WidgetEditorPage(
+              id: configureWidget!, model: model, configuring: true)
+          : HomePage(model: model, statusBar: statusBar, language: language),
+    ));
   }
 }
 
 class HomePage extends StatelessWidget {
   final LocationModel model;
   final StatusBarClock statusBar;
-  const HomePage({super.key, required this.model, required this.statusBar});
+  final LanguageSetting language;
+  const HomePage(
+      {super.key,
+      required this.model,
+      required this.statusBar,
+      required this.language});
 
   void _openMap(BuildContext context) => openMapPicker(context, model);
 
@@ -87,6 +120,7 @@ class HomePage extends StatelessWidget {
                         onMap: () => _openMap(context),
                         model: model,
                         statusBar: statusBar,
+                        language: language,
                       ),
                       model.hasPosition
                           ? ClockView(
@@ -134,8 +168,12 @@ class _TopBar extends StatelessWidget {
   final VoidCallback onMap;
   final LocationModel model;
   final StatusBarClock statusBar;
+  final LanguageSetting language;
   const _TopBar(
-      {required this.onMap, required this.model, required this.statusBar});
+      {required this.onMap,
+      required this.model,
+      required this.statusBar,
+      required this.language});
 
   @override
   Widget build(BuildContext context) {
@@ -165,7 +203,7 @@ class _TopBar extends StatelessWidget {
         IconButton(
           tooltip: context.l10n.settings,
           icon: const Icon(Icons.tune),
-          onPressed: () => showSettings(context, model, statusBar),
+          onPressed: () => showSettings(context, model, statusBar, language),
         ),
         IconButton(
           tooltip: context.l10n.pickOnMapTooltip,
@@ -245,7 +283,7 @@ String gpsErrorText(AppLocalizations l, GpsError e) => switch (e) {
       GpsError.noFix => l.gpsNoFix,
     };
 
-/// "Version 1.2.0 (3)", read from the installed app (set in pubspec.yaml).
+/// "Version 1.3.0 (4)", read from the installed app (set in pubspec.yaml).
 Future<String> appVersion(AppLocalizations l) async {
   try {
     final info = await PackageInfo.fromPlatform();

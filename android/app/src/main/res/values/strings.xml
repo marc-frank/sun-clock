@@ -2,7 +2,7 @@
 <resources>
     <!-- Home-screen widget (SunWidget.kt). -->
     <string name="widget_label">Sun time</string>
-    <string name="widget_description">Current sun time and the next sunrise or sunset</string>
+    <string name="widget_description">Sun time and local time, with sunrise, sunset and more</string>
     <string name="widget_day">Day</string>
     <string name="widget_night">Night</string>
     <!-- %1$s is a local clock time, e.g. 17:42 or 5:42 PM. -->
@@ -24,4 +24,9 @@
     <string name="duration_min">%1$d min</string>
     <string name="channel_name">Sun time in status bar</string>
     <string name="channel_description">Shows the current sun time in the status bar.</string>
+    <string name="widget_name_sun">Sun time</string>
+    <string name="widget_name_local">Local time</string>
+    <string name="widget_offset_ahead">sun time %1$s ahead</string>
+    <string name="widget_offset_behind">sun time %1$s behind</string>
+    <string name="widget_offset_same">sun time in step</string>
 </resources>

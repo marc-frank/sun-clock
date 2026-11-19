@@ -350,4 +350,191 @@ class AppLocalizationsDe extends AppLocalizations {
   String nightHourValue(String minutes) {
     return 'Nachtstunde $minutes min';
   }
+
+  @override
+  String get offsetTitle => 'Sonnenzeit gegenüber Ortszeit';
+
+  @override
+  String offsetSubtitle(String day, String zone) {
+    return '$day · vor (+) oder hinter (−) der Ortszeit, $zone';
+  }
+
+  @override
+  String get offsetToday => 'Heute';
+
+  @override
+  String offsetAhead(String duration) {
+    return '$duration vor';
+  }
+
+  @override
+  String offsetBehind(String duration) {
+    return '$duration nach';
+  }
+
+  @override
+  String get offsetInStep => 'gleichauf';
+
+  @override
+  String offsetNow(String value) {
+    return 'Jetzt: $value';
+  }
+
+  @override
+  String get legendAhead => 'Sonnenzeit vor';
+
+  @override
+  String get legendBehind => 'Sonnenzeit nach';
+
+  @override
+  String get nowLabel => 'jetzt';
+
+  @override
+  String hoursMinutes(String h, String m) {
+    return '$h h $m min';
+  }
+
+  @override
+  String get language => 'Sprache';
+
+  @override
+  String get phoneLanguage => 'Sprache des Telefons';
+
+  @override
+  String get widgetsTitle => 'Startbildschirm-Widget';
+
+  @override
+  String get widgetsTileHelp => 'Uhren, Angaben und Farben';
+
+  @override
+  String get widgetsHelp =>
+      'Tippe auf ein Widget, um es zu ändern. Das geht auch durch langes Drücken auf dem Startbildschirm.';
+
+  @override
+  String get noWidgets =>
+      'Auf dem Startbildschirm ist noch kein Sun-Clock-Widget.';
+
+  @override
+  String get addWidget => 'Zum Startbildschirm';
+
+  @override
+  String get addWidgetManual =>
+      'Halte den Startbildschirm gedrückt, wähle Widgets und ziehe Sun Clock darauf.';
+
+  @override
+  String widgetN(String n) {
+    return 'Widget $n';
+  }
+
+  @override
+  String get sectionClocks => 'Uhren';
+
+  @override
+  String get clockBoth => 'Beide';
+
+  @override
+  String get clockLayout => 'Anordnung';
+
+  @override
+  String get layoutStacked => 'Groß und klein';
+
+  @override
+  String get layoutSide => 'Nebeneinander';
+
+  @override
+  String get largeClock => 'Große Uhr';
+
+  @override
+  String get leftClock => 'Linke Uhr';
+
+  @override
+  String get clockNames => 'Namen der Uhren zeigen';
+
+  @override
+  String get sectionInfo => 'Angaben';
+
+  @override
+  String get infoDayNight => 'Tag oder Nacht';
+
+  @override
+  String get infoNext => 'Nächster Sonnenauf- oder -untergang';
+
+  @override
+  String get infoHourLength => 'Länge einer Sonnenstunde';
+
+  @override
+  String get infoOffset => 'Sonnenzeit vor oder nach der Ortszeit';
+
+  @override
+  String get infoPlace => 'Ortsname';
+
+  @override
+  String get infoProgress => 'Fortschritt von Tag oder Nacht';
+
+  @override
+  String get sectionLook => 'Aussehen';
+
+  @override
+  String get background => 'Hintergrund';
+
+  @override
+  String opacity(String percent) {
+    return 'Deckkraft $percent %';
+  }
+
+  @override
+  String get corners => 'Ecken';
+
+  @override
+  String get cornersNone => 'Eckig';
+
+  @override
+  String get cornersSmall => 'Klein';
+
+  @override
+  String get cornersMedium => 'Mittel';
+
+  @override
+  String get cornersLarge => 'Groß';
+
+  @override
+  String get autoColors => 'Uhren tagsüber bernstein, nachts blau';
+
+  @override
+  String get clockColor => 'Farbe der Uhren';
+
+  @override
+  String get textColor => 'Textfarbe';
+
+  @override
+  String get dayWord => 'Tag';
+
+  @override
+  String get nightWord => 'Nacht';
+
+  @override
+  String widgetSunriseAt(String time) {
+    return 'Aufgang $time';
+  }
+
+  @override
+  String widgetSunsetAt(String time) {
+    return 'Untergang $time';
+  }
+
+  @override
+  String get widgetSolar => 'wahre Sonnenzeit';
+
+  @override
+  String hourEquals(String n) {
+    return '1 h = $n min';
+  }
+
+  @override
+  String widgetOffset(String offset) {
+    return 'Sonnenzeit $offset';
+  }
+
+  @override
+  String get widgetNoPosition => 'Sun Clock öffnen, um einen Ort festzulegen';
 }

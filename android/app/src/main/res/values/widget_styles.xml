@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- A large clock in the home-screen widget (sun_widget.xml). -->
+    <style name="WidgetTime">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">0dp</item>
+        <item name="android:layout_weight">1</item>
+        <item name="android:autoSizeMaxTextSize">64sp</item>
+        <item name="android:autoSizeMinTextSize">16sp</item>
+        <item name="android:autoSizeTextType">uniform</item>
+        <item name="android:fontFamily">sans-serif-medium</item>
+        <item name="android:fontFeatureSettings">tnum</item>
+        <item name="android:gravity">center</item>
+        <item name="android:maxLines">1</item>
+        <item name="android:textColor">#FFB300</item>
+        <item name="android:textSize">32sp</item>
+    </style>
+
+    <!-- "Sun time" / "Local time" under a large clock. -->
+    <style name="WidgetLabel">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:ellipsize">end</item>
+        <item name="android:gravity">center</item>
+        <item name="android:maxLines">1</item>
+        <item name="android:textColor">#B3FFFFFF</item>
+        <item name="android:textSize">10sp</item>
+    </style>
+
+    <!-- The small second clock and its name. -->
+    <style name="WidgetSmall">
+        <item name="android:layout_width">wrap_content</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:fontFeatureSettings">tnum</item>
+        <item name="android:maxLines">1</item>
+        <item name="android:textColor">#B3FFFFFF</item>
+        <item name="android:textSize">14sp</item>
+    </style>
+</resources>
