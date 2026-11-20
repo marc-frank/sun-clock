@@ -5,6 +5,19 @@ hours are stretched so that sunrise is always 06:00 and sunset always 18:00.
 The 12 day hours split the real daylight evenly, and the 12 night hours split
 the real night evenly. The current UTC time is shown alongside.
 
+<p align="center">
+  <img src="docs/screenshots/clock.png" width="250" alt="The clock: a dial with day and night halves, the sun time 10:13:13, local and UTC time, sunrise 07:38 and sunset 16:05 in Berlin">
+  <img src="docs/screenshots/map.png" width="250" alt="The offline world map with a pin on Berlin and a card with its sun time, sunrise, sunset and hour lengths">
+  <img src="docs/screenshots/widget-editor.png" width="250" alt="The widget editor: a live preview with sun time and local time side by side, and colour, opacity and corner settings">
+</p>
+<p align="center">
+  <img src="docs/screenshots/sunrise-sunset.png" width="380" alt="Chart of sunrise and sunset times through the year in Berlin">
+  <img src="docs/screenshots/sun-vs-local.png" width="380" alt="Chart of how far sun time is ahead of or behind the local clock through today">
+</p>
+<p align="center">
+  <img src="docs/screenshots/widget.png" width="380" alt="The home-screen widget with sun time, local time and a progress bar for the day">
+</p>
+
 Scroll down for charts of the year: sunrise and sunset times, and how long
 one day hour and one night hour last. Between them, a day chart shows how far
 sun time runs ahead of or behind the local clock through today; while you
