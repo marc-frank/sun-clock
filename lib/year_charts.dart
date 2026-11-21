@@ -32,6 +32,10 @@ class YearCharts extends StatefulWidget {
   /// keeping their natural height.
   final bool fill;
 
+  /// With [fill]: each row of panels this tall instead of half the given
+  /// height, for when one page is too short (the page then scrolls).
+  final double? panelHeight;
+
   const YearCharts(
       {super.key,
       required this.lat,
@@ -39,7 +43,8 @@ class YearCharts extends StatefulWidget {
       required this.zone,
       this.clock = DateTime.now,
       this.map,
-      this.fill = false});
+      this.fill = false,
+      this.panelHeight});
 
   @override
   State<YearCharts> createState() => _YearChartsState();
@@ -217,28 +222,36 @@ class _YearChartsState extends State<YearCharts> {
     }
     if (buildMap != null) {
       final map = buildMap(null);
-      // Four equal panels filling one screen.
-      Widget row(Widget a, Widget b) => Expanded(
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                Expanded(child: a),
-                const SizedBox(width: 8),
-                Expanded(child: b),
-              ],
-            ),
-          );
+      final rowHeight = widget.panelHeight;
+      // Four equal panels: filling one screen, or each [panelHeight] tall.
+      Widget row(Widget a, Widget b) {
+        final r = Row(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Expanded(child: a),
+            const SizedBox(width: 8),
+            Expanded(child: b),
+          ],
+        );
+        return rowHeight == null
+            ? Expanded(child: r)
+            : SizedBox(height: rowHeight, child: r);
+      }
+
+      final panels = [
+        row(sunTimes, offset),
+        const SizedBox(height: 8),
+        row(hours, map),
+      ];
       return Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              row(sunTimes, offset),
-              const SizedBox(height: 8),
-              row(hours, map),
-            ],
-          ),
-        ),
+        if (rowHeight == null)
+          Expanded(
+            child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: panels),
+          )
+        else
+          ...panels,
         if (hasPolar) polarNote,
       ]);
     }

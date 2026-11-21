@@ -106,6 +106,28 @@ void main() {
     });
   }
 
+  testWidgets('large text on a short screen: equal panels, page scrolls',
+      (tester) async {
+    await pumpHome(tester, const Size(640, 320), textScale: 1.6);
+    expect(tester.takeException(), isNull);
+    expect(find.byType(PageView), findsNothing);
+    Rect card(Finder f) =>
+        tester.getRect(find.ancestor(of: f, matching: find.byType(Card)).first);
+    final sunrise =
+        card(find.textContaining('Sunrise and sunset', findRichText: true));
+    final offset =
+        card(find.textContaining('Sun time vs local time', findRichText: true));
+    final hours = card(find.textContaining('Length of day and night hours',
+        findRichText: true));
+    final map = tester.getRect(find.byType(MapPanel));
+    for (final r in [offset, hours, map]) {
+      expect(r.width, closeTo(sunrise.width, 0.5));
+      expect(r.height, closeTo(sunrise.height, 0.5));
+    }
+    expect(sunrise.height, greaterThan(320 / 2), reason: 'taller than fits');
+    await tester.pump(const Duration(seconds: 1));
+  });
+
   testWidgets('narrow: one column, map last', (tester) async {
     await pumpHome(tester, const Size(400, 800));
     final sunrise = tester.getRect(find.text('Sunrise and sunset'));

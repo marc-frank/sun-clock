@@ -239,6 +239,11 @@ class HomePage extends StatelessWidget {
                           zone: model.zone!,
                           map: (height) =>
                               MapPanel(model: model, height: height),
+                          // Not enough room for one page: the same equal
+                          // panels, each tall enough for its titles and a
+                          // chart, and the page scrolls.
+                          fill: true,
+                          panelHeight: 55 + 75 * textScale + 120,
                         ),
                         const SizedBox(height: 16),
                       ] else if (model.hasPosition) ...[
@@ -418,7 +423,7 @@ String gpsErrorText(AppLocalizations l, GpsError e) => switch (e) {
       GpsError.noFix => l.gpsNoFix,
     };
 
-/// "Version 1.4.0 (6)", read from the installed app (set in pubspec.yaml).
+/// "Version 1.4.1 (7)", read from the installed app (set in pubspec.yaml).
 Future<String> appVersion(AppLocalizations l) async {
   try {
     final info = await PackageInfo.fromPlatform();
