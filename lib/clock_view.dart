@@ -453,9 +453,11 @@ class DialPainter extends CustomPainter {
         Paint()..color = handColor);
 
     if (minuteHands) {
-      final seconds = micros %
-          Duration.microsecondsPerMinute /
-          Duration.microsecondsPerMinute;
+      // Ticks once per sun second, together with the digital time below
+      // (a sun second lasts longer or shorter than a real one).
+      final seconds = (micros % Duration.microsecondsPerMinute) ~/
+          Duration.microsecondsPerSecond /
+          60;
       final s = turn(seconds);
       canvas.drawLine(
           at(s, -18 * scale),
