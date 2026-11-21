@@ -36,3 +36,18 @@ bool onInterval(double v, double interval) {
   final q = v / interval;
   return (q - q.roundToDouble()).abs() < 1e-6;
 }
+
+/// The y-axis step for a chart [height] pixels tall showing [span] units:
+/// the first of [steps] that is at least [minStep] and leaves the labels
+/// at least [minGap] pixels apart, so short charts (the wide grid) get
+/// fewer labels instead of overlapping ones.
+double axisStep(double minStep, double span, double height, List<double> steps,
+    {double minGap = 22}) {
+  final usable = height - 28; // the bottom axis labels
+  for (final step in steps) {
+    if (step < minStep) continue;
+    final labels = span / step + 1;
+    if (usable / labels >= minGap) return step;
+  }
+  return steps.last;
+}

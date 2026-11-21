@@ -23,9 +23,6 @@ const appBackground = Color(0xFF1C1B17);
 /// columns.
 const double wideLayoutWidth = 600;
 
-/// The map's height in the two-column chart grid, about a chart card's.
-const double wideMapHeight = 360;
-
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   initZones();
@@ -164,33 +161,60 @@ class HomePage extends StatelessWidget {
                     language: language,
                     updates: updates,
                   );
+                  // The wide first screen: the two columns, scaled down
+                  // when they don't fit.
+                  final wideFirst = Column(children: [
+                    topBar,
+                    Expanded(
+                      child: Center(
+                        child: FittedBox(
+                          fit: BoxFit.scaleDown,
+                          child: clock ??
+                              SizedBox(
+                                width: 480,
+                                child: _NoPosition(
+                                    model: model,
+                                    onMap: () => _openMap(context)),
+                              ),
+                        ),
+                      ),
+                    ),
+                    _ScrollHint(visible: model.hasPosition),
+                  ]);
+                  // Two pages that snap: the clock, then the three charts
+                  // and the map as four equal panels. Only when the panels
+                  // have room for their titles and a chart.
+                  final textScale = MediaQuery.textScalerOf(context).scale(1);
+                  final pages = wide &&
+                      model.hasPosition &&
+                      (box.maxHeight - 24) / 2 >= 55 + 75 * textScale;
+                  if (pages) {
+                    return PageView(
+                      scrollDirection: Axis.vertical,
+                      children: [
+                        Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 16),
+                          child: wideFirst,
+                        ),
+                        Padding(
+                          padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
+                          child: YearCharts(
+                            lat: model.latitude!,
+                            lon: model.longitude!,
+                            zone: model.zone!,
+                            map: (height) =>
+                                MapPanel(model: model, height: height),
+                            fill: true,
+                          ),
+                        ),
+                      ],
+                    );
+                  }
                   return SingleChildScrollView(
                     padding: const EdgeInsets.symmetric(horizontal: 16),
                     child: Column(children: [
                       if (wide)
-                        // First screen: exactly one viewport tall, the two
-                        // columns scaled down when they don't fit.
-                        SizedBox(
-                          height: box.maxHeight,
-                          child: Column(children: [
-                            topBar,
-                            Expanded(
-                              child: Center(
-                                child: FittedBox(
-                                  fit: BoxFit.scaleDown,
-                                  child: clock ??
-                                      SizedBox(
-                                        width: 480,
-                                        child: _NoPosition(
-                                            model: model,
-                                            onMap: () => _openMap(context)),
-                                      ),
-                                ),
-                              ),
-                            ),
-                            _ScrollHint(visible: model.hasPosition),
-                          ]),
-                        )
+                        SizedBox(height: box.maxHeight, child: wideFirst)
                       else
                         // First screen: the clock, exactly one viewport tall.
                         ConstrainedBox(
@@ -213,9 +237,10 @@ class HomePage extends StatelessWidget {
                           lat: model.latitude!,
                           lon: model.longitude!,
                           zone: model.zone!,
-                          map: MapPanel(model: model, height: wideMapHeight),
+                          map: (height) =>
+                              MapPanel(model: model, height: height),
                         ),
-                        const SizedBox(height: 32),
+                        const SizedBox(height: 16),
                       ] else if (model.hasPosition) ...[
                         YearCharts(
                           lat: model.latitude!,

@@ -21,9 +21,16 @@ class YearCharts extends StatefulWidget {
   /// The current time; replaceable in tests.
   final DateTime Function() clock;
 
-  /// Given on wide screens: the charts and this map are laid out in two
-  /// columns and two rows.
-  final Widget? map;
+  /// Given on wide screens: the charts and the map it builds are laid out
+  /// in two columns and two rows. With [fill], each panel is half the given
+  /// height and half the width, the charts stretched to fill it, and the
+  /// map is built with a null height (fill its panel); otherwise the panels
+  /// keep their natural height.
+  final Widget Function(double? height)? map;
+
+  /// The panels fill the height they are given (one page) instead of
+  /// keeping their natural height.
+  final bool fill;
 
   const YearCharts(
       {super.key,
@@ -31,7 +38,8 @@ class YearCharts extends StatefulWidget {
       required this.lon,
       required this.zone,
       this.clock = DateTime.now,
-      this.map});
+      this.map,
+      this.fill = false});
 
   @override
   State<YearCharts> createState() => _YearChartsState();
@@ -135,7 +143,11 @@ class _YearChartsState extends State<YearCharts> {
         .toDouble();
     final hasPolar = days.any((d) => d.polar != PolarState.none);
 
+    // Equal panels need room for the titles and a usable chart; with very
+    // large text on a short screen the grid keeps its natural heights.
+    final grid = widget.map != null && widget.fill;
     final sunTimes = _Section(
+      fill: grid,
       title: l.sunriseAndSunset,
       subtitle: l.chartLocalTime('${today.year}', _zone.name),
       legend: [
@@ -155,11 +167,17 @@ class _YearChartsState extends State<YearCharts> {
         zone: _zone,
         day: i == null || i >= days.length ? null : days[i].date,
         clock: widget.clock,
+        compact: grid,
         section: (title, subtitle, legend, chart) => _Section(
-            title: title, subtitle: subtitle, legend: legend, chart: chart),
+            fill: grid,
+            title: title,
+            subtitle: subtitle,
+            legend: legend,
+            chart: chart),
       ),
     );
     final hours = _Section(
+      fill: grid,
       title: l.sunHourLengthTitle,
       subtitle: l.sunHourLengthSubtitle,
       legend: [
@@ -180,8 +198,8 @@ class _YearChartsState extends State<YearCharts> {
       ),
     );
 
-    final map = widget.map;
-    if (map != null) {
+    final buildMap = widget.map;
+    if (buildMap != null && !grid) {
       Widget row(Widget a, Widget b) => Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -193,7 +211,34 @@ class _YearChartsState extends State<YearCharts> {
       return Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
         row(sunTimes, offset),
         const SizedBox(height: 16),
-        row(hours, map),
+        row(hours, buildMap(300)),
+        if (hasPolar) polarNote,
+      ]);
+    }
+    if (buildMap != null) {
+      final map = buildMap(null);
+      // Four equal panels filling one screen.
+      Widget row(Widget a, Widget b) => Expanded(
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Expanded(child: a),
+                const SizedBox(width: 8),
+                Expanded(child: b),
+              ],
+            ),
+          );
+      return Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              row(sunTimes, offset),
+              const SizedBox(height: 8),
+              row(hours, map),
+            ],
+          ),
+        ),
         if (hasPolar) polarNote,
       ]);
     }
@@ -214,15 +259,50 @@ class _Section extends StatelessWidget {
   final List<Widget> legend;
   final Widget chart;
 
+  /// In the wide grid: fill the panel, the chart taking whatever height is
+  /// left, with tighter spacing and a one-line subtitle.
+  final bool fill;
+
   const _Section(
       {required this.title,
       required this.subtitle,
       required this.legend,
-      required this.chart});
+      required this.chart,
+      this.fill = false});
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    if (fill) {
+      return Card(
+        elevation: 0,
+        margin: EdgeInsets.zero,
+        color:
+            theme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.35),
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(12, 10, 12, 8),
+          child:
+              Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+            // Title and subtitle on one line, to leave the chart room.
+            Text.rich(
+              TextSpan(children: [
+                TextSpan(text: title, style: theme.textTheme.titleSmall),
+                TextSpan(
+                    text: '  $subtitle',
+                    style: theme.textTheme.bodySmall
+                        ?.copyWith(color: theme.colorScheme.onSurfaceVariant)),
+              ]),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+            ),
+            const SizedBox(height: 4),
+            Wrap(spacing: 12, children: legend),
+            const SizedBox(height: 6),
+            Expanded(child: chart),
+          ]),
+        ),
+      );
+    }
     return Card(
       elevation: 0,
       color: theme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.35),
@@ -489,38 +569,43 @@ class _SunTimesChart extends StatelessWidget {
     }
     final n = days.length;
     final l = context.l10n;
-    return _ScrubChart(
-        LineChartData(
-          minX: 0,
-          maxX: n - 1,
-          minY: 0,
-          maxY: 24,
-          clipData: const FlClipData.all(),
-          titlesData: _titles(context,
-              yInterval: 6, yLabel: (v) => '${two(v.round())}:00', dayCount: n),
-          gridData: _grid(context, 3, n),
-          borderData: FlBorderData(show: false),
-          lineBarsData: [
-            _line(rise, dayColor),
-            _line(set, const Color(0xFFFF7043)),
-          ],
-          betweenBarsData: [
-            BetweenBarsData(
-                fromIndex: 0,
-                toIndex: 1,
-                color: dayColor.withValues(alpha: 0.15)),
-          ],
-          extraLinesData:
-              ExtraLinesData(verticalLines: [_todayLine(context, todayIndex)]),
-          lineTouchData: _touch(
-              context,
-              days,
-              (s) => s.barIndex == 0
-                  ? l.sunriseAt(hoursToHm(s.y))
-                  : l.sunsetAt(hoursToHm(s.y))),
-        ),
-        reservedLeft: _leftReserved,
-        onScrub: onScrub);
+    return LayoutBuilder(builder: (context, box) {
+      final step = axisStep(6, 24, box.maxHeight, const [6, 12]);
+      return _ScrubChart(
+          LineChartData(
+            minX: 0,
+            maxX: n - 1,
+            minY: 0,
+            maxY: 24,
+            clipData: const FlClipData.all(),
+            titlesData: _titles(context,
+                yInterval: step,
+                yLabel: (v) => '${two(v.round())}:00',
+                dayCount: n),
+            gridData: _grid(context, 3, n),
+            borderData: FlBorderData(show: false),
+            lineBarsData: [
+              _line(rise, dayColor),
+              _line(set, const Color(0xFFFF7043)),
+            ],
+            betweenBarsData: [
+              BetweenBarsData(
+                  fromIndex: 0,
+                  toIndex: 1,
+                  color: dayColor.withValues(alpha: 0.15)),
+            ],
+            extraLinesData: ExtraLinesData(
+                verticalLines: [_todayLine(context, todayIndex)]),
+            lineTouchData: _touch(
+                context,
+                days,
+                (s) => s.barIndex == 0
+                    ? l.sunriseAt(hoursToHm(s.y))
+                    : l.sunsetAt(hoursToHm(s.y))),
+          ),
+          reservedLeft: _leftReserved,
+          onScrub: onScrub);
+    });
   }
 }
 
@@ -555,56 +640,61 @@ class _HourLengthChart extends StatelessWidget {
       }
     }
     // Round the range outward to 15 minutes, with a little air.
-    final interval = (hi - lo) > 60 ? 30.0 : 15.0;
-    final minY = ((lo - 3) / interval).floorToDouble() * interval;
-    final maxY = ((hi + 3) / interval).ceilToDouble() * interval;
     final n = days.length;
-
     final l = context.l10n;
-    // The range follows the place; it glides when the place changes.
-    return AnimatedYRange(
-      min: minY < 0 ? 0 : minY,
-      max: maxY,
-      builder: (context, minY, maxY) => _ScrubChart(
-          LineChartData(
-            minX: 0,
-            maxX: n - 1,
-            minY: minY,
-            maxY: maxY,
-            clipData: const FlClipData.all(),
-            titlesData: _titles(context,
-                yInterval: interval,
-                yLabel: (v) => '${v.round()}m',
-                dayCount: n),
-            gridData: _grid(context, interval, n),
-            borderData: FlBorderData(show: false),
-            lineBarsData: [_line(day, dayColor), _line(night, nightColor)],
-            extraLinesData: ExtraLinesData(
-              verticalLines: [_todayLine(context, todayIndex)],
-              horizontalLines: [
-                HorizontalLine(
-                  y: 60,
-                  color: Theme.of(context).colorScheme.outline,
-                  strokeWidth: 1,
-                  dashArray: [2, 3],
-                  label: HorizontalLineLabel(
-                    show: true,
-                    alignment: Alignment.topLeft,
-                    labelResolver: (_) => l.minutesShort('60'),
-                    style: Theme.of(context).textTheme.labelSmall,
+    return LayoutBuilder(builder: (context, box) {
+      final base = (hi - lo) > 60 ? 30.0 : 15.0;
+      // The range keeps the fine step; a short chart only labels fewer
+      // lines.
+      final minY = ((lo - 3) / base).floorToDouble() * base;
+      final maxY = ((hi + 3) / base).ceilToDouble() * base;
+      final interval =
+          axisStep(base, maxY - minY, box.maxHeight, const [15, 30, 60]);
+      // The range follows the place; it glides when the place changes.
+      return AnimatedYRange(
+        min: minY < 0 ? 0 : minY,
+        max: maxY,
+        builder: (context, minY, maxY) => _ScrubChart(
+            LineChartData(
+              minX: 0,
+              maxX: n - 1,
+              minY: minY,
+              maxY: maxY,
+              clipData: const FlClipData.all(),
+              titlesData: _titles(context,
+                  yInterval: interval,
+                  yLabel: (v) => '${v.round()}m',
+                  dayCount: n),
+              gridData: _grid(context, interval, n),
+              borderData: FlBorderData(show: false),
+              lineBarsData: [_line(day, dayColor), _line(night, nightColor)],
+              extraLinesData: ExtraLinesData(
+                verticalLines: [_todayLine(context, todayIndex)],
+                horizontalLines: [
+                  HorizontalLine(
+                    y: 60,
+                    color: Theme.of(context).colorScheme.outline,
+                    strokeWidth: 1,
+                    dashArray: [2, 3],
+                    label: HorizontalLineLabel(
+                      show: true,
+                      alignment: Alignment.topLeft,
+                      labelResolver: (_) => l.minutesShort('60'),
+                      style: Theme.of(context).textTheme.labelSmall,
+                    ),
                   ),
-                ),
-              ],
+                ],
+              ),
+              lineTouchData: _touch(
+                  context,
+                  days,
+                  (s) => s.barIndex == 0
+                      ? l.dayHourValue(s.y.toStringAsFixed(1))
+                      : l.nightHourValue(s.y.toStringAsFixed(1))),
             ),
-            lineTouchData: _touch(
-                context,
-                days,
-                (s) => s.barIndex == 0
-                    ? l.dayHourValue(s.y.toStringAsFixed(1))
-                    : l.nightHourValue(s.y.toStringAsFixed(1))),
-          ),
-          reservedLeft: _leftReserved,
-          onScrub: onScrub),
-    );
+            reservedLeft: _leftReserved,
+            onScrub: onScrub),
+      );
+    });
   }
 }

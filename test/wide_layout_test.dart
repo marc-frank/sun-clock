@@ -31,8 +31,8 @@ void main() {
     await tester.pump();
   }
 
-  final dial = find.byWidgetPredicate(
-      (w) => w is CustomPaint && w.painter is DialPainter);
+  final dial = find
+      .byWidgetPredicate((w) => w is CustomPaint && w.painter is DialPainter);
 
   for (final (name, size, scale) in const [
     ('phone landscape', Size(800, 360), 1.0),
@@ -40,8 +40,7 @@ void main() {
     ('tablet landscape', Size(1280, 800), 1.0),
     ('tablet portrait', Size(800, 1280), 1.0),
   ]) {
-    testWidgets('$name: two columns that fit the first screen',
-        (tester) async {
+    testWidgets('$name: two columns that fit the first screen', (tester) async {
       await pumpHome(tester, size, textScale: scale);
       expect(tester.takeException(), isNull);
 
@@ -58,23 +57,54 @@ void main() {
     });
   }
 
-  testWidgets('wide: charts and map in two columns and two rows',
-      (tester) async {
-    await pumpHome(tester, const Size(1280, 800));
-    final sunrise = tester.getRect(find.text('Sunrise and sunset'));
-    final offset = tester.getRect(find.text('Sun time vs local time'));
-    final hours = tester.getRect(find.text('Length of day and night hours'));
-    final map = tester.getRect(find.byType(MapPanel));
+  for (final size in const [
+    Size(1280, 800),
+    Size(800, 360),
+    Size(760, 330),
+    Size(800, 1280)
+  ]) {
+    testWidgets(
+        '${size.width}x${size.height}: four equal panels fill one screen',
+        (tester) async {
+      await pumpHome(tester, size);
+      // The panels are the second page: swipe up to it.
+      expect(find.byType(PageView), findsOneWidget);
+      await tester.drag(find.byType(PageView), Offset(0, -size.height * 0.6));
+      for (var i = 0; i < 10; i++) {
+        await tester.pump(const Duration(milliseconds: 100));
+      }
+      Rect card(Finder f) => tester
+          .getRect(find.ancestor(of: f, matching: find.byType(Card)).first);
+      final sunrise =
+          card(find.textContaining('Sunrise and sunset', findRichText: true));
+      final offset = card(
+          find.textContaining('Sun time vs local time', findRichText: true));
+      final hours = card(find.textContaining('Length of day and night hours',
+          findRichText: true));
+      final map = tester.getRect(find.byType(MapPanel));
+      expect(tester.takeException(), isNull);
 
-    expect(offset.left, greaterThan(640), reason: 'right column');
-    expect(sunrise.left, lessThan(640), reason: 'left column');
-    expect(offset.top, closeTo(sunrise.top, 1), reason: 'same row');
-    expect(hours.left, lessThan(640));
-    expect(hours.top, greaterThan(sunrise.top + 200), reason: 'second row');
-    expect(map.left, greaterThan(640));
-    expect(map.top, lessThan(hours.top + 20), reason: 'beside the hours');
-    await tester.pump(const Duration(seconds: 1));
-  });
+      // Two columns, two rows.
+      expect(offset.left, greaterThan(sunrise.right));
+      expect(offset.top, closeTo(sunrise.top, 0.5));
+      expect(hours.left, closeTo(sunrise.left, 0.5));
+      expect(hours.top, greaterThan(sunrise.bottom));
+      expect(map.left, closeTo(offset.left, 0.5));
+      expect(map.top, closeTo(hours.top, 0.5));
+
+      // All the same size, each about a quarter of the screen.
+      for (final r in [offset, hours, map]) {
+        expect(r.width, closeTo(sunrise.width, 0.5));
+        expect(r.height, closeTo(sunrise.height, 0.5));
+      }
+      expect(sunrise.width, greaterThan(size.width / 2 - 30));
+      expect(sunrise.height, greaterThan(size.height / 2 - 30));
+      // The page snapped: all four panels are on screen.
+      expect(sunrise.top, greaterThanOrEqualTo(0));
+      expect(map.bottom, lessThanOrEqualTo(size.height));
+      await tester.pump(const Duration(seconds: 1));
+    });
+  }
 
   testWidgets('narrow: one column, map last', (tester) async {
     await pumpHome(tester, const Size(400, 800));

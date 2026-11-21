@@ -174,8 +174,11 @@ class _GpsButton extends StatelessWidget {
 /// watched while picking a place. Can be maximized to the full-screen map.
 class MapPanel extends StatefulWidget {
   final LocationModel model;
-  final double height;
-  const MapPanel({super.key, required this.model, required this.height});
+
+  /// Height of the map below the header; null fills the panel's height
+  /// (the parent must then give it one).
+  final double? height;
+  const MapPanel({super.key, required this.model, this.height});
 
   @override
   State<MapPanel> createState() => _MapPanelState();
@@ -195,6 +198,7 @@ class _MapPanelState extends State<MapPanel> {
     final model = widget.model;
     return Card(
       elevation: 0,
+      margin: widget.height == null ? EdgeInsets.zero : null,
       clipBehavior: Clip.antiAlias,
       color: theme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.35),
       child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
@@ -231,7 +235,11 @@ class _MapPanelState extends State<MapPanel> {
             ),
           ]),
         ),
-        SizedBox(height: widget.height, child: SunMap(key: _map, model: model)),
+        if (widget.height != null)
+          SizedBox(
+              height: widget.height, child: SunMap(key: _map, model: model))
+        else
+          Expanded(child: SunMap(key: _map, model: model)),
       ]),
     );
   }

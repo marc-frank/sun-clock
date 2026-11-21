@@ -44,6 +44,10 @@ class DayOffsetSection extends StatefulWidget {
   final Widget Function(
       String title, String subtitle, List<Widget> legend, Widget chart) section;
 
+  /// For a short panel: "Now: …" joins the subtitle instead of taking a
+  /// line of its own, and the zone (shown on the sunrise chart) is left out.
+  final bool compact;
+
   const DayOffsetSection(
       {super.key,
       required this.lat,
@@ -51,7 +55,8 @@ class DayOffsetSection extends StatefulWidget {
       required this.zone,
       required this.section,
       this.day,
-      this.clock = DateTime.now});
+      this.clock = DateTime.now,
+      this.compact = false});
 
   @override
   State<DayOffsetSection> createState() => _DayOffsetSectionState();
@@ -89,14 +94,20 @@ class _DayOffsetSectionState extends State<DayOffsetSection> {
     final sun = daySun(date, widget.lat, widget.lon, widget.zone);
     final style = Theme.of(context).textTheme.bodySmall;
 
+    final dayName = isToday ? l.offsetToday : dayMonthLabel(l, date);
+    final nowText = isToday
+        ? l.offsetNow(
+            offsetText(l, offsetAt(now, widget.lat, widget.lon, widget.zone)))
+        : null;
     return widget.section(
       l.offsetTitle,
-      l.offsetSubtitle(
-          isToday ? l.offsetToday : dayMonthLabel(l, date), widget.zone.name),
+      widget.compact
+          ? [dayName, if (nowText != null) nowText].join(' · ')
+          : l.offsetSubtitle(dayName, widget.zone.name),
       [
         _Swatch(dayColor, l.legendAhead),
         _Swatch(nightColor, l.legendBehind),
-        if (isToday)
+        if (isToday && !widget.compact)
           Text(
               l.offsetNow(offsetText(
                   l, offsetAt(now, widget.lat, widget.lon, widget.zone))),
@@ -168,15 +179,13 @@ class DayOffsetChart extends StatelessWidget {
       if (p.minutes > hi) hi = p.minutes;
     }
     final span = hi - lo;
-    final interval = span <= 90
+    final baseStep = span <= 90
         ? 15.0
         : span <= 180
             ? 30.0
             : span <= 420
                 ? 60.0
                 : 120.0;
-    final minY = ((lo - interval / 4) / interval).floorToDouble() * interval;
-    final maxY = ((hi + interval / 4) / interval).ceilToDouble() * interval;
 
     final labelStyle = theme.textTheme.labelSmall
         ?.copyWith(color: theme.colorScheme.onSurfaceVariant);
@@ -199,96 +208,106 @@ class DayOffsetChart extends StatelessWidget {
 
     bool inDay(double? h) => h != null && h > 0 && h < 24;
 
-    return AnimatedYRange(
-      min: minY,
-      max: maxY,
-      builder: (context, minY, maxY) => LineChart(
-        duration: Duration.zero,
-        LineChartData(
-          minX: 0,
-          maxX: 24,
-          minY: minY,
-          maxY: maxY,
-          clipData: const FlClipData.all(),
-          lineTouchData: const LineTouchData(enabled: false),
-          borderData: FlBorderData(show: false),
-          gridData: FlGridData(
-            drawVerticalLine: true,
-            horizontalInterval: interval,
-            verticalInterval: 3,
-            getDrawingHorizontalLine: (_) =>
-                FlLine(color: grid, strokeWidth: 1),
-            getDrawingVerticalLine: (_) => FlLine(color: grid, strokeWidth: 1),
-          ),
-          titlesData: FlTitlesData(
-            topTitles:
-                const AxisTitles(sideTitles: SideTitles(showTitles: false)),
-            rightTitles:
-                const AxisTitles(sideTitles: SideTitles(showTitles: false)),
-            leftTitles: AxisTitles(
-              sideTitles: SideTitles(
-                showTitles: true,
-                reservedSize: _leftReserved,
-                interval: interval,
-                getTitlesWidget: (v, meta) => !onInterval(v, interval)
-                    ? const SizedBox.shrink()
-                    : Padding(
-                        padding: const EdgeInsets.only(right: 6),
-                        child: Text(offsetAxisLabel(v),
-                            style: labelStyle, textAlign: TextAlign.right),
-                      ),
-              ),
+    return LayoutBuilder(builder: (context, box) {
+      final interval = axisStep(baseStep, span + baseStep / 2, box.maxHeight,
+          const [15, 30, 60, 120, 180, 360]);
+      // The range keeps the fine step; a short chart only labels fewer
+      // lines.
+      final minY = ((lo - baseStep / 4) / baseStep).floorToDouble() * baseStep;
+      final maxY = ((hi + baseStep / 4) / baseStep).ceilToDouble() * baseStep;
+      return AnimatedYRange(
+        min: minY,
+        max: maxY,
+        builder: (context, minY, maxY) => LineChart(
+          duration: Duration.zero,
+          LineChartData(
+            minX: 0,
+            maxX: 24,
+            minY: minY,
+            maxY: maxY,
+            clipData: const FlClipData.all(),
+            lineTouchData: const LineTouchData(enabled: false),
+            borderData: FlBorderData(show: false),
+            gridData: FlGridData(
+              drawVerticalLine: true,
+              horizontalInterval: interval,
+              verticalInterval: 3,
+              getDrawingHorizontalLine: (_) =>
+                  FlLine(color: grid, strokeWidth: 1),
+              getDrawingVerticalLine: (_) =>
+                  FlLine(color: grid, strokeWidth: 1),
             ),
-            bottomTitles: AxisTitles(
-              sideTitles: SideTitles(
-                showTitles: true,
-                reservedSize: 22,
-                interval: 6,
-                getTitlesWidget: (v, meta) => Padding(
-                  padding: const EdgeInsets.only(top: 6),
-                  child: Text(two(v.round()), style: labelStyle),
+            titlesData: FlTitlesData(
+              topTitles:
+                  const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+              rightTitles:
+                  const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+              leftTitles: AxisTitles(
+                sideTitles: SideTitles(
+                  showTitles: true,
+                  reservedSize: _leftReserved,
+                  interval: interval,
+                  getTitlesWidget: (v, meta) => !onInterval(v, interval)
+                      ? const SizedBox.shrink()
+                      : Padding(
+                          padding: const EdgeInsets.only(right: 6),
+                          child: Text(offsetAxisLabel(v),
+                              style: labelStyle, textAlign: TextAlign.right),
+                        ),
+                ),
+              ),
+              bottomTitles: AxisTitles(
+                sideTitles: SideTitles(
+                  showTitles: true,
+                  reservedSize: 22,
+                  interval: 6,
+                  getTitlesWidget: (v, meta) => Padding(
+                    padding: const EdgeInsets.only(top: 6),
+                    child: Text(two(v.round()), style: labelStyle),
+                  ),
                 ),
               ),
             ),
-          ),
-          lineBarsData: [
-            LineChartBarData(
-              spots: spots,
-              color: theme.colorScheme.onSurface.withValues(alpha: 0.85),
-              barWidth: 2.5,
-              dotData: const FlDotData(show: false),
-              // Between the line and zero: sun time ahead (line above zero)
-              // or behind (below).
-              belowBarData: BarAreaData(
-                  show: true,
-                  color: dayColor.withValues(alpha: 0.3),
-                  cutOffY: 0,
-                  applyCutOffY: true),
-              aboveBarData: BarAreaData(
-                  show: true,
-                  color: nightColor.withValues(alpha: 0.3),
-                  cutOffY: 0,
-                  applyCutOffY: true),
+            lineBarsData: [
+              LineChartBarData(
+                spots: spots,
+                color: theme.colorScheme.onSurface.withValues(alpha: 0.85),
+                barWidth: 2.5,
+                dotData: const FlDotData(show: false),
+                // Between the line and zero: sun time ahead (line above zero)
+                // or behind (below).
+                belowBarData: BarAreaData(
+                    show: true,
+                    color: dayColor.withValues(alpha: 0.3),
+                    cutOffY: 0,
+                    applyCutOffY: true),
+                aboveBarData: BarAreaData(
+                    show: true,
+                    color: nightColor.withValues(alpha: 0.3),
+                    cutOffY: 0,
+                    applyCutOffY: true),
+              ),
+            ],
+            extraLinesData: ExtraLinesData(
+              horizontalLines: [
+                HorizontalLine(
+                    y: 0,
+                    color: theme.colorScheme.outline,
+                    strokeWidth: 1,
+                    dashArray: [2, 3]),
+              ],
+              verticalLines: [
+                if (inDay(sunrise)) marker(sunrise!, dayColor, '↑'),
+                if (inDay(sunset))
+                  marker(sunset!, const Color(0xFFFF7043), '↓'),
+                if (nowHour != null)
+                  marker(nowHour!, theme.colorScheme.onSurface, l.nowLabel,
+                      align: Alignment.topRight),
+              ],
             ),
-          ],
-          extraLinesData: ExtraLinesData(
-            horizontalLines: [
-              HorizontalLine(
-                  y: 0,
-                  color: theme.colorScheme.outline,
-                  strokeWidth: 1,
-                  dashArray: [2, 3]),
-            ],
-            verticalLines: [
-              if (inDay(sunrise)) marker(sunrise!, dayColor, '↑'),
-              if (inDay(sunset)) marker(sunset!, const Color(0xFFFF7043), '↓'),
-              if (nowHour != null)
-                marker(nowHour!, theme.colorScheme.onSurface, l.nowLabel,
-                    align: Alignment.topRight),
-            ],
           ),
         ),
-      ),
-    );
+      );
+    });
   }
 }
