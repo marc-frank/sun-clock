@@ -95,7 +95,9 @@ App icons: `python tool/make_icon.py` draws the images in `assets/icon/`,
 then `dart run flutter_launcher_icons` generates the platform icons. The
 themed (monochrome) Android icon layer in `res/drawable-*` is added by hand.
 
-The app needs no internet access: the world map is bundled. Map data: Natural
+The world map is bundled, so the app works offline. It only goes online for the
+opt-in update check (Settings, off by default), which asks GitHub for the
+latest release about once a week. Map data: Natural
 Earth (public domain).
 
 Android texts (notification, widget) are in `android/app/src/main/res/values*/strings.xml`.

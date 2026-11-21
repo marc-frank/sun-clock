@@ -205,7 +205,8 @@ class _MapPanelState extends State<MapPanel> {
               child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(context.l10n.location, style: theme.textTheme.titleMedium),
+                    Text(context.l10n.location,
+                        style: theme.textTheme.titleMedium),
                     ListenableBuilder(
                       listenable: model,
                       builder: (context, _) => Text(
@@ -318,7 +319,8 @@ class _LivePreview extends StatelessWidget {
                   width: 56,
                   height: 56,
                   child: CustomPaint(
-                      painter: DialPainter(r.sunTime, theme, labels: false)),
+                      painter: DialPainter(r.sunTime, theme,
+                          labels: false, minuteHands: false)),
                 ),
                 const SizedBox(width: 12),
                 Expanded(
@@ -339,7 +341,8 @@ class _LivePreview extends StatelessWidget {
                               ?.copyWith(fontFeatures: tabular),
                         ),
                         Text(
-                          l.hourLine(_min(l, d.dayHourMinutes), _min(l, d.nightHourMinutes)),
+                          l.hourLine(_min(l, d.dayHourMinutes),
+                              _min(l, d.nightHourMinutes)),
                           style: muted?.copyWith(fontFeatures: tabular),
                         ),
                         Text(

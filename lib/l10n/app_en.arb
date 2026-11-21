@@ -134,7 +134,7 @@
   "precise": "Precise",
   "approximateHelp": "Uses a coarse fix, rounded to about 1 km. Sun times shift by only a few seconds per kilometre, so this is accurate enough and uses less battery.",
   "preciseHelp": "Uses GPS for your exact position. Sun times become accurate to the second; uses a little more battery.",
-  "privacyNote": "Either way, sun times are calculated on this phone and your position is not sent anywhere. The map is stored in the app, so Sun Clock does not use the internet at all.",
+  "privacyNote": "Either way, sun times are calculated on this phone and your position is not sent anywhere. The map is stored in the app; Sun Clock only goes online for the update check, if you turn it on.",
   "preciseDenied": "The system only allows approximate location for Sun Clock. Turn on \"Precise location\" in the app's location permission.",
   "openSettings": "Open settings",
   "mapPlaceNote": "You are using a place picked on the map; this applies when you switch back to GPS.",
@@ -385,5 +385,20 @@
         "type": "String"
       }
     }
-  }
+  },
+  "updateCheckTitle": "Check for updates",
+  "updateCheckHelp": "About once a week, asks GitHub whether a newer Sun Clock exists. Only that request goes online; your position never leaves the phone.",
+  "updateAvailable": "Sun Clock {version} is available.",
+  "@updateAvailable": {
+    "placeholders": {
+      "version": {
+        "type": "String"
+      }
+    }
+  },
+  "upToDate": "Sun Clock is up to date.",
+  "updateFailed": "Couldn't reach GitHub.",
+  "checkNow": "Check now",
+  "download": "Download",
+  "later": "Later"
 }

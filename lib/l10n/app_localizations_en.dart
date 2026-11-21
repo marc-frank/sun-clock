@@ -202,7 +202,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get privacyNote =>
-      'Either way, sun times are calculated on this phone and your position is not sent anywhere. The map is stored in the app, so Sun Clock does not use the internet at all.';
+      'Either way, sun times are calculated on this phone and your position is not sent anywhere. The map is stored in the app; Sun Clock only goes online for the update check, if you turn it on.';
 
   @override
   String get preciseDenied =>
@@ -546,4 +546,31 @@ class AppLocalizationsEn extends AppLocalizations {
   String nightHourEquals(String n) {
     return 'night hour = $n min';
   }
+
+  @override
+  String get updateCheckTitle => 'Check for updates';
+
+  @override
+  String get updateCheckHelp =>
+      'About once a week, asks GitHub whether a newer Sun Clock exists. Only that request goes online; your position never leaves the phone.';
+
+  @override
+  String updateAvailable(String version) {
+    return 'Sun Clock $version is available.';
+  }
+
+  @override
+  String get upToDate => 'Sun Clock is up to date.';
+
+  @override
+  String get updateFailed => 'Couldn\'t reach GitHub.';
+
+  @override
+  String get checkNow => 'Check now';
+
+  @override
+  String get download => 'Download';
+
+  @override
+  String get later => 'Later';
 }

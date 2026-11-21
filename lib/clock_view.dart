@@ -363,7 +363,12 @@ class DialPainter extends CustomPainter {
   final Duration sunTime;
   final ThemeData theme;
   final bool labels;
-  DialPainter(this.sunTime, this.theme, {this.labels = true});
+
+  /// Minute and second hands of sun time, like a wall clock's: once round
+  /// per sun hour and per sun minute, 0 at the top.
+  final bool minuteHands;
+  DialPainter(this.sunTime, this.theme,
+      {this.labels = true, this.minuteHands = true});
 
   @override
   void paint(Canvas canvas, Size size) {
@@ -414,7 +419,26 @@ class DialPainter extends CustomPainter {
       }
     }
 
-    final hours = sunTime.inMicroseconds / Duration.microsecondsPerHour;
+    // Angle for a fraction of a turn, 0 at the top, clockwise.
+    double turn(double f) => -math.pi / 2 + f * 2 * math.pi;
+    Offset at(double angle, double length) =>
+        c + Offset(math.cos(angle), math.sin(angle)) * length;
+    final micros = sunTime.inMicroseconds;
+
+    if (minuteHands) {
+      final minutes =
+          micros % Duration.microsecondsPerHour / Duration.microsecondsPerHour;
+      final m = turn(minutes);
+      canvas.drawLine(
+          at(m, -10 * scale),
+          at(m, radius - 36 * scale),
+          Paint()
+            ..strokeWidth = 3 * scale
+            ..strokeCap = StrokeCap.round
+            ..color = theme.colorScheme.onSurface.withValues(alpha: 0.85));
+    }
+
+    final hours = micros / Duration.microsecondsPerHour;
     final a = angle(hours);
     final dir = Offset(math.cos(a), math.sin(a));
     final handColor = hours >= 6 && hours < 18 ? dayColor : nightColor;
@@ -427,6 +451,20 @@ class DialPainter extends CustomPainter {
           ..color = handColor);
     canvas.drawCircle(c + dir * (radius - 22 * scale), 10 * scale,
         Paint()..color = handColor);
+
+    if (minuteHands) {
+      final seconds = micros %
+          Duration.microsecondsPerMinute /
+          Duration.microsecondsPerMinute;
+      final s = turn(seconds);
+      canvas.drawLine(
+          at(s, -18 * scale),
+          at(s, radius - 12 * scale),
+          Paint()
+            ..strokeWidth = 1.5 * scale
+            ..strokeCap = StrokeCap.round
+            ..color = const Color(0xFFFF7043));
+    }
     canvas.drawCircle(
         c, 5 * scale, Paint()..color = theme.colorScheme.onSurface);
   }

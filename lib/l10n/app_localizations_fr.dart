@@ -207,7 +207,7 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get privacyNote =>
-      'Dans les deux cas, les heures du soleil sont calculées sur ce téléphone et votre position n\'est envoyée nulle part. La carte est enregistrée dans l\'application : Sun Clock n\'utilise pas du tout Internet.';
+      'Dans les deux cas, les heures du soleil sont calculées sur ce téléphone et votre position n\'est envoyée nulle part. La carte est enregistrée dans l\'application ; Sun Clock ne se connecte à Internet que pour la recherche de mises à jour, si vous l\'activez.';
 
   @override
   String get preciseDenied =>
@@ -552,4 +552,31 @@ class AppLocalizationsFr extends AppLocalizations {
   String nightHourEquals(String n) {
     return 'heure de nuit = $n min';
   }
+
+  @override
+  String get updateCheckTitle => 'Rechercher les mises à jour';
+
+  @override
+  String get updateCheckHelp =>
+      'Environ une fois par semaine, demande à GitHub s\'il existe une version plus récente de Sun Clock. Seule cette requête passe par Internet ; votre position ne quitte jamais le téléphone.';
+
+  @override
+  String updateAvailable(String version) {
+    return 'Sun Clock $version est disponible.';
+  }
+
+  @override
+  String get upToDate => 'Sun Clock est à jour.';
+
+  @override
+  String get updateFailed => 'Impossible de joindre GitHub.';
+
+  @override
+  String get checkNow => 'Vérifier';
+
+  @override
+  String get download => 'Télécharger';
+
+  @override
+  String get later => 'Plus tard';
 }

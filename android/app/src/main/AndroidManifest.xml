@@ -1,6 +1,8 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
-    <!-- No INTERNET permission: the map is bundled and nothing is sent or
-         loaded. (Debug and profile builds add it for the Flutter tools.) -->
+    <!-- Only for the opt-in update check (off by default): it asks GitHub
+         for the latest release about once a week. The map is bundled and
+         the position is never sent. -->
+    <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
     <!-- Only requested when "Precise" is chosen in Settings (MainActivity). -->
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />

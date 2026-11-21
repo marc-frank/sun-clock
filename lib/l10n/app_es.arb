@@ -55,7 +55,7 @@
   "precise": "Precisa",
   "approximateHelp": "Usa una ubicación aproximada, redondeada a 1 km más o menos. Las horas del sol solo cambian unos segundos por kilómetro, así que es suficiente y gasta menos batería.",
   "preciseHelp": "Usa el GPS para tu ubicación exacta. Las horas del sol son exactas al segundo; gasta algo más de batería.",
-  "privacyNote": "En ambos casos, las horas del sol se calculan en este teléfono y tu ubicación no se envía a ningún sitio. El mapa está guardado en la aplicación, así que Sun Clock no usa internet en absoluto.",
+  "privacyNote": "En ambos casos, las horas del sol se calculan en este teléfono y tu ubicación no se envía a ningún sitio. El mapa está guardado en la aplicación; Sun Clock solo usa internet para buscar actualizaciones, si lo activas.",
   "preciseDenied": "El sistema solo permite la ubicación aproximada para Sun Clock. Activa «Ubicación precisa» en el permiso de ubicación de la aplicación.",
   "openSettings": "Abrir ajustes",
   "mapPlaceNote": "Estás usando un lugar elegido en el mapa; esto se aplica cuando vuelvas al GPS.",
@@ -151,5 +151,13 @@
   "dayHourLength": "1 hora de día = {minutes} minutos reales",
   "nightHourLength": "1 hora de noche = {minutes} minutos reales",
   "dayHourEquals": "hora de día = {n} min",
-  "nightHourEquals": "hora de noche = {n} min"
+  "nightHourEquals": "hora de noche = {n} min",
+  "updateCheckTitle": "Buscar actualizaciones",
+  "updateCheckHelp": "Aproximadamente una vez por semana pregunta a GitHub si hay una versión más reciente de Sun Clock. Solo esa consulta usa internet; tu ubicación nunca sale del teléfono.",
+  "updateAvailable": "Sun Clock {version} está disponible.",
+  "upToDate": "Sun Clock está actualizado.",
+  "updateFailed": "No se pudo conectar con GitHub.",
+  "checkNow": "Comprobar ahora",
+  "download": "Descargar",
+  "later": "Más tarde"
 }

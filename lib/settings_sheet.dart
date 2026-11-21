@@ -6,11 +6,13 @@ import 'l10n/l10n.dart';
 import 'language.dart';
 import 'location_model.dart';
 import 'status_bar_clock.dart';
+import 'update_check.dart';
 import 'widget_editor.dart';
 
 /// Bottom sheet with location precision and the status-bar clock switch.
 void showSettings(BuildContext context, LocationModel model,
-    StatusBarClock statusBar, LanguageSetting language) {
+    StatusBarClock statusBar, LanguageSetting language,
+    [UpdateChecker? updates]) {
   statusBar.refreshBackground();
   showModalBottomSheet<void>(
     context: context,
@@ -18,7 +20,8 @@ void showSettings(BuildContext context, LocationModel model,
     isScrollControlled: true,
     builder: (context) => SafeArea(
       child: ListenableBuilder(
-        listenable: Listenable.merge([model, statusBar, language]),
+        listenable: Listenable.merge(
+            [model, statusBar, language, if (updates != null) updates]),
         builder: (context, _) {
           final theme = Theme.of(context);
           final l = context.l10n;
@@ -26,172 +29,202 @@ void showSettings(BuildContext context, LocationModel model,
               ?.copyWith(color: theme.colorScheme.onSurfaceVariant);
           return SingleChildScrollView(
             padding: const EdgeInsets.fromLTRB(24, 0, 24, 24),
-            child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(l.settings, style: theme.textTheme.headlineSmall),
-                  const SizedBox(height: 12),
-                  ListTile(
-                    contentPadding: EdgeInsets.zero,
-                    leading: const Icon(Icons.translate),
-                    title: Text(l.language),
-                    trailing: DropdownButton<String>(
-                      value: language.code,
-                      underline: const SizedBox.shrink(),
-                      items: [
-                        DropdownMenuItem(
-                            value: '', child: Text(l.phoneLanguage)),
-                        for (final e in appLanguages.entries)
-                          DropdownMenuItem(value: e.key, child: Text(e.value)),
-                      ],
-                      onChanged: (c) => language.set(c ?? ''),
-                    ),
-                  ),
-                  if (HomeWidgets.supported)
-                    ListTile(
-                      contentPadding: EdgeInsets.zero,
-                      leading: const Icon(Icons.widgets_outlined),
-                      title: Text(l.widgetsTitle),
-                      subtitle: Text(l.widgetsTileHelp, style: muted),
-                      trailing: const Icon(Icons.chevron_right),
-                      onTap: () => Navigator.of(context).push(
-                          MaterialPageRoute<void>(
-                              builder: (_) => WidgetsPage(model: model))),
-                    ),
-                  const SizedBox(height: 8),
-                  const Divider(),
-                  const SizedBox(height: 8),
-                  Text(l.locationAccuracy, style: theme.textTheme.titleMedium),
-                  const SizedBox(height: 8),
-                  SizedBox(
-                    width: double.infinity,
-                    child: SegmentedButton<LocationPrecision>(
-                      segments: [
-                        ButtonSegment(
-                          value: LocationPrecision.approximate,
-                          icon: const Icon(Icons.location_searching),
-                          label: Text(l.approximate),
-                        ),
-                        ButtonSegment(
-                          value: LocationPrecision.precise,
-                          icon: const Icon(Icons.my_location),
-                          label: Text(l.precise),
-                        ),
-                      ],
-                      selected: {model.precision},
-                      onSelectionChanged: (s) => model.setPrecision(s.first),
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  Text(
-                    model.precision == LocationPrecision.approximate
-                        ? l.approximateHelp
-                        : l.preciseHelp,
-                    style: muted,
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    l.privacyNote,
-                    style: muted,
-                  ),
-                  if (model.precision == LocationPrecision.precise &&
-                      model.preciseDenied) ...[
-                    const SizedBox(height: 12),
-                    Card(
-                      color: theme.colorScheme.errorContainer,
-                      child: Padding(
-                        padding: const EdgeInsets.all(12),
-                        child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                l.preciseDenied,
-                                style: TextStyle(
-                                    color: theme.colorScheme.onErrorContainer),
-                              ),
-                              const SizedBox(height: 8),
-                              FilledButton.tonal(
-                                onPressed: Geolocator.openAppSettings,
-                                child: Text(l.openSettings),
-                              ),
-                            ]),
-                      ),
-                    ),
+            child:
+                Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+              Text(l.settings, style: theme.textTheme.headlineSmall),
+              const SizedBox(height: 12),
+              ListTile(
+                contentPadding: EdgeInsets.zero,
+                leading: const Icon(Icons.translate),
+                title: Text(l.language),
+                trailing: DropdownButton<String>(
+                  value: language.code,
+                  underline: const SizedBox.shrink(),
+                  items: [
+                    DropdownMenuItem(value: '', child: Text(l.phoneLanguage)),
+                    for (final e in appLanguages.entries)
+                      DropdownMenuItem(value: e.key, child: Text(e.value)),
                   ],
-                  if (model.source == LocationSource.map) ...[
-                    const SizedBox(height: 8),
-                    Text(
-                        l.mapPlaceNote,
-                        style: muted),
-                  ],
-                  if (statusBar.supported) ...[
-                    const SizedBox(height: 24),
-                    const Divider(),
-                    SwitchListTile(
-                      contentPadding: EdgeInsets.zero,
-                      title: Text(l.statusBarTitle),
-                      subtitle: Text(
-                        l.statusBarHelp,
+                  onChanged: (c) => language.set(c ?? ''),
+                ),
+              ),
+              if (HomeWidgets.supported)
+                ListTile(
+                  contentPadding: EdgeInsets.zero,
+                  leading: const Icon(Icons.widgets_outlined),
+                  title: Text(l.widgetsTitle),
+                  subtitle: Text(l.widgetsTileHelp, style: muted),
+                  trailing: const Icon(Icons.chevron_right),
+                  onTap: () => Navigator.of(context).push(
+                      MaterialPageRoute<void>(
+                          builder: (_) => WidgetsPage(model: model))),
+                ),
+              if (updates != null && UpdateChecker.supported) ...[
+                SwitchListTile(
+                  contentPadding: EdgeInsets.zero,
+                  secondary: const Icon(Icons.system_update_outlined),
+                  title: Text(l.updateCheckTitle),
+                  subtitle: Text(l.updateCheckHelp, style: muted),
+                  value: updates.enabled,
+                  onChanged: updates.setEnabled,
+                ),
+                if (updates.enabled)
+                  Row(children: [
+                    const SizedBox(width: 40),
+                    Expanded(
+                      child: Text(
+                        updates.available != null
+                            ? l.updateAvailable(updates.available!.version)
+                            : switch (updates.lastResult) {
+                                CheckResult.upToDate => l.upToDate,
+                                CheckResult.failed => l.updateFailed,
+                                _ => '',
+                              },
                         style: muted,
                       ),
-                      value: statusBar.enabled,
-                      onChanged: (on) => toggleStatusBar(context, statusBar, on),
                     ),
-                    if (statusBar.enabled && statusBar.chipSupported) ...[
-                      SwitchListTile(
-                        contentPadding: EdgeInsets.zero,
-                        title: Text(l.chipTitle),
-                        subtitle: Text(
-                          l.chipHelp,
-                          style: muted,
-                        ),
-                        value: statusBar.chipOn,
-                        onChanged: statusBar.setTextChip,
+                    if (updates.available != null)
+                      TextButton(
+                          onPressed: updates.openDownload,
+                          child: Text(l.download))
+                    else
+                      TextButton(
+                        onPressed: updates.checking ? null : updates.check,
+                        child: Text(l.checkNow),
                       ),
-                      if (statusBar.chipOn && !statusBar.chipAllowed)
-                        Row(children: [
-                          Expanded(
-                            child: Text(
-                              l.chipOff,
-                              style: muted,
-                            ),
-                          ),
-                          TextButton(
-                            onPressed: statusBar.openPromotionSettings,
-                            child: Text(l.settings),
-                          ),
-                        ]),
-                    ],
-                    if (statusBar.enabled &&
-                        model.source == LocationSource.gps) ...[
-                      SwitchListTile(
-                        contentPadding: EdgeInsets.zero,
-                        title: Text(l.followAfterRestart),
-                        subtitle: Text(
-                          l.followAfterRestartHelp,
-                          style: muted,
-                        ),
-                        value: statusBar.backgroundOptIn,
-                        onChanged: (on) =>
-                            toggleBackgroundLocation(context, statusBar, on),
-                      ),
-                      if (statusBar.backgroundOptIn &&
-                          !statusBar.backgroundGranted)
-                        Row(children: [
-                          Expanded(
-                            child: Text(
-                              l.backgroundOff,
-                              style: muted,
-                            ),
-                          ),
-                          TextButton(
-                            onPressed: Geolocator.openAppSettings,
-                            child: Text(l.settings),
-                          ),
-                        ]),
-                    ],
+                  ]),
+              ],
+              const SizedBox(height: 8),
+              const Divider(),
+              const SizedBox(height: 8),
+              Text(l.locationAccuracy, style: theme.textTheme.titleMedium),
+              const SizedBox(height: 8),
+              SizedBox(
+                width: double.infinity,
+                child: SegmentedButton<LocationPrecision>(
+                  segments: [
+                    ButtonSegment(
+                      value: LocationPrecision.approximate,
+                      icon: const Icon(Icons.location_searching),
+                      label: Text(l.approximate),
+                    ),
+                    ButtonSegment(
+                      value: LocationPrecision.precise,
+                      icon: const Icon(Icons.my_location),
+                      label: Text(l.precise),
+                    ),
                   ],
-                ]),
+                  selected: {model.precision},
+                  onSelectionChanged: (s) => model.setPrecision(s.first),
+                ),
+              ),
+              const SizedBox(height: 8),
+              Text(
+                model.precision == LocationPrecision.approximate
+                    ? l.approximateHelp
+                    : l.preciseHelp,
+                style: muted,
+              ),
+              const SizedBox(height: 4),
+              Text(
+                l.privacyNote,
+                style: muted,
+              ),
+              if (model.precision == LocationPrecision.precise &&
+                  model.preciseDenied) ...[
+                const SizedBox(height: 12),
+                Card(
+                  color: theme.colorScheme.errorContainer,
+                  child: Padding(
+                    padding: const EdgeInsets.all(12),
+                    child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            l.preciseDenied,
+                            style: TextStyle(
+                                color: theme.colorScheme.onErrorContainer),
+                          ),
+                          const SizedBox(height: 8),
+                          FilledButton.tonal(
+                            onPressed: Geolocator.openAppSettings,
+                            child: Text(l.openSettings),
+                          ),
+                        ]),
+                  ),
+                ),
+              ],
+              if (model.source == LocationSource.map) ...[
+                const SizedBox(height: 8),
+                Text(l.mapPlaceNote, style: muted),
+              ],
+              if (statusBar.supported) ...[
+                const SizedBox(height: 24),
+                const Divider(),
+                SwitchListTile(
+                  contentPadding: EdgeInsets.zero,
+                  title: Text(l.statusBarTitle),
+                  subtitle: Text(
+                    l.statusBarHelp,
+                    style: muted,
+                  ),
+                  value: statusBar.enabled,
+                  onChanged: (on) => toggleStatusBar(context, statusBar, on),
+                ),
+                if (statusBar.enabled && statusBar.chipSupported) ...[
+                  SwitchListTile(
+                    contentPadding: EdgeInsets.zero,
+                    title: Text(l.chipTitle),
+                    subtitle: Text(
+                      l.chipHelp,
+                      style: muted,
+                    ),
+                    value: statusBar.chipOn,
+                    onChanged: statusBar.setTextChip,
+                  ),
+                  if (statusBar.chipOn && !statusBar.chipAllowed)
+                    Row(children: [
+                      Expanded(
+                        child: Text(
+                          l.chipOff,
+                          style: muted,
+                        ),
+                      ),
+                      TextButton(
+                        onPressed: statusBar.openPromotionSettings,
+                        child: Text(l.settings),
+                      ),
+                    ]),
+                ],
+                if (statusBar.enabled &&
+                    model.source == LocationSource.gps) ...[
+                  SwitchListTile(
+                    contentPadding: EdgeInsets.zero,
+                    title: Text(l.followAfterRestart),
+                    subtitle: Text(
+                      l.followAfterRestartHelp,
+                      style: muted,
+                    ),
+                    value: statusBar.backgroundOptIn,
+                    onChanged: (on) =>
+                        toggleBackgroundLocation(context, statusBar, on),
+                  ),
+                  if (statusBar.backgroundOptIn && !statusBar.backgroundGranted)
+                    Row(children: [
+                      Expanded(
+                        child: Text(
+                          l.backgroundOff,
+                          style: muted,
+                        ),
+                      ),
+                      TextButton(
+                        onPressed: Geolocator.openAppSettings,
+                        child: Text(l.settings),
+                      ),
+                    ]),
+                ],
+              ],
+            ]),
           );
         },
       ),

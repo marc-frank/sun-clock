@@ -42,6 +42,23 @@ open class MainActivity : FlutterActivity() {
                     result.notImplemented()
                 }
             }
+        // The opt-in update check opens the release page in the browser.
+        MethodChannel(flutterEngine.dartExecutor.binaryMessenger, "sun_clock/system")
+            .setMethodCallHandler { call, result ->
+                val url = call.argument<String>("url") ?: ""
+                if (call.method != "openUrl" ||
+                    !url.startsWith("https://github.com/marc-frank/sun-clock/")
+                ) {
+                    result.notImplemented()
+                    return@setMethodCallHandler
+                }
+                try {
+                    startActivity(Intent(Intent.ACTION_VIEW, android.net.Uri.parse(url)))
+                    result.success(true)
+                } catch (_: ActivityNotFoundException) {
+                    result.success(false)
+                }
+            }
         MethodChannel(flutterEngine.dartExecutor.binaryMessenger, "sun_clock/widgets")
             .setMethodCallHandler { call, result -> widgets(call, result) }
         MethodChannel(flutterEngine.dartExecutor.binaryMessenger, CHANNEL)

@@ -435,7 +435,7 @@ abstract class AppLocalizations {
   /// No description provided for @privacyNote.
   ///
   /// In en, this message translates to:
-  /// **'Either way, sun times are calculated on this phone and your position is not sent anywhere. The map is stored in the app, so Sun Clock does not use the internet at all.'**
+  /// **'Either way, sun times are calculated on this phone and your position is not sent anywhere. The map is stored in the app; Sun Clock only goes online for the update check, if you turn it on.'**
   String get privacyNote;
 
   /// No description provided for @preciseDenied.
@@ -1013,6 +1013,54 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'night hour = {n} min'**
   String nightHourEquals(String n);
+
+  /// No description provided for @updateCheckTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Check for updates'**
+  String get updateCheckTitle;
+
+  /// No description provided for @updateCheckHelp.
+  ///
+  /// In en, this message translates to:
+  /// **'About once a week, asks GitHub whether a newer Sun Clock exists. Only that request goes online; your position never leaves the phone.'**
+  String get updateCheckHelp;
+
+  /// No description provided for @updateAvailable.
+  ///
+  /// In en, this message translates to:
+  /// **'Sun Clock {version} is available.'**
+  String updateAvailable(String version);
+
+  /// No description provided for @upToDate.
+  ///
+  /// In en, this message translates to:
+  /// **'Sun Clock is up to date.'**
+  String get upToDate;
+
+  /// No description provided for @updateFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t reach GitHub.'**
+  String get updateFailed;
+
+  /// No description provided for @checkNow.
+  ///
+  /// In en, this message translates to:
+  /// **'Check now'**
+  String get checkNow;
+
+  /// No description provided for @download.
+  ///
+  /// In en, this message translates to:
+  /// **'Download'**
+  String get download;
+
+  /// No description provided for @later.
+  ///
+  /// In en, this message translates to:
+  /// **'Later'**
+  String get later;
 }
 
 class _AppLocalizationsDelegate
