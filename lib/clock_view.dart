@@ -121,6 +121,10 @@ class ClockView extends StatefulWidget {
   final bool approximate;
   final VoidCallback? onLocationTap;
 
+  /// Landscape or tablet: the dial and sun time on the left, the other
+  /// times and the place on the right. The caller scales it to fit.
+  final bool wide;
+
   const ClockView({
     super.key,
     required this.lat,
@@ -129,7 +133,15 @@ class ClockView extends StatefulWidget {
     required this.sourceLabel,
     this.approximate = false,
     this.onLocationTap,
+    this.wide = false,
+    this.wideDial = 300,
   });
+
+  /// Dial diameter in the wide layout; the caller fits it to the height.
+  final double wideDial;
+
+  /// Width of the right-hand column in the wide layout.
+  static const wideInfoWidth = 420.0;
 
   @override
   State<ClockView> createState() => _ClockViewState();
@@ -173,14 +185,19 @@ class _ClockViewState extends State<ClockView> {
       final screen = mq.padding.deflateSize(mq.size);
       final textScale = mq.textScaler.scale(16) / 16;
 
-      return Column(mainAxisSize: MainAxisSize.min, children: [
-        // Dial, sun time and day/night read as one label, renewed once a
-        // minute instead of with every tick.
-        Semantics(
-          container: true,
-          label: _labelFor(now, r),
-          child: ExcludeSemantics(
-            child: Column(mainAxisSize: MainAxisSize.min, children: [
+      // Dial, sun time and day/night read as one label, renewed once a
+      // minute instead of with every tick.
+      final dialGroup = Semantics(
+        container: true,
+        label: _labelFor(now, r),
+        child: ExcludeSemantics(
+          child: Column(mainAxisSize: MainAxisSize.min, children: [
+            if (widget.wide)
+              SizedBox.square(
+                dimension: widget.wideDial,
+                child: CustomPaint(painter: DialPainter(r.sunTime, theme)),
+              )
+            else
               LayoutBuilder(builder: (context, box) {
                 final d = dialSize(screen, box.maxWidth, textScale);
                 return SizedBox(
@@ -189,19 +206,20 @@ class _ClockViewState extends State<ClockView> {
                   child: CustomPaint(painter: DialPainter(r.sunTime, theme)),
                 );
               }),
-              const SizedBox(height: 24),
-              FittedBox(
-                fit: BoxFit.scaleDown,
-                child: Text(hms(r.sunTime),
-                    style: theme.textTheme.displayLarge
-                        ?.copyWith(fontFeatures: tabular)),
-              ),
-              Text(r.isDay ? context.l10n.sunTimeDay : context.l10n.sunTimeNight,
-                  style: muted),
-            ]),
-          ),
+            const SizedBox(height: 24),
+            FittedBox(
+              fit: BoxFit.scaleDown,
+              child: Text(hms(r.sunTime),
+                  style: theme.textTheme.displayLarge
+                      ?.copyWith(fontFeatures: tabular)),
+            ),
+            Text(r.isDay ? context.l10n.sunTimeDay : context.l10n.sunTimeNight,
+                style: muted),
+          ]),
         ),
-        const SizedBox(height: 24),
+      );
+
+      final info = <Widget>[
         FittedBox(
           fit: BoxFit.scaleDown,
           child: TimeLines(now: now, zone: zone),
@@ -217,9 +235,7 @@ class _ClockViewState extends State<ClockView> {
         const SizedBox(height: 4),
         Semantics(
           button: widget.onLocationTap != null,
-          hint: widget.onLocationTap == null
-              ? null
-              : context.l10n.locationHint,
+          hint: widget.onLocationTap == null ? null : context.l10n.locationHint,
           child: InkWell(
             onTap: widget.onLocationTap,
             borderRadius: BorderRadius.circular(8),
@@ -235,23 +251,37 @@ class _ClockViewState extends State<ClockView> {
             ),
           ),
         ),
+      ];
+
+      if (widget.wide) {
+        return Row(mainAxisSize: MainAxisSize.min, children: [
+          dialGroup,
+          const SizedBox(width: 48),
+          SizedBox(
+            width: ClockView.wideInfoWidth,
+            child: Column(mainAxisSize: MainAxisSize.min, children: info),
+          ),
+        ]);
+      }
+      return Column(mainAxisSize: MainAxisSize.min, children: [
+        dialGroup,
+        const SizedBox(height: 24),
+        ...info,
       ]);
     });
   }
 
-  List<Widget> _eventLines(
-      AppLocalizations l, SunClockReading r, tz.Location zone, TextStyle? muted) {
+  List<Widget> _eventLines(AppLocalizations l, SunClockReading r,
+      tz.Location zone, TextStyle? muted) {
     if (r.mode != SunClockMode.normal) {
       return [
         Text(r.isDay ? l.noSunset : l.noSunrise,
-            textAlign: TextAlign.center,
-            style: muted),
+            textAlign: TextAlign.center, style: muted),
       ];
     }
-    String ev(SunEvent e) =>
-        e.isSunrise
-            ? l.sunriseAt(hm(inZone(e.time, zone)))
-            : l.sunsetAt(hm(inZone(e.time, zone)));
+    String ev(SunEvent e) => e.isSunrise
+        ? l.sunriseAt(hm(inZone(e.time, zone)))
+        : l.sunsetAt(hm(inZone(e.time, zone)));
     return [
       // An icon instead of a "→" character, which sits off-centre in the font.
       // A Wrap, so large text breaks the line instead of overflowing.
@@ -269,8 +299,9 @@ class _ClockViewState extends State<ClockView> {
           ]),
       const SizedBox(height: 4),
       Text(
-          (r.isDay ? l.dayHourLength : l.nightHourLength)(
-              r.realMinutesPerSunHour.toStringAsFixed(1)),
+          (r.isDay
+              ? l.dayHourLength
+              : l.nightHourLength)(r.realMinutesPerSunHour.toStringAsFixed(1)),
           style: muted),
     ];
   }
@@ -295,7 +326,9 @@ class TimeLines extends StatelessWidget {
             padding: const EdgeInsets.only(right: 12),
             child: Text(name, style: label),
           ),
-          Text(hms(Duration(hours: t.hour, minutes: t.minute, seconds: t.second)),
+          Text(
+              hms(Duration(
+                  hours: t.hour, minutes: t.minute, seconds: t.second)),
               style: style),
         ]);
     return Table(
@@ -373,8 +406,11 @@ class DialPainter extends CustomPainter {
                 fontSize: 16 * scale,
                 fontWeight: FontWeight.w600));
         tp.layout();
-        tp.paint(canvas,
-            c + dir * (radius - 30 * scale) - Offset(tp.width / 2, tp.height / 2));
+        tp.paint(
+            canvas,
+            c +
+                dir * (radius - 30 * scale) -
+                Offset(tp.width / 2, tp.height / 2));
       }
     }
 
@@ -389,9 +425,10 @@ class DialPainter extends CustomPainter {
           ..strokeWidth = 4 * scale
           ..strokeCap = StrokeCap.round
           ..color = handColor);
+    canvas.drawCircle(c + dir * (radius - 22 * scale), 10 * scale,
+        Paint()..color = handColor);
     canvas.drawCircle(
-        c + dir * (radius - 22 * scale), 10 * scale, Paint()..color = handColor);
-    canvas.drawCircle(c, 5 * scale, Paint()..color = theme.colorScheme.onSurface);
+        c, 5 * scale, Paint()..color = theme.colorScheme.onSurface);
   }
 
   @override

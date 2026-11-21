@@ -18,6 +18,13 @@ import 'zone.dart';
 
 const appBackground = Color(0xFF1C1B17);
 
+/// From this width (landscape phones, tablets) the home page uses two
+/// columns.
+const double wideLayoutWidth = 600;
+
+/// The map's height in the two-column chart grid, about a chart card's.
+const double wideMapHeight = 360;
+
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   initZones();
@@ -63,28 +70,29 @@ class SunClockApp extends StatelessWidget {
             seedColor: Colors.amber, brightness: Brightness.dark)
         .copyWith(surface: appBackground);
     return ListenableBuilder(
-      listenable: language,
-      builder: (context, _) => MaterialApp(
-      title: 'Sun Clock',
-      locale: language.locale,
-      debugShowCheckedModeBanner: false,
-      localizationsDelegates: const [
-        AppLocalizations.delegate,
-        GlobalMaterialLocalizations.delegate,
-        GlobalWidgetsLocalizations.delegate,
-        GlobalCupertinoLocalizations.delegate,
-      ],
-      supportedLocales: AppLocalizations.supportedLocales,
-      theme: ThemeData(
-        colorScheme: scheme,
-        scaffoldBackgroundColor: appBackground,
-        useMaterial3: true,
-      ),
-      home: configureWidget != null
-          ? WidgetEditorPage(
-              id: configureWidget!, model: model, configuring: true)
-          : HomePage(model: model, statusBar: statusBar, language: language),
-    ));
+        listenable: language,
+        builder: (context, _) => MaterialApp(
+              title: 'Sun Clock',
+              locale: language.locale,
+              debugShowCheckedModeBanner: false,
+              localizationsDelegates: const [
+                AppLocalizations.delegate,
+                GlobalMaterialLocalizations.delegate,
+                GlobalWidgetsLocalizations.delegate,
+                GlobalCupertinoLocalizations.delegate,
+              ],
+              supportedLocales: AppLocalizations.supportedLocales,
+              theme: ThemeData(
+                colorScheme: scheme,
+                scaffoldBackgroundColor: appBackground,
+                useMaterial3: true,
+              ),
+              home: configureWidget != null
+                  ? WidgetEditorPage(
+                      id: configureWidget!, model: model, configuring: true)
+                  : HomePage(
+                      model: model, statusBar: statusBar, language: language),
+            ));
   }
 }
 
@@ -107,56 +115,104 @@ class HomePage extends StatelessWidget {
         child: ListenableBuilder(
           listenable: model,
           builder: (context, _) => LayoutBuilder(
-            builder: (context, box) => SingleChildScrollView(
-              padding: const EdgeInsets.symmetric(horizontal: 16),
-              child: Column(children: [
-                // First screen: the clock, exactly one viewport tall.
-                ConstrainedBox(
-                  constraints: BoxConstraints(minHeight: box.maxHeight),
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      _TopBar(
-                        onMap: () => _openMap(context),
-                        model: model,
-                        statusBar: statusBar,
-                        language: language,
+            builder: (context, box) {
+              // Landscape phones and tablets: two columns.
+              final wide = box.maxWidth >= wideLayoutWidth;
+              final clock = model.hasPosition
+                  ? ClockView(
+                      lat: model.latitude!,
+                      lon: model.longitude!,
+                      zone: model.zone!,
+                      sourceLabel: model.source == LocationSource.gps
+                          ? (model.isApproximate
+                              ? context.l10n.sourceGpsApprox
+                              : context.l10n.sourceGps)
+                          : context.l10n.sourceMap,
+                      approximate: model.isApproximate,
+                      onLocationTap: () => _openMap(context),
+                      wide: wide,
+                      // Room left beside the top bar, the scroll hint and
+                      // the sun time under the dial.
+                      wideDial: (box.maxHeight -
+                              170 -
+                              110 * MediaQuery.textScalerOf(context).scale(1))
+                          .clamp(120.0, 300.0),
+                    )
+                  : null;
+              final topBar = _TopBar(
+                onMap: () => _openMap(context),
+                model: model,
+                statusBar: statusBar,
+                language: language,
+              );
+              return SingleChildScrollView(
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                child: Column(children: [
+                  if (wide)
+                    // First screen: exactly one viewport tall, the two
+                    // columns scaled down when they don't fit.
+                    SizedBox(
+                      height: box.maxHeight,
+                      child: Column(children: [
+                        topBar,
+                        Expanded(
+                          child: Center(
+                            child: FittedBox(
+                              fit: BoxFit.scaleDown,
+                              child: clock ??
+                                  SizedBox(
+                                    width: 480,
+                                    child: _NoPosition(
+                                        model: model,
+                                        onMap: () => _openMap(context)),
+                                  ),
+                            ),
+                          ),
+                        ),
+                        _ScrollHint(visible: model.hasPosition),
+                      ]),
+                    )
+                  else
+                    // First screen: the clock, exactly one viewport tall.
+                    ConstrainedBox(
+                      constraints: BoxConstraints(minHeight: box.maxHeight),
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          topBar,
+                          clock ??
+                              _NoPosition(
+                                  model: model, onMap: () => _openMap(context)),
+                          _ScrollHint(visible: model.hasPosition),
+                        ],
                       ),
-                      model.hasPosition
-                          ? ClockView(
-                              lat: model.latitude!,
-                              lon: model.longitude!,
-                              zone: model.zone!,
-                              sourceLabel: model.source == LocationSource.gps
-                                  ? (model.isApproximate
-                                      ? context.l10n.sourceGpsApprox
-                                      : context.l10n.sourceGps)
-                                  : context.l10n.sourceMap,
-                              approximate: model.isApproximate,
-                              onLocationTap: () => _openMap(context),
-                            )
-                          : _NoPosition(
-                              model: model, onMap: () => _openMap(context)),
-                      _ScrollHint(visible: model.hasPosition),
-                    ],
-                  ),
-                ),
-                if (model.hasPosition) ...[
-                  YearCharts(
-                    lat: model.latitude!,
-                    lon: model.longitude!,
-                    zone: model.zone!,
-                  ),
-                  const SizedBox(height: 16),
-                  // Under the charts, so they can be watched while picking.
-                  MapPanel(
-                    model: model,
-                    height: (box.maxHeight * 0.42).clamp(220, 420),
-                  ),
-                  const SizedBox(height: 32),
-                ],
-              ]),
-            ),
+                    ),
+                  if (model.hasPosition && wide) ...[
+                    // Charts and map in two columns, two rows.
+                    YearCharts(
+                      lat: model.latitude!,
+                      lon: model.longitude!,
+                      zone: model.zone!,
+                      map: MapPanel(model: model, height: wideMapHeight),
+                    ),
+                    const SizedBox(height: 32),
+                  ] else if (model.hasPosition) ...[
+                    YearCharts(
+                      lat: model.latitude!,
+                      lon: model.longitude!,
+                      zone: model.zone!,
+                    ),
+                    const SizedBox(height: 16),
+                    // Under the charts, so they can be watched while picking.
+                    MapPanel(
+                      model: model,
+                      height: (box.maxHeight * 0.42).clamp(220, 420),
+                    ),
+                    const SizedBox(height: 32),
+                  ],
+                ]),
+              );
+            },
           ),
         ),
       ),
@@ -227,7 +283,9 @@ class _ScrollHint extends StatelessWidget {
       child: Padding(
         padding: const EdgeInsets.only(bottom: 8, top: 16),
         child: Column(children: [
-          Text(context.l10n.theYear, style: Theme.of(context).textTheme.labelMedium?.copyWith(color: c)),
+          Text(context.l10n.theYear,
+              style:
+                  Theme.of(context).textTheme.labelMedium?.copyWith(color: c)),
           Icon(Icons.keyboard_arrow_down, color: c),
         ]),
       ),
@@ -261,8 +319,7 @@ class _NoPosition extends StatelessWidget {
         Wrap(spacing: 8, alignment: WrapAlignment.center, children: [
           FilledButton(onPressed: model.useGps, child: Text(l.retry)),
           OutlinedButton(
-              onPressed: Geolocator.openAppSettings,
-              child: Text(l.settings)),
+              onPressed: Geolocator.openAppSettings, child: Text(l.settings)),
         ]),
       ],
       const SizedBox(height: 8),
@@ -283,7 +340,7 @@ String gpsErrorText(AppLocalizations l, GpsError e) => switch (e) {
       GpsError.noFix => l.gpsNoFix,
     };
 
-/// "Version 1.3.0 (4)", read from the installed app (set in pubspec.yaml).
+/// "Version 1.4.0 (6)", read from the installed app (set in pubspec.yaml).
 Future<String> appVersion(AppLocalizations l) async {
   try {
     final info = await PackageInfo.fromPlatform();
@@ -308,15 +365,14 @@ void showAbout(BuildContext context) {
           const SizedBox(height: 12),
           Text(l.aboutBody),
           const SizedBox(height: 12),
-          Text(l.mapCredit,
-              style: theme.textTheme.bodySmall),
+          Text(l.mapCredit, style: theme.textTheme.bodySmall),
           const SizedBox(height: 16),
           FutureBuilder<String>(
             future: appVersion(l),
             builder: (context, snap) => Row(children: [
               Text(snap.data ?? '',
-                  style: theme.textTheme.bodySmall?.copyWith(
-                      color: theme.colorScheme.onSurfaceVariant)),
+                  style: theme.textTheme.bodySmall
+                      ?.copyWith(color: theme.colorScheme.onSurfaceVariant)),
               const Spacer(),
               TextButton(
                 onPressed: () => showLicensePage(

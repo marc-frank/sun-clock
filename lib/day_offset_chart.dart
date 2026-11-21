@@ -4,6 +4,7 @@ import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:timezone/timezone.dart' as tz;
 
+import 'animated_range.dart';
 import 'clock_view.dart';
 import 'day_offset.dart';
 import 'l10n/l10n.dart';
@@ -198,87 +199,94 @@ class DayOffsetChart extends StatelessWidget {
 
     bool inDay(double? h) => h != null && h > 0 && h < 24;
 
-    return LineChart(
-      duration: Duration.zero,
-      LineChartData(
-        minX: 0,
-        maxX: 24,
-        minY: minY,
-        maxY: maxY,
-        clipData: const FlClipData.all(),
-        lineTouchData: const LineTouchData(enabled: false),
-        borderData: FlBorderData(show: false),
-        gridData: FlGridData(
-          drawVerticalLine: true,
-          horizontalInterval: interval,
-          verticalInterval: 3,
-          getDrawingHorizontalLine: (_) => FlLine(color: grid, strokeWidth: 1),
-          getDrawingVerticalLine: (_) => FlLine(color: grid, strokeWidth: 1),
-        ),
-        titlesData: FlTitlesData(
-          topTitles:
-              const AxisTitles(sideTitles: SideTitles(showTitles: false)),
-          rightTitles:
-              const AxisTitles(sideTitles: SideTitles(showTitles: false)),
-          leftTitles: AxisTitles(
-            sideTitles: SideTitles(
-              showTitles: true,
-              reservedSize: _leftReserved,
-              interval: interval,
-              getTitlesWidget: (v, meta) => Padding(
-                padding: const EdgeInsets.only(right: 6),
-                child: Text(offsetAxisLabel(v),
-                    style: labelStyle, textAlign: TextAlign.right),
+    return AnimatedYRange(
+      min: minY,
+      max: maxY,
+      builder: (context, minY, maxY) => LineChart(
+        duration: Duration.zero,
+        LineChartData(
+          minX: 0,
+          maxX: 24,
+          minY: minY,
+          maxY: maxY,
+          clipData: const FlClipData.all(),
+          lineTouchData: const LineTouchData(enabled: false),
+          borderData: FlBorderData(show: false),
+          gridData: FlGridData(
+            drawVerticalLine: true,
+            horizontalInterval: interval,
+            verticalInterval: 3,
+            getDrawingHorizontalLine: (_) =>
+                FlLine(color: grid, strokeWidth: 1),
+            getDrawingVerticalLine: (_) => FlLine(color: grid, strokeWidth: 1),
+          ),
+          titlesData: FlTitlesData(
+            topTitles:
+                const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+            rightTitles:
+                const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+            leftTitles: AxisTitles(
+              sideTitles: SideTitles(
+                showTitles: true,
+                reservedSize: _leftReserved,
+                interval: interval,
+                getTitlesWidget: (v, meta) => !onInterval(v, interval)
+                    ? const SizedBox.shrink()
+                    : Padding(
+                        padding: const EdgeInsets.only(right: 6),
+                        child: Text(offsetAxisLabel(v),
+                            style: labelStyle, textAlign: TextAlign.right),
+                      ),
+              ),
+            ),
+            bottomTitles: AxisTitles(
+              sideTitles: SideTitles(
+                showTitles: true,
+                reservedSize: 22,
+                interval: 6,
+                getTitlesWidget: (v, meta) => Padding(
+                  padding: const EdgeInsets.only(top: 6),
+                  child: Text(two(v.round()), style: labelStyle),
+                ),
               ),
             ),
           ),
-          bottomTitles: AxisTitles(
-            sideTitles: SideTitles(
-              showTitles: true,
-              reservedSize: 22,
-              interval: 6,
-              getTitlesWidget: (v, meta) => Padding(
-                padding: const EdgeInsets.only(top: 6),
-                child: Text(two(v.round()), style: labelStyle),
-              ),
+          lineBarsData: [
+            LineChartBarData(
+              spots: spots,
+              color: theme.colorScheme.onSurface.withValues(alpha: 0.85),
+              barWidth: 2.5,
+              dotData: const FlDotData(show: false),
+              // Between the line and zero: sun time ahead (line above zero)
+              // or behind (below).
+              belowBarData: BarAreaData(
+                  show: true,
+                  color: dayColor.withValues(alpha: 0.3),
+                  cutOffY: 0,
+                  applyCutOffY: true),
+              aboveBarData: BarAreaData(
+                  show: true,
+                  color: nightColor.withValues(alpha: 0.3),
+                  cutOffY: 0,
+                  applyCutOffY: true),
             ),
-          ),
-        ),
-        lineBarsData: [
-          LineChartBarData(
-            spots: spots,
-            color: theme.colorScheme.onSurface.withValues(alpha: 0.85),
-            barWidth: 2.5,
-            dotData: const FlDotData(show: false),
-            // Between the line and zero: sun time ahead (line above zero)
-            // or behind (below).
-            belowBarData: BarAreaData(
-                show: true,
-                color: dayColor.withValues(alpha: 0.3),
-                cutOffY: 0,
-                applyCutOffY: true),
-            aboveBarData: BarAreaData(
-                show: true,
-                color: nightColor.withValues(alpha: 0.3),
-                cutOffY: 0,
-                applyCutOffY: true),
-          ),
-        ],
-        extraLinesData: ExtraLinesData(
-          horizontalLines: [
-            HorizontalLine(
-                y: 0,
-                color: theme.colorScheme.outline,
-                strokeWidth: 1,
-                dashArray: [2, 3]),
           ],
-          verticalLines: [
-            if (inDay(sunrise)) marker(sunrise!, dayColor, '↑'),
-            if (inDay(sunset)) marker(sunset!, const Color(0xFFFF7043), '↓'),
-            if (nowHour != null)
-              marker(nowHour!, theme.colorScheme.onSurface, l.nowLabel,
-                  align: Alignment.topRight),
-          ],
+          extraLinesData: ExtraLinesData(
+            horizontalLines: [
+              HorizontalLine(
+                  y: 0,
+                  color: theme.colorScheme.outline,
+                  strokeWidth: 1,
+                  dashArray: [2, 3]),
+            ],
+            verticalLines: [
+              if (inDay(sunrise)) marker(sunrise!, dayColor, '↑'),
+              if (inDay(sunset)) marker(sunset!, const Color(0xFFFF7043), '↓'),
+              if (nowHour != null)
+                marker(nowHour!, theme.colorScheme.onSurface, l.nowLabel,
+                    align: Alignment.topRight),
+            ],
+          ),
         ),
       ),
     );

@@ -5,12 +5,12 @@ import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:timezone/timezone.dart' as tz;
 
+import 'animated_range.dart';
 import 'clock_view.dart';
 import 'day_offset_chart.dart';
 import 'l10n/l10n.dart';
 import 'year_data.dart';
 import 'zone.dart';
-
 
 /// The two year charts shown below the clock.
 class YearCharts extends StatefulWidget {
@@ -21,12 +21,17 @@ class YearCharts extends StatefulWidget {
   /// The current time; replaceable in tests.
   final DateTime Function() clock;
 
+  /// Given on wide screens: the charts and this map are laid out in two
+  /// columns and two rows.
+  final Widget? map;
+
   const YearCharts(
       {super.key,
       required this.lat,
       required this.lon,
       required this.zone,
-      this.clock = DateTime.now});
+      this.clock = DateTime.now,
+      this.map});
 
   @override
   State<YearCharts> createState() => _YearChartsState();
@@ -99,8 +104,8 @@ class _YearChartsState extends State<YearCharts> {
     // Midnight is skipped on a few DST days; TZDateTime then moves it on.
     final next = tz.TZDateTime(_zone, now.year, now.month, now.day + 1);
     final wait = next.difference(now) + const Duration(seconds: 1);
-    _midnight = Timer(wait.isNegative ? const Duration(seconds: 1) : wait,
-        _newDay);
+    _midnight =
+        Timer(wait.isNegative ? const Duration(seconds: 1) : wait, _newDay);
   }
 
   // Also called on resume: timers can run late while the phone sleeps.
@@ -130,52 +135,75 @@ class _YearChartsState extends State<YearCharts> {
         .toDouble();
     final hasPolar = days.any((d) => d.polar != PolarState.none);
 
+    final sunTimes = _Section(
+      title: l.sunriseAndSunset,
+      subtitle: l.chartLocalTime('${today.year}', _zone.name),
+      legend: [
+        _LegendItem(dayColor, l.sunrise),
+        _LegendItem(const Color(0xFFFF7043), l.sunset),
+      ],
+      chart:
+          _SunTimesChart(days: days, todayIndex: todayIndex, onScrub: _onScrub),
+    );
+    // Next to or between the year charts, so it stays in view while either
+    // is scrubbed.
+    final offset = ValueListenableBuilder<int?>(
+      valueListenable: _scrubDay,
+      builder: (context, i, _) => DayOffsetSection(
+        lat: _lat,
+        lon: _lon,
+        zone: _zone,
+        day: i == null || i >= days.length ? null : days[i].date,
+        clock: widget.clock,
+        section: (title, subtitle, legend, chart) => _Section(
+            title: title, subtitle: subtitle, legend: legend, chart: chart),
+      ),
+    );
+    final hours = _Section(
+      title: l.sunHourLengthTitle,
+      subtitle: l.sunHourLengthSubtitle,
+      legend: [
+        _LegendItem(dayColor, l.dayHour),
+        _LegendItem(nightColor, l.nightHour),
+      ],
+      chart: _HourLengthChart(
+          days: days, todayIndex: todayIndex, onScrub: _onScrub),
+    );
+    final polarNote = Padding(
+      padding: const EdgeInsets.fromLTRB(8, 12, 8, 0),
+      child: Text(
+        l.polarGapsNote,
+        style: Theme.of(context)
+            .textTheme
+            .bodySmall
+            ?.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant),
+      ),
+    );
+
+    final map = widget.map;
+    if (map != null) {
+      Widget row(Widget a, Widget b) => Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Expanded(child: a),
+              const SizedBox(width: 16),
+              Expanded(child: b),
+            ],
+          );
+      return Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+        row(sunTimes, offset),
+        const SizedBox(height: 16),
+        row(hours, map),
+        if (hasPolar) polarNote,
+      ]);
+    }
     return Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-      _Section(
-        title: l.sunriseAndSunset,
-        subtitle: l.chartLocalTime('${today.year}', _zone.name),
-        legend: [
-          _LegendItem(dayColor, l.sunrise),
-          _LegendItem(const Color(0xFFFF7043), l.sunset),
-        ],
-        chart: _SunTimesChart(
-            days: days, todayIndex: todayIndex, onScrub: _onScrub),
-      ),
+      sunTimes,
       const SizedBox(height: 16),
-      // Between the year charts, so it stays in view while either is
-      // scrubbed.
-      ValueListenableBuilder<int?>(
-        valueListenable: _scrubDay,
-        builder: (context, i, _) => DayOffsetSection(
-          lat: _lat,
-          lon: _lon,
-          zone: _zone,
-          day: i == null || i >= days.length ? null : days[i].date,
-          clock: widget.clock,
-          section: (title, subtitle, legend, chart) => _Section(
-              title: title, subtitle: subtitle, legend: legend, chart: chart),
-        ),
-      ),
+      offset,
       const SizedBox(height: 16),
-      _Section(
-        title: l.sunHourLengthTitle,
-        subtitle: l.sunHourLengthSubtitle,
-        legend: [
-          _LegendItem(dayColor, l.dayHour),
-          _LegendItem(nightColor, l.nightHour),
-        ],
-        chart: _HourLengthChart(
-            days: days, todayIndex: todayIndex, onScrub: _onScrub),
-      ),
-      if (hasPolar)
-        Padding(
-          padding: const EdgeInsets.fromLTRB(8, 12, 8, 0),
-          child: Text(
-            l.polarGapsNote,
-            style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                color: Theme.of(context).colorScheme.onSurfaceVariant),
-          ),
-        ),
+      hours,
+      if (hasPolar) polarNote,
     ]);
   }
 }
@@ -200,8 +228,7 @@ class _Section extends StatelessWidget {
       color: theme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.35),
       child: Padding(
         padding: const EdgeInsets.fromLTRB(16, 16, 16, 12),
-        child:
-            Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+        child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
           Text(title, style: theme.textTheme.titleMedium),
           Text(subtitle,
               style: theme.textTheme.bodySmall
@@ -230,7 +257,9 @@ class _LegendItem extends StatelessWidget {
           decoration: BoxDecoration(
               color: color, borderRadius: BorderRadius.circular(2))),
       const SizedBox(width: 6),
-      Text(label, style: Theme.of(context).textTheme.bodySmall),
+      // Wraps instead of overflowing in a narrow grid column.
+      Flexible(
+          child: Text(label, style: Theme.of(context).textTheme.bodySmall)),
     ]);
   }
 }
@@ -241,8 +270,10 @@ FlTitlesData _titles(BuildContext context,
     {required double yInterval,
     required String Function(double) yLabel,
     required int dayCount}) {
-  final style = Theme.of(context).textTheme.labelSmall?.copyWith(
-      color: Theme.of(context).colorScheme.onSurfaceVariant);
+  final style = Theme.of(context)
+      .textTheme
+      .labelSmall
+      ?.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant);
   // First letter of each month: J F M A M J J A S O N D.
   final months = [
     for (final m in monthNames(context.l10n)) m.substring(0, 1).toUpperCase()
@@ -256,10 +287,8 @@ FlTitlesData _titles(BuildContext context,
         reservedSize: _leftReserved,
         interval: yInterval,
         getTitlesWidget: (v, meta) {
-          if (v == meta.min || v == meta.max) {
-            // Edge labels are fine but avoid half-clipped extra ones.
-            if (v % yInterval != 0) return const SizedBox.shrink();
-          }
+          // Only whole steps: the ends of a gliding range are fractional.
+          if (!onInterval(v, yInterval)) return const SizedBox.shrink();
           return Padding(
             padding: const EdgeInsets.only(right: 6),
             child: Text(yLabel(v), style: style, textAlign: TextAlign.right),
@@ -299,17 +328,17 @@ FlGridData _grid(BuildContext context, double yInterval, int dayCount) {
 VerticalLine _todayLine(BuildContext context, double x) {
   final today = context.l10n.today;
   return VerticalLine(
-      x: x,
-      color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.7),
-      strokeWidth: 1.5,
-      dashArray: [4, 4],
-      label: VerticalLineLabel(
-        show: true,
-        alignment: Alignment.topRight,
-        labelResolver: (_) => today,
-        style: Theme.of(context).textTheme.labelSmall,
-      ),
-    );
+    x: x,
+    color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.7),
+    strokeWidth: 1.5,
+    dashArray: [4, 4],
+    label: VerticalLineLabel(
+      show: true,
+      alignment: Alignment.topRight,
+      labelResolver: (_) => today,
+      style: Theme.of(context).textTheme.labelSmall,
+    ),
+  );
 }
 
 /// Width of the y-axis labels; the plot starts this far from the left.
@@ -339,7 +368,8 @@ class _ScrubChartState extends State<_ScrubChart> {
     final d = widget.data;
     final plotWidth = width - widget.reservedLeft;
     if (plotWidth <= 0) return;
-    final x = d.minX + (dx - widget.reservedLeft) / plotWidth * (d.maxX - d.minX);
+    final x =
+        d.minX + (dx - widget.reservedLeft) / plotWidth * (d.maxX - d.minX);
     final i = x.round().clamp(d.minX.toInt(), d.maxX.toInt());
     if (i != _index) {
       setState(() => _index = i);
@@ -367,7 +397,8 @@ class _ScrubChartState extends State<_ScrubChart> {
     }
     return d.copyWith(
       lineBarsData: bars,
-      showingTooltipIndicators: spots.isEmpty ? [] : [ShowingTooltipIndicators(spots)],
+      showingTooltipIndicators:
+          spots.isEmpty ? [] : [ShowingTooltipIndicators(spots)],
     );
   }
 
@@ -378,8 +409,8 @@ class _ScrubChartState extends State<_ScrubChart> {
       return RawGestureDetector(
         behavior: HitTestBehavior.opaque,
         gestures: {
-          HorizontalDragGestureRecognizer:
-              GestureRecognizerFactoryWithHandlers<HorizontalDragGestureRecognizer>(
+          HorizontalDragGestureRecognizer: GestureRecognizerFactoryWithHandlers<
+              HorizontalDragGestureRecognizer>(
             HorizontalDragGestureRecognizer.new,
             (r) => r
               ..onDown = ((d) => _show(d.localPosition.dx, width))
@@ -393,8 +424,7 @@ class _ScrubChartState extends State<_ScrubChart> {
             (r) => r..onTapUp = ((d) => _show(d.localPosition.dx, width)),
           ),
         },
-        child: LineChart(_withIndicators(widget.data),
-            duration: Duration.zero),
+        child: LineChart(_withIndicators(widget.data), duration: Duration.zero),
       );
     });
   }
@@ -451,38 +481,46 @@ class _SunTimesChart extends StatelessWidget {
     final set = <FlSpot>[];
     for (var i = 0; i < days.length; i++) {
       final d = days[i];
-      rise.add(d.sunrise == null ? FlSpot.nullSpot : FlSpot(i.toDouble(), d.sunrise!));
-      set.add(d.sunset == null ? FlSpot.nullSpot : FlSpot(i.toDouble(), d.sunset!));
+      rise.add(d.sunrise == null
+          ? FlSpot.nullSpot
+          : FlSpot(i.toDouble(), d.sunrise!));
+      set.add(
+          d.sunset == null ? FlSpot.nullSpot : FlSpot(i.toDouble(), d.sunset!));
     }
     final n = days.length;
     final l = context.l10n;
-    return _ScrubChart(LineChartData(
-      minX: 0,
-      maxX: n - 1,
-      minY: 0,
-      maxY: 24,
-      clipData: const FlClipData.all(),
-      titlesData: _titles(context,
-          yInterval: 6,
-          yLabel: (v) => '${two(v.round())}:00',
-          dayCount: n),
-      gridData: _grid(context, 3, n),
-      borderData: FlBorderData(show: false),
-      lineBarsData: [
-        _line(rise, dayColor),
-        _line(set, const Color(0xFFFF7043)),
-      ],
-      betweenBarsData: [
-        BetweenBarsData(
-            fromIndex: 0, toIndex: 1, color: dayColor.withValues(alpha: 0.15)),
-      ],
-      extraLinesData:
-          ExtraLinesData(verticalLines: [_todayLine(context, todayIndex)]),
-      lineTouchData: _touch(context, days,
-          (s) => s.barIndex == 0
-              ? l.sunriseAt(hoursToHm(s.y))
-              : l.sunsetAt(hoursToHm(s.y))),
-    ), reservedLeft: _leftReserved, onScrub: onScrub);
+    return _ScrubChart(
+        LineChartData(
+          minX: 0,
+          maxX: n - 1,
+          minY: 0,
+          maxY: 24,
+          clipData: const FlClipData.all(),
+          titlesData: _titles(context,
+              yInterval: 6, yLabel: (v) => '${two(v.round())}:00', dayCount: n),
+          gridData: _grid(context, 3, n),
+          borderData: FlBorderData(show: false),
+          lineBarsData: [
+            _line(rise, dayColor),
+            _line(set, const Color(0xFFFF7043)),
+          ],
+          betweenBarsData: [
+            BetweenBarsData(
+                fromIndex: 0,
+                toIndex: 1,
+                color: dayColor.withValues(alpha: 0.15)),
+          ],
+          extraLinesData:
+              ExtraLinesData(verticalLines: [_todayLine(context, todayIndex)]),
+          lineTouchData: _touch(
+              context,
+              days,
+              (s) => s.barIndex == 0
+                  ? l.sunriseAt(hoursToHm(s.y))
+                  : l.sunsetAt(hoursToHm(s.y))),
+        ),
+        reservedLeft: _leftReserved,
+        onScrub: onScrub);
   }
 }
 
@@ -523,40 +561,50 @@ class _HourLengthChart extends StatelessWidget {
     final n = days.length;
 
     final l = context.l10n;
-    return _ScrubChart(LineChartData(
-      minX: 0,
-      maxX: n - 1,
-      minY: minY < 0 ? 0 : minY,
-      maxY: maxY,
-      clipData: const FlClipData.all(),
-      titlesData: _titles(context,
-          yInterval: interval,
-          yLabel: (v) => '${v.round()}m',
-          dayCount: n),
-      gridData: _grid(context, interval, n),
-      borderData: FlBorderData(show: false),
-      lineBarsData: [_line(day, dayColor), _line(night, nightColor)],
-      extraLinesData: ExtraLinesData(
-        verticalLines: [_todayLine(context, todayIndex)],
-        horizontalLines: [
-          HorizontalLine(
-            y: 60,
-            color: Theme.of(context).colorScheme.outline,
-            strokeWidth: 1,
-            dashArray: [2, 3],
-            label: HorizontalLineLabel(
-              show: true,
-              alignment: Alignment.topLeft,
-              labelResolver: (_) => l.minutesShort('60'),
-              style: Theme.of(context).textTheme.labelSmall,
+    // The range follows the place; it glides when the place changes.
+    return AnimatedYRange(
+      min: minY < 0 ? 0 : minY,
+      max: maxY,
+      builder: (context, minY, maxY) => _ScrubChart(
+          LineChartData(
+            minX: 0,
+            maxX: n - 1,
+            minY: minY,
+            maxY: maxY,
+            clipData: const FlClipData.all(),
+            titlesData: _titles(context,
+                yInterval: interval,
+                yLabel: (v) => '${v.round()}m',
+                dayCount: n),
+            gridData: _grid(context, interval, n),
+            borderData: FlBorderData(show: false),
+            lineBarsData: [_line(day, dayColor), _line(night, nightColor)],
+            extraLinesData: ExtraLinesData(
+              verticalLines: [_todayLine(context, todayIndex)],
+              horizontalLines: [
+                HorizontalLine(
+                  y: 60,
+                  color: Theme.of(context).colorScheme.outline,
+                  strokeWidth: 1,
+                  dashArray: [2, 3],
+                  label: HorizontalLineLabel(
+                    show: true,
+                    alignment: Alignment.topLeft,
+                    labelResolver: (_) => l.minutesShort('60'),
+                    style: Theme.of(context).textTheme.labelSmall,
+                  ),
+                ),
+              ],
             ),
+            lineTouchData: _touch(
+                context,
+                days,
+                (s) => s.barIndex == 0
+                    ? l.dayHourValue(s.y.toStringAsFixed(1))
+                    : l.nightHourValue(s.y.toStringAsFixed(1))),
           ),
-        ],
-      ),
-      lineTouchData: _touch(context, days,
-          (s) => s.barIndex == 0
-              ? l.dayHourValue(s.y.toStringAsFixed(1))
-              : l.nightHourValue(s.y.toStringAsFixed(1))),
-    ), reservedLeft: _leftReserved, onScrub: onScrub);
+          reservedLeft: _leftReserved,
+          onScrub: onScrub),
+    );
   }
 }
