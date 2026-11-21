@@ -239,22 +239,22 @@ class AppLocalizationsFr extends AppLocalizations {
       'Les actualités en direct sont désactivées pour Sun Clock ; l\'icône sur deux lignes est donc affichée.';
 
   @override
-  String get followAfterRestart => 'Suivre la position après un redémarrage';
+  String get followAfterRestart => 'Suivre ma position en arrière-plan';
 
   @override
   String get followAfterRestartHelp =>
-      'Utilise votre position en arrière-plan pour que l\'horloge de la barre d\'état suive le téléphone après un redémarrage sans ouvrir l\'application. Si désactivé, la dernière position connue est utilisée jusqu\'à l\'ouverture de l\'application.';
+      'Le widget d\'écran d\'accueil et l\'horloge de la barre d\'état suivent le téléphone quand l\'application est fermée, même après un redémarrage. Nécessite l\'accès à la position « Toujours autoriser ». Sinon, ils gardent la dernière position jusqu\'à ce que vous ouvriez l\'application.';
 
   @override
   String get backgroundOff =>
-      'L\'autorisation de localisation « Toujours autoriser » est désactivée ; après un redémarrage, la dernière position connue est donc utilisée.';
+      'L\'accès à la position « Toujours autoriser » est désactivé : le widget et l\'horloge de la barre d\'état gardent la dernière position jusqu\'à ce que vous ouvriez l\'application.';
 
   @override
   String get backgroundTitle => 'Utiliser la position en arrière-plan ?';
 
   @override
   String get backgroundDisclosure =>
-      'Sun Clock collecte votre position en arrière-plan, y compris quand l\'application est fermée ou n\'est pas utilisée, afin que l\'heure du soleil dans la barre d\'état reste juste après un redémarrage du téléphone et pendant vos déplacements.\n\nVotre position sert uniquement, sur ce téléphone, à calculer les heures du soleil. Elle ne quitte jamais le téléphone et n\'est partagée avec personne.\n\nSur l\'écran suivant, choisissez « Toujours autoriser ».';
+      'Sun Clock collecte votre position en arrière-plan, même lorsque l\'application est fermée ou inutilisée, pour que l\'heure du soleil du widget d\'écran d\'accueil et de la barre d\'état reste juste en voyage et après un redémarrage.\n\nVotre position sert uniquement sur ce téléphone à calculer les heures du soleil. Elle ne quitte jamais le téléphone et n\'est partagée avec personne.\n\nSur l\'écran suivant, choisissez « Toujours autoriser ».';
 
   @override
   String get noThanks => 'Non merci';
@@ -264,7 +264,7 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get backgroundSnack =>
-      'Choisissez « Toujours autoriser » dans l\'autorisation de localisation de Sun Clock pour suivre le téléphone après un redémarrage.';
+      'Choisissez « Toujours autoriser » dans l\'autorisation de position de Sun Clock pour suivre le téléphone quand l\'application est fermée.';
 
   @override
   String get notificationsSnack =>

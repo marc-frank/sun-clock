@@ -16,6 +16,8 @@ class BootReceiver : BroadcastReceiver() {
                 // Alarms don't survive a reboot or an update: restart the
                 // widget's chain (a no-op without widgets).
                 SunWidget.updateAll(context)
+                // Location requests don't survive either.
+                LocationFollower.sync(context)
                 if (SunClockStore.isEnabled(context) && SunClockStore.load(context) != null) {
                     try {
                         SunClockService.start(context)

@@ -26,7 +26,6 @@ import android.os.Bundle
 import android.os.Handler
 import android.os.IBinder
 import android.os.Looper
-import kotlin.math.abs
 import kotlin.math.ceil
 import kotlin.math.floor
 
@@ -205,12 +204,7 @@ class SunClockService : Service() {
             granted(Manifest.permission.ACCESS_FINE_LOCATION)
 
     /** Opted in, and "Allow all the time" is (still) granted. */
-    private fun hasBackgroundLocation(): Boolean {
-        if (!SunClockStore.backgroundLocation(this)) return false
-        // Before Android 10 any location permission includes the background.
-        return Build.VERSION.SDK_INT < 29 ||
-            granted(Manifest.permission.ACCESS_BACKGROUND_LOCATION)
-    }
+    private fun hasBackgroundLocation() = LocationFollower.backgroundAllowed(this)
 
     /**
      * Low-power updates: approximate uses the network provider every 15 min
@@ -220,16 +214,7 @@ class SunClockService : Service() {
     private fun startLocation(precise: Boolean) {
         val lm = getSystemService(Context.LOCATION_SERVICE) as LocationManager
         val fine = granted(Manifest.permission.ACCESS_FINE_LOCATION)
-        val requests = mutableListOf<Triple<String, Long, Float>>()
-        if (precise && fine) {
-            val provider = if (Build.VERSION.SDK_INT >= 31 &&
-                lm.allProviders.contains(LocationManager.FUSED_PROVIDER)
-            ) LocationManager.FUSED_PROVIDER else LocationManager.GPS_PROVIDER
-            requests.add(Triple(provider, 5 * 60_000L, 250f))
-        } else {
-            requests.add(Triple(LocationManager.NETWORK_PROVIDER, 15 * 60_000L, 1000f))
-        }
-        requests.add(Triple(LocationManager.PASSIVE_PROVIDER, 60_000L, if (precise) 100f else 1000f))
+        val requests = LocationFollower.requests(lm, precise && fine)
 
         for ((provider, minTime, minDistance) in requests) {
             try {
@@ -255,34 +240,12 @@ class SunClockService : Service() {
 
     private fun onMoved(location: Location) {
         val p = params ?: return
-        if (!p.followLocation) return
-        if (location.time < System.currentTimeMillis() - 6 * 3_600_000L) return // stale fix
-        var lat = location.latitude
-        var lon = location.longitude
-        if (!p.precise) { // same rounding as the app: about 1 km
-            lat = Math.round(lat * 100) / 100.0
-            lon = Math.round(lon * 100) / 100.0
-        }
-        val threshold = if (p.precise) 0.002 else 0.01 // degrees, ~200 m / ~1 km
-        if (abs(lat - p.lat) < threshold && abs(lon - p.lon) < threshold) return
-
-        // The place name came from the app's time-zone lookup; drop it once
-        // the phone is more than ~25 km away and show coordinates instead.
-        val far = abs(lat - p.lat) > 0.25 || abs(lon - p.lon) > 0.25
-        val label = if (far || p.label.isEmpty()) coordLabel(lat, lon, p.precise) else p.label
-        val moved = p.copy(lat = lat, lon = lon, label = label)
+        val moved = LocationFollower.moved(p, location) ?: return
         params = moved
         SunClockStore.save(this, moved)
-        data = SolarCalc.build(lat, lon, System.currentTimeMillis(), label)
+        data = SolarCalc.build(moved.lat, moved.lon, System.currentTimeMillis(), moved.label)
         handler.removeCallbacks(tick)
         handler.post(tick)
-    }
-
-    private fun coordLabel(lat: Double, lon: Double, precise: Boolean): String {
-        val f = if (precise) "%.3f" else "%.2f"
-        val ns = if (lat >= 0) "N" else "S"
-        val ew = if (lon >= 0) "E" else "W"
-        return "${String.format(f, abs(lat))}° $ns ${String.format(f, abs(lon))}° $ew"
     }
 
     /** Posts the notification; returns the delay until the next sun-minute. */

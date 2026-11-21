@@ -158,6 +158,35 @@ void showSettings(BuildContext context, LocationModel model,
                 const SizedBox(height: 8),
                 Text(l.mapPlaceNote, style: muted),
               ],
+              // Follows the phone while the app is closed, for the
+              // widget and the status-bar clock alike.
+              if (statusBar.supported &&
+                  model.source == LocationSource.gps) ...[
+                SwitchListTile(
+                  contentPadding: EdgeInsets.zero,
+                  title: Text(l.followAfterRestart),
+                  subtitle: Text(
+                    l.followAfterRestartHelp,
+                    style: muted,
+                  ),
+                  value: statusBar.backgroundOptIn,
+                  onChanged: (on) =>
+                      toggleBackgroundLocation(context, statusBar, on),
+                ),
+                if (statusBar.backgroundOptIn && !statusBar.backgroundGranted)
+                  Row(children: [
+                    Expanded(
+                      child: Text(
+                        l.backgroundOff,
+                        style: muted,
+                      ),
+                    ),
+                    TextButton(
+                      onPressed: Geolocator.openAppSettings,
+                      child: Text(l.settings),
+                    ),
+                  ]),
+              ],
               if (statusBar.supported) ...[
                 const SizedBox(height: 24),
                 const Divider(),
@@ -192,33 +221,6 @@ void showSettings(BuildContext context, LocationModel model,
                       ),
                       TextButton(
                         onPressed: statusBar.openPromotionSettings,
-                        child: Text(l.settings),
-                      ),
-                    ]),
-                ],
-                if (statusBar.enabled &&
-                    model.source == LocationSource.gps) ...[
-                  SwitchListTile(
-                    contentPadding: EdgeInsets.zero,
-                    title: Text(l.followAfterRestart),
-                    subtitle: Text(
-                      l.followAfterRestartHelp,
-                      style: muted,
-                    ),
-                    value: statusBar.backgroundOptIn,
-                    onChanged: (on) =>
-                        toggleBackgroundLocation(context, statusBar, on),
-                  ),
-                  if (statusBar.backgroundOptIn && !statusBar.backgroundGranted)
-                    Row(children: [
-                      Expanded(
-                        child: Text(
-                          l.backgroundOff,
-                          style: muted,
-                        ),
-                      ),
-                      TextButton(
-                        onPressed: Geolocator.openAppSettings,
                         child: Text(l.settings),
                       ),
                     ]),

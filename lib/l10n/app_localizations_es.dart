@@ -234,22 +234,22 @@ class AppLocalizationsEs extends AppLocalizations {
       'Las actualizaciones en directo están desactivadas para Sun Clock, así que se muestra el icono de dos líneas.';
 
   @override
-  String get followAfterRestart => 'Seguir la ubicación tras un reinicio';
+  String get followAfterRestart => 'Seguir mi ubicación en segundo plano';
 
   @override
   String get followAfterRestartHelp =>
-      'Usa tu ubicación en segundo plano para que el reloj de la barra de estado siga al teléfono tras un reinicio sin abrir la aplicación. Si está desactivado, se usa la última ubicación conocida hasta que abras la aplicación.';
+      'El widget de la pantalla de inicio y el reloj de la barra de estado siguen al teléfono con la aplicación cerrada, también tras reiniciar. Necesita el permiso de ubicación \"Permitir todo el tiempo\". Si no, mantienen la última ubicación hasta que abras la aplicación.';
 
   @override
   String get backgroundOff =>
-      'El permiso de ubicación «Permitir siempre» está desactivado, así que tras un reinicio se usa la última ubicación conocida.';
+      'El permiso \"Permitir todo el tiempo\" está desactivado, así que el widget y el reloj de la barra de estado mantienen la última ubicación hasta que abras la aplicación.';
 
   @override
   String get backgroundTitle => '¿Usar la ubicación en segundo plano?';
 
   @override
   String get backgroundDisclosure =>
-      'Sun Clock recopila tu ubicación en segundo plano, también cuando la aplicación está cerrada o no se usa, para que la hora del sol de la barra de estado sea correcta tras reiniciar el teléfono y mientras viajas.\n\nTu ubicación solo se usa en este teléfono para calcular las horas del sol. Nunca sale del teléfono y no se comparte con nadie.\n\nEn la pantalla siguiente, elige «Permitir siempre».';
+      'Sun Clock recopila tu ubicación en segundo plano, también cuando la aplicación está cerrada o no se usa, para que la hora del sol del widget de la pantalla de inicio y de la barra de estado sea correcta cuando viajas y tras reiniciar el teléfono.\n\nTu ubicación solo se usa en este teléfono para calcular las horas del sol. Nunca sale del teléfono ni se comparte con nadie.\n\nEn la siguiente pantalla, elige \"Permitir todo el tiempo\".';
 
   @override
   String get noThanks => 'No, gracias';
@@ -259,7 +259,7 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get backgroundSnack =>
-      'Elige «Permitir siempre» en el permiso de ubicación de Sun Clock para seguir al teléfono tras un reinicio.';
+      'Elige \"Permitir todo el tiempo\" en el permiso de ubicación de Sun Clock para seguir al teléfono con la aplicación cerrada.';
 
   @override
   String get notificationsSnack =>

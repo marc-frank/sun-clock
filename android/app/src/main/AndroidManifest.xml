@@ -79,6 +79,10 @@
                 android:name="android.app.PROPERTY_SPECIAL_USE_FGS_SUBTYPE"
                 android:value="Status-bar clock showing a custom time scale (sun time), updated every sun-minute." />
         </service>
+        <!-- Background location updates for the widget (LocationFollower.kt). -->
+        <receiver
+            android:name=".LocationReceiver"
+            android:exported="false" />
         <receiver
             android:name=".BootReceiver"
             android:exported="false">

@@ -235,22 +235,22 @@ class AppLocalizationsDe extends AppLocalizations {
       'Live-Updates sind für Sun Clock ausgeschaltet, daher wird das gestapelte Symbol angezeigt.';
 
   @override
-  String get followAfterRestart => 'Standort nach einem Neustart folgen';
+  String get followAfterRestart => 'Standort im Hintergrund folgen';
 
   @override
   String get followAfterRestartHelp =>
-      'Nutzt deinen Standort im Hintergrund, damit die Uhr in der Statusleiste dem Telefon nach einem Neustart folgt, ohne dass die App geöffnet wird. Wenn aus, wird der letzte bekannte Standort verwendet, bis du die App öffnest.';
+      'Damit folgen das Startbildschirm-Widget und die Uhr in der Statusleiste dem Telefon, auch wenn die App geschlossen ist und nach einem Neustart. Braucht den Standortzugriff „Immer zulassen“. Ohne bleibt der letzte Standort, bis du die App öffnest.';
 
   @override
   String get backgroundOff =>
-      'Die Standortfreigabe „Immer zulassen“ ist aus; nach einem Neustart wird daher der letzte bekannte Standort verwendet.';
+      'Der Standortzugriff „Immer zulassen“ ist aus, daher behalten Widget und Statusleisten-Uhr den letzten Standort, bis du die App öffnest.';
 
   @override
   String get backgroundTitle => 'Standort im Hintergrund verwenden?';
 
   @override
   String get backgroundDisclosure =>
-      'Sun Clock erfasst deinen Standort im Hintergrund, auch wenn die App geschlossen ist oder nicht verwendet wird, damit die Sonnenzeit in der Statusleiste nach einem Neustart des Telefons und unterwegs stimmt.\n\nDein Standort wird nur auf diesem Telefon zur Berechnung der Sonnenzeiten verwendet. Er verlässt das Telefon nie und wird mit niemandem geteilt.\n\nWähle auf dem nächsten Bildschirm „Immer zulassen“.';
+      'Sun Clock erfasst deinen Standort im Hintergrund, auch wenn die App geschlossen ist oder nicht verwendet wird, damit die Sonnenzeit im Startbildschirm-Widget und in der Statusleiste auf Reisen und nach einem Neustart stimmt.\n\nDein Standort wird nur auf diesem Telefon zur Berechnung der Sonnenzeiten verwendet. Er verlässt das Telefon nie und wird mit niemandem geteilt.\n\nWähle auf dem nächsten Bildschirm „Immer zulassen“.';
 
   @override
   String get noThanks => 'Nein danke';
@@ -260,7 +260,7 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get backgroundSnack =>
-      'Wähle in der Standortberechtigung von Sun Clock „Immer zulassen“, damit die Uhr dem Telefon nach einem Neustart folgt.';
+      'Wähle „Immer zulassen“ in der Standortberechtigung von Sun Clock, damit es dem Telefon auch bei geschlossener App folgt.';
 
   @override
   String get notificationsSnack =>

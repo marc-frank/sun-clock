@@ -234,22 +234,22 @@ class AppLocalizationsEn extends AppLocalizations {
       'Live Updates are turned off for Sun Clock, so the stacked icon is shown.';
 
   @override
-  String get followAfterRestart => 'Follow location after a restart';
+  String get followAfterRestart => 'Follow my location in the background';
 
   @override
   String get followAfterRestartHelp =>
-      'Uses your location in the background, so the status-bar clock follows the phone after a restart without opening the app. When off, it uses the last known position until you open the app.';
+      'Lets the home-screen widget and the status-bar clock follow the phone while the app is closed, also after a restart. Needs location \"Allow all the time\". When off, they keep the last position until you open the app.';
 
   @override
   String get backgroundOff =>
-      'Location \"Allow all the time\" is off, so after a restart the last known position is used.';
+      'Location \"Allow all the time\" is off, so the widget and the status-bar clock keep the last position until you open the app.';
 
   @override
   String get backgroundTitle => 'Use location in the background?';
 
   @override
   String get backgroundDisclosure =>
-      'Sun Clock collects your location in the background, also when the app is closed or not in use, to keep the sun time in the status bar right after the phone restarts and while you travel.\n\nYour position is only used on this phone to calculate sun times. It never leaves the phone and is not shared with anyone.\n\nOn the next screen, choose \"Allow all the time\".';
+      'Sun Clock collects your location in the background, also when the app is closed or not in use, so the sun time on the home-screen widget and in the status bar stays right while you travel and after the phone restarts.\n\nYour position is only used on this phone to calculate sun times. It never leaves the phone and is not shared with anyone.\n\nOn the next screen, choose \"Allow all the time\".';
 
   @override
   String get noThanks => 'No thanks';
@@ -259,7 +259,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get backgroundSnack =>
-      'Choose \"Allow all the time\" in Sun Clock\'s location permission to follow the phone after a restart.';
+      'Choose \"Allow all the time\" in Sun Clock\'s location permission to follow the phone while the app is closed.';
 
   @override
   String get notificationsSnack =>

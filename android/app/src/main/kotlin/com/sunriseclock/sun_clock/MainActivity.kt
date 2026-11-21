@@ -80,12 +80,14 @@ open class MainActivity : FlutterActivity() {
                     "setPosition" -> {
                         SunClockStore.save(this, params(call))
                         SunWidget.updateAll(this)
+                        LocationFollower.sync(this)
                         result.success(null)
                     }
                     "start" -> {
                         SunClockStore.save(this, params(call))
                         SunClockStore.setEnabled(this, true)
                         SunClockService.start(this)
+                        LocationFollower.sync(this)
                         result.success(null)
                     }
                     "backgroundLocationStatus" -> result.success(
@@ -98,6 +100,7 @@ open class MainActivity : FlutterActivity() {
                         requestBackgroundLocation(call.argument<Boolean>("precise") == true, result)
                     "setBackgroundLocation" -> {
                         SunClockStore.setBackgroundLocation(this, call.argument<Boolean>("on") == true)
+                        LocationFollower.sync(this)
                         result.success(null)
                     }
                     // Live Update chip (Android 16+).
@@ -120,6 +123,7 @@ open class MainActivity : FlutterActivity() {
                     "stop" -> {
                         SunClockStore.setEnabled(this, false)
                         SunClockService.stop(this)
+                        LocationFollower.sync(this)
                         result.success(null)
                     }
                     else -> result.notImplemented()

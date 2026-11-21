@@ -293,10 +293,15 @@ class SunWidget : AppWidgetProvider() {
         }
     }
 
-    override fun onUpdate(c: Context, manager: AppWidgetManager, appWidgetIds: IntArray) =
+    override fun onUpdate(c: Context, manager: AppWidgetManager, appWidgetIds: IntArray) {
         updateAll(c)
+        LocationFollower.sync(c)
+    }
 
-    override fun onDisabled(c: Context) = cancel(c)
+    override fun onDisabled(c: Context) {
+        cancel(c)
+        LocationFollower.sync(c)
+    }
 
     override fun onDeleted(c: Context, appWidgetIds: IntArray) =
         WidgetStore.delete(c, appWidgetIds)
