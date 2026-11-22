@@ -13,9 +13,13 @@ void main() {
       seen.add(l.sunTime);
     }
     expect(AppLocalizations.supportedLocales.map((l) => l.languageCode),
-        containsAll(['en', 'de', 'fr', 'es']));
-    expect(seen, hasLength(4));
+        containsAll(['en', 'de', 'fr', 'es', 'ru', 'uk']));
+    expect(seen, hasLength(6));
     expect(dayMonthLabel(lookupAppLocalizations(const Locale('de')),
         DateTime.utc(2026, 3, 8)), '8. Mär');
+    expect(dayMonthLabel(lookupAppLocalizations(const Locale('ru')),
+        DateTime.utc(2026, 5, 17)), '17 мая');
+    expect(dayMonthLabel(lookupAppLocalizations(const Locale('uk')),
+        DateTime.utc(2026, 5, 17)), '17 трав');
   });
 }

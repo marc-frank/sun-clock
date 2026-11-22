@@ -2,10 +2,23 @@
 // plus the IANA rules bundled with the `timezone` package.
 
 import 'package:lat_lng_to_timezone/lat_lng_to_timezone.dart' as tzmap;
-import 'package:timezone/data/latest.dart' as tzdata;
+// latest_all, not latest: the map's polygons use many alias and older
+// names (Europe/Amsterdam, Europe/Kiev, ...) that only the full database
+// has; with the smaller one those places fell back to a fixed offset
+// without summer time.
+import 'package:timezone/data/latest_all.dart' as tzdata;
 import 'package:timezone/timezone.dart' as tz;
 
 bool _initialized = false;
+
+/// Zones the map data still calls by an old name, shown by today's name.
+const _renamed = {
+  'Europe/Kiev': 'Europe/Kyiv',
+  'Europe/Uzhgorod': 'Europe/Kyiv',
+  'Europe/Zaporozhye': 'Europe/Kyiv',
+  'America/Godthab': 'America/Nuuk',
+  'Pacific/Enderbury': 'Pacific/Kanton',
+};
 
 void initZones() {
   if (_initialized) return;
@@ -19,7 +32,7 @@ tz.Location zoneAt(double lat, double lon) {
   initZones();
   try {
     final name = tzmap.latLngToTimezoneString(lat, lon);
-    return tz.getLocation(name);
+    return tz.getLocation(_renamed[name] ?? name);
   } catch (_) {
     final h = (lon / 15).round().clamp(-12, 12);
     // Etc/GMT names have the sign inverted: Etc/GMT-1 is UTC+1.
@@ -29,7 +42,8 @@ tz.Location zoneAt(double lat, double lon) {
 }
 
 /// Wall-clock time in [zone].
-tz.TZDateTime inZone(DateTime t, tz.Location zone) => tz.TZDateTime.from(t, zone);
+tz.TZDateTime inZone(DateTime t, tz.Location zone) =>
+    tz.TZDateTime.from(t, zone);
 
 /// "UTC+1", "UTC−3:30", "UTC" for the zone's offset at [t].
 String utcOffsetLabel(DateTime t, tz.Location zone) {

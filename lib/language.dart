@@ -16,6 +16,8 @@ const appLanguages = <String, String>{
   'de': 'Deutsch',
   'fr': 'Français',
   'es': 'Español',
+  'ru': 'Русский',
+  'uk': 'Українська',
 };
 
 class LanguageSetting extends ChangeNotifier {

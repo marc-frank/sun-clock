@@ -70,7 +70,7 @@ Without promotion it keeps the stacked-digit icon.
 | `lib/map_picker.dart` | Map panel under the charts and full-screen map picker (`flutter_map`) |
 | `lib/world_map.dart` | Offline world map drawn from the bundled Natural Earth data (`assets/map/world.bin`) |
 | `lib/converter.dart` | Converter between local time and sun time |
-| `lib/l10n/` | Texts in English, German, French and Spanish (`app_*.arb`; `flutter gen-l10n` writes the Dart files) |
+| `lib/l10n/` | Texts in English, German, French, Spanish, Russian and Ukrainian (`app_*.arb`; `flutter gen-l10n` writes the Dart files) |
 
 ## Develop
 

@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="widget_label">Час сонця</string>
+    <string name="widget_description">Час сонця і місцевий час, схід, захід та інше</string>
+    <string name="widget_day">День</string>
+    <string name="widget_night">Ніч</string>
+    <string name="widget_sunrise_at">схід %1$s</string>
+    <string name="widget_sunset_at">захід %1$s</string>
+    <string name="widget_solar_time">істинний сонячний час</string>
+    <string name="widget_no_position">Відкрийте Sun Clock, щоб вибрати місце</string>
+    <string name="widget_preview_detail">День · захід 17:42</string>
+    <string name="notif_title">%1$s за часом сонця</string>
+    <string name="notif_sunrise_in">схід через %1$s</string>
+    <string name="notif_sunset_in">захід через %1$s</string>
+    <string name="notif_solar">істинний сонячний час (немає сходу/заходу)</string>
+    <string name="duration_h_min">%1$d год %2$d хв</string>
+    <string name="duration_min">%1$d хв</string>
+    <string name="channel_name">Час сонця в рядку стану</string>
+    <string name="channel_description">Показує поточний час сонця в рядку стану.</string>
+    <string name="widget_name_sun">Час сонця</string>
+    <string name="widget_name_local">Місцевий час</string>
+    <string name="widget_offset_ahead">час сонця попереду на %1$s</string>
+    <string name="widget_offset_behind">час сонця позаду на %1$s</string>
+    <string name="widget_offset_same">час сонця збігається</string>
+    <string name="notif_day_hour">денна година = %1$d хв</string>
+    <string name="notif_night_hour">нічна година = %1$d хв</string>
+</resources>

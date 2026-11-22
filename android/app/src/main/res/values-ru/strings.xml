@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="widget_label">Время солнца</string>
+    <string name="widget_description">Время солнца и местное время, восход, закат и многое другое</string>
+    <string name="widget_day">День</string>
+    <string name="widget_night">Ночь</string>
+    <string name="widget_sunrise_at">восход %1$s</string>
+    <string name="widget_sunset_at">закат %1$s</string>
+    <string name="widget_solar_time">истинное солнечное время</string>
+    <string name="widget_no_position">Откройте Sun Clock, чтобы выбрать место</string>
+    <string name="widget_preview_detail">День · закат 17:42</string>
+    <string name="notif_title">%1$s по времени солнца</string>
+    <string name="notif_sunrise_in">восход через %1$s</string>
+    <string name="notif_sunset_in">закат через %1$s</string>
+    <string name="notif_solar">истинное солнечное время (нет восхода/заката)</string>
+    <string name="duration_h_min">%1$d ч %2$d мин</string>
+    <string name="duration_min">%1$d мин</string>
+    <string name="channel_name">Время солнца в строке состояния</string>
+    <string name="channel_description">Показывает текущее время солнца в строке состояния.</string>
+    <string name="widget_name_sun">Время солнца</string>
+    <string name="widget_name_local">Местное время</string>
+    <string name="widget_offset_ahead">время солнца впереди на %1$s</string>
+    <string name="widget_offset_behind">время солнца позади на %1$s</string>
+    <string name="widget_offset_same">время солнца совпадает</string>
+    <string name="notif_day_hour">дневной час = %1$d мин</string>
+    <string name="notif_night_hour">ночной час = %1$d мин</string>
+</resources>
