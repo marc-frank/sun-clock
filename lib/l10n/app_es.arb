@@ -159,5 +159,7 @@
   "updateFailed": "No se pudo conectar con GitHub.",
   "checkNow": "Comprobar ahora",
   "download": "Descargar",
-  "later": "Más tarde"
+  "later": "Más tarde",
+  "goldenHourLine": "Hora dorada {times}",
+  "blueHourLine": "Hora azul {times}"
 }

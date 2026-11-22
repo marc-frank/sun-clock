@@ -159,5 +159,7 @@
   "updateFailed": "GitHub ist nicht erreichbar.",
   "checkNow": "Jetzt prüfen",
   "download": "Herunterladen",
-  "later": "Später"
+  "later": "Später",
+  "goldenHourLine": "Goldene Stunde {times}",
+  "blueHourLine": "Blaue Stunde {times}"
 }

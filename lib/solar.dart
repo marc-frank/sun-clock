@@ -12,9 +12,9 @@ double _deg(double rad) => rad * 180.0 / math.pi;
 double julianDay(DateTime t) =>
     t.toUtc().millisecondsSinceEpoch / 86400000.0 + 2440587.5;
 
-DateTime _fromJulianDay(double jd) => DateTime.fromMillisecondsSinceEpoch(
-    ((jd - 2440587.5) * 86400000.0).round(),
-    isUtc: true);
+DateTime _fromJulianDay(double jd) =>
+    DateTime.fromMillisecondsSinceEpoch(((jd - 2440587.5) * 86400000.0).round(),
+        isUtc: true);
 
 /// Intermediate NOAA quantities needed for sunrise / sunset.
 class SolarParams {
@@ -37,16 +37,15 @@ SolarParams solarParams(double jd) {
       math.sin(_rad(2 * m)) * (0.019993 - 0.000101 * t) +
       math.sin(_rad(3 * m)) * 0.000289; // L: Eq of Ctr
   final trueLong = l0 + c; // M
-  final appLong = trueLong -
-      0.00569 -
-      0.00478 * math.sin(_rad(125.04 - 1934.136 * t)); // P
+  final appLong =
+      trueLong - 0.00569 - 0.00478 * math.sin(_rad(125.04 - 1934.136 * t)); // P
   final meanObliq = 23 +
       (26 + ((21.448 - t * (46.815 + t * (0.00059 - t * 0.001813)))) / 60) /
           60; // Q
   final obliqCorr =
       meanObliq + 0.00256 * math.cos(_rad(125.04 - 1934.136 * t)); // R
-  final decl = _deg(math.asin(
-      math.sin(_rad(obliqCorr)) * math.sin(_rad(appLong)))); // T
+  final decl =
+      _deg(math.asin(math.sin(_rad(obliqCorr)) * math.sin(_rad(appLong)))); // T
   final y = math.pow(math.tan(_rad(obliqCorr / 2)), 2).toDouble(); // U
   final eqTime = 4 *
       _deg(y * math.sin(2 * _rad(l0)) -
@@ -109,9 +108,7 @@ DateTime? sunEvent(DateTime utcDate, double latitude, double longitude,
     final p = solarParams(dayJd + minutes / 1440);
     final ha = hourAngleSunrise(latitude, p.declination);
     if (ha == null) return null;
-    minutes = 720 -
-        4 * (longitude + (rising ? ha : -ha)) -
-        p.equationOfTime;
+    minutes = 720 - 4 * (longitude + (rising ? ha : -ha)) - p.equationOfTime;
   }
   return _fromJulianDay(dayJd + minutes / 1440);
 }
@@ -122,7 +119,39 @@ DateTime solarNoon(DateTime utcDate, double longitude) {
   final dayJd = julianDay(day);
   double minutes = 720 - 4 * longitude;
   for (var i = 0; i < 3; i++) {
-    minutes = 720 - 4 * longitude - solarParams(dayJd + minutes / 1440).equationOfTime;
+    minutes = 720 -
+        4 * longitude -
+        solarParams(dayJd + minutes / 1440).equationOfTime;
+  }
+  return _fromJulianDay(dayJd + minutes / 1440);
+}
+
+/// Hour angle (deg) at which the sun's centre stands [elevation] degrees
+/// above the horizon (negative: below), or null if it never does that day.
+double? hourAngleAtElevation(
+    double latitude, double declination, double elevation) {
+  final c = math.cos(_rad(90 - elevation)) /
+          (math.cos(_rad(latitude)) * math.cos(_rad(declination))) -
+      math.tan(_rad(latitude)) * math.tan(_rad(declination));
+  if (c < -1 || c > 1) return null;
+  return _deg(math.acos(c));
+}
+
+/// When the sun's centre passes [elevation] degrees, rising (morning) or
+/// setting (evening), as a UTC instant for the solar day of [utcDate]
+/// (as [sunEvent]); null if it doesn't that day. Used for golden hour
+/// (+6° to −4°) and blue hour (−4° to −6°).
+DateTime? sunAtElevation(
+    DateTime utcDate, double latitude, double longitude, double elevation,
+    {required bool rising}) {
+  final day = DateTime.utc(utcDate.year, utcDate.month, utcDate.day);
+  final dayJd = julianDay(day);
+  double minutes = 720 - 4 * longitude;
+  for (var i = 0; i < 4; i++) {
+    final p = solarParams(dayJd + minutes / 1440);
+    final ha = hourAngleAtElevation(latitude, p.declination, elevation);
+    if (ha == null) return null;
+    minutes = 720 - 4 * (longitude + (rising ? ha : -ha)) - p.equationOfTime;
   }
   return _fromJulianDay(dayJd + minutes / 1440);
 }

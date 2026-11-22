@@ -574,4 +574,14 @@ class AppLocalizationsUk extends AppLocalizations {
 
   @override
   String get later => 'Пізніше';
+
+  @override
+  String goldenHourLine(String times) {
+    return 'Золота година $times';
+  }
+
+  @override
+  String blueHourLine(String times) {
+    return 'Синя година $times';
+  }
 }

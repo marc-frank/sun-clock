@@ -575,4 +575,14 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get later => 'Später';
+
+  @override
+  String goldenHourLine(String times) {
+    return 'Goldene Stunde $times';
+  }
+
+  @override
+  String blueHourLine(String times) {
+    return 'Blaue Stunde $times';
+  }
 }

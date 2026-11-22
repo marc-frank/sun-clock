@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:timezone/timezone.dart' as tz;
 
 import 'converter.dart';
+import 'light_hours.dart';
 import 'l10n/l10n.dart';
 import 'sun_clock.dart';
 import 'zone.dart';
@@ -97,9 +98,9 @@ class _TickerState extends State<Ticker> {
 /// between 120 and 300, and never wider than [maxWidth].
 double dialSize(Size screen, double maxWidth, double textScale) {
   // What the top bar, the times, the event lines and the gaps need, measured
-  // on a phone at text scale 1: about 200 px of padding and icons and 320 px
-  // of text.
-  final byHeight = screen.height - 200 - 320 * textScale;
+  // on a phone at text scale 1: about 200 px of padding and icons and 365 px
+  // of text (with the golden and blue hour lines).
+  final byHeight = screen.height - 200 - 365 * textScale;
   return byHeight.clamp(120.0, 300.0).clamp(0.0, maxWidth);
 }
 
@@ -152,6 +153,9 @@ class _ClockViewState extends State<ClockView> {
   // only a few times a day.
   final _sun = SunClockCache();
 
+  // Golden and blue hours change with the local day and the place.
+  final _light = LightHoursCache();
+
   // The dial's screen-reader label, renewed at most once a minute (or when
   // the place changes) so the reader is not flooded with changes.
   String? _label;
@@ -178,6 +182,7 @@ class _ClockViewState extends State<ClockView> {
     return Ticker(builder: (context, now) {
       final theme = Theme.of(context);
       final r = _sun.read(now, lat, lon);
+      final (light, bands) = _light.get(now, lat, lon, zone);
       final muted = theme.textTheme.bodyMedium
           ?.copyWith(color: theme.colorScheme.onSurfaceVariant);
 
@@ -195,7 +200,8 @@ class _ClockViewState extends State<ClockView> {
             if (widget.wide)
               SizedBox.square(
                 dimension: widget.wideDial,
-                child: CustomPaint(painter: DialPainter(r.sunTime, theme)),
+                child: CustomPaint(
+                    painter: DialPainter(r.sunTime, theme, bands: bands)),
               )
             else
               LayoutBuilder(builder: (context, box) {
@@ -203,7 +209,8 @@ class _ClockViewState extends State<ClockView> {
                 return SizedBox(
                   width: d,
                   height: d,
-                  child: CustomPaint(painter: DialPainter(r.sunTime, theme)),
+                  child: CustomPaint(
+                      painter: DialPainter(r.sunTime, theme, bands: bands)),
                 );
               }),
             const SizedBox(height: 24),
@@ -232,6 +239,7 @@ class _ClockViewState extends State<ClockView> {
         ),
         const SizedBox(height: 16),
         ..._eventLines(context.l10n, r, zone, muted),
+        ..._lightLines(context.l10n, light, zone, muted),
         const SizedBox(height: 4),
         Semantics(
           button: widget.onLocationTap != null,
@@ -269,6 +277,33 @@ class _ClockViewState extends State<ClockView> {
         ...info,
       ]);
     });
+  }
+
+  /// "Golden hour 07:05–08:10 · 15:22–16:40" and the blue hour, each with
+  /// a dot in its colour on the dial.
+  List<Widget> _lightLines(
+      AppLocalizations l, LightHours h, tz.Location zone, TextStyle? muted) {
+    String times(List<LightPeriod> ps) => ps
+        .map((p) => '${hm(inZone(p.start, zone))}–${hm(inZone(p.end, zone))}')
+        .join(' · ');
+    Widget line(Color color, String text) => Padding(
+          padding: const EdgeInsets.only(top: 4),
+          child: Row(mainAxisSize: MainAxisSize.min, children: [
+            Container(
+              width: 10,
+              height: 10,
+              decoration: BoxDecoration(color: color, shape: BoxShape.circle),
+            ),
+            const SizedBox(width: 8),
+            Flexible(
+                child: Text(text, textAlign: TextAlign.center, style: muted)),
+          ]),
+        );
+    return [
+      if (h.golden.isNotEmpty)
+        line(goldenColor, l.goldenHourLine(times(h.golden))),
+      if (h.blue.isNotEmpty) line(blueHourColor, l.blueHourLine(times(h.blue))),
+    ];
   }
 
   List<Widget> _eventLines(AppLocalizations l, SunClockReading r,
@@ -367,8 +402,11 @@ class DialPainter extends CustomPainter {
   /// Minute and second hands of sun time, like a wall clock's: once round
   /// per sun hour and per sun minute, 0 at the top.
   final bool minuteHands;
+
+  /// Golden and blue hours, drawn as bands along the rim.
+  final List<DialBand> bands;
   DialPainter(this.sunTime, this.theme,
-      {this.labels = true, this.minuteHands = true});
+      {this.labels = true, this.minuteHands = true, this.bands = const []});
 
   @override
   void paint(Canvas canvas, Size size) {
@@ -391,6 +429,22 @@ class DialPainter extends CustomPainter {
 
     // Angle for hour h: 0h at bottom, clockwise, 12h at top.
     double angle(double h) => math.pi / 2 + h / 24 * 2 * math.pi;
+
+    // Golden and blue hours along the rim, under the hour ticks.
+    final bandRect = Rect.fromCircle(center: c, radius: radius - 5 * scale);
+    for (final b in bands) {
+      var hours = b.end - b.start;
+      if (hours < 0) hours += 24;
+      canvas.drawArc(
+          bandRect,
+          angle(b.start),
+          hours / 24 * 2 * math.pi,
+          false,
+          Paint()
+            ..style = PaintingStyle.stroke
+            ..strokeWidth = 8 * scale
+            ..color = b.color.withValues(alpha: 0.85));
+    }
 
     final tp = TextPainter(textDirection: TextDirection.ltr);
     for (var h = 0; h < 24; h++) {
@@ -472,5 +526,6 @@ class DialPainter extends CustomPainter {
   }
 
   @override
-  bool shouldRepaint(DialPainter old) => old.sunTime != sunTime;
+  bool shouldRepaint(DialPainter old) =>
+      old.sunTime != sunTime || !identical(old.bands, bands);
 }

@@ -1065,6 +1065,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Later'**
   String get later;
+
+  /// No description provided for @goldenHourLine.
+  ///
+  /// In en, this message translates to:
+  /// **'Golden hour {times}'**
+  String goldenHourLine(String times);
+
+  /// No description provided for @blueHourLine.
+  ///
+  /// In en, this message translates to:
+  /// **'Blue hour {times}'**
+  String blueHourLine(String times);
 }
 
 class _AppLocalizationsDelegate

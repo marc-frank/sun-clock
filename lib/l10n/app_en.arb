@@ -400,5 +400,21 @@
   "updateFailed": "Couldn't reach GitHub.",
   "checkNow": "Check now",
   "download": "Download",
-  "later": "Later"
+  "later": "Later",
+  "goldenHourLine": "Golden hour {times}",
+  "@goldenHourLine": {
+    "placeholders": {
+      "times": {
+        "type": "String"
+      }
+    }
+  },
+  "blueHourLine": "Blue hour {times}",
+  "@blueHourLine": {
+    "placeholders": {
+      "times": {
+        "type": "String"
+      }
+    }
+  }
 }

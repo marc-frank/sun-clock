@@ -3,7 +3,9 @@
 A Flutter app (Android, iOS) that shows **sun time**: a 24-hour clock whose
 hours are stretched so that sunrise is always 06:00 and sunset always 18:00.
 The 12 day hours split the real daylight evenly, and the 12 night hours split
-the real night evenly. The current UTC time is shown alongside.
+the real night evenly. The current UTC time is shown alongside. Golden hour
+(sun between 6° above and 4° below the horizon) and blue hour (4° to 6°
+below) are marked on the dial and listed under it.
 
 <p align="center">
   <img src="docs/screenshots/clock.png" width="250" alt="The clock: a dial with day and night halves, the sun time 10:13:13, local and UTC time, sunrise 07:38 and sunset 16:05 in Berlin">

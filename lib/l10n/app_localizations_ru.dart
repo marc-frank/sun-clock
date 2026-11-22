@@ -574,4 +574,14 @@ class AppLocalizationsRu extends AppLocalizations {
 
   @override
   String get later => 'Позже';
+
+  @override
+  String goldenHourLine(String times) {
+    return 'Золотой час $times';
+  }
+
+  @override
+  String blueHourLine(String times) {
+    return 'Синий час $times';
+  }
 }

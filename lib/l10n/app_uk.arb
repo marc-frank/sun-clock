@@ -159,5 +159,7 @@
   "updateFailed": "Не вдалося зв’язатися з GitHub.",
   "checkNow": "Перевірити",
   "download": "Завантажити",
-  "later": "Пізніше"
+  "later": "Пізніше",
+  "goldenHourLine": "Золота година {times}",
+  "blueHourLine": "Синя година {times}"
 }
