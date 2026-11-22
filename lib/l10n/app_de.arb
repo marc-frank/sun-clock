@@ -161,5 +161,7 @@
   "download": "Herunterladen",
   "later": "Später",
   "goldenHourLine": "Goldene Stunde {times}",
-  "blueHourLine": "Blaue Stunde {times}"
+  "blueHourLine": "Blaue Stunde {times}",
+  "addWidgetManualIos": "Halte den Home- oder Sperrbildschirm gedrückt, tippe auf + oder Bearbeiten → Widget hinzufügen und wähle Sun Clock.",
+  "widgetsHelpIos": "Diese Einstellungen gelten für alle Sun-Clock-Widgets auf dem Home-Bildschirm. Widgets auf dem Sperrbildschirm zeigen die Sonnenzeit im Stil des Systems."
 }

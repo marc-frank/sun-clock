@@ -87,7 +87,8 @@ class UpdateChecker extends ChangeNotifier {
   CheckResult? _lastResult;
 
   /// Only Android builds offer it (and can open the download page).
-  static bool get supported => !kIsWeb && Platform.isAndroid;
+  static bool get supported =>
+      !kIsWeb && (Platform.isAndroid || Platform.isIOS);
 
   bool get enabled => _enabled;
   bool get checking => _checking;

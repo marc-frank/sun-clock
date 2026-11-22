@@ -75,5 +75,32 @@ jobs:
       - name: flutter pub get
         run: flutter pub get
 
+      # The widget's Swift port of the sun maths, against the same vectors
+      # as the Dart and Kotlin versions.
+      - name: Swift sun maths vs. shared vectors
+        run: |
+          swiftc -O ios/SunClockWidget/SunCalc.swift tool/ios/vectors_test.swift -o "$RUNNER_TEMP/vectors"
+          "$RUNNER_TEMP/vectors" test/solar_vectors.json
+
+      # Pictures of the widget views (no iPhone home screen to look at).
+      - name: Render widget views
+        run: |
+          swiftc -parse-as-library ios/SunClockWidget/SunCalc.swift             ios/SunClockWidget/SharedStore.swift ios/SunClockWidget/WidgetViews.swift             tool/ios/render_widget.swift -o "$RUNNER_TEMP/render"
+          "$RUNNER_TEMP/render" widget-renders
+
+      - name: Upload widget renders
+        uses: actions/upload-artifact@v4
+        with:
+          name: ios-widget-renders
+          path: widget-renders/
+
+      - name: Add the widget extension to the Xcode project
+        run: ruby tool/ios/add_widget_target.rb
+
       - name: Build iOS app (unsigned)
         run: flutter build ios --release --no-codesign
+
+      - name: The widget is inside the app
+        run: |
+          ls build/ios/iphoneos/Runner.app/PlugIns/SunClockWidget.appex
+          plutil -p build/ios/iphoneos/Runner.app/PlugIns/SunClockWidget.appex/Info.plist | grep -E "NSExtensionPointIdentifier|CFBundleShortVersionString"

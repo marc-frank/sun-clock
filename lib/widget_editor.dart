@@ -54,8 +54,10 @@ class _WidgetsPageState extends State<WidgetsPage> {
   Future<void> _add() async {
     final ok = await HomeWidgets.pin();
     if (!ok && mounted) {
-      ScaffoldMessenger.of(context)
-          .showSnackBar(SnackBar(content: Text(context.l10n.addWidgetManual)));
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+          content: Text(HomeWidgets.isIOS
+              ? context.l10n.addWidgetManualIos
+              : context.l10n.addWidgetManual)));
     }
   }
 
@@ -82,7 +84,12 @@ class _WidgetsPageState extends State<WidgetsPage> {
           : ListView(
               padding: const EdgeInsets.fromLTRB(16, 8, 16, 96),
               children: [
-                Text(ids.isEmpty ? l.noWidgets : l.widgetsHelp,
+                Text(
+                    ids.isEmpty
+                        ? l.noWidgets
+                        : (HomeWidgets.isIOS
+                            ? l.widgetsHelpIos
+                            : l.widgetsHelp),
                     style: theme.textTheme.bodyMedium
                         ?.copyWith(color: theme.colorScheme.onSurfaceVariant)),
                 const SizedBox(height: 16),
@@ -293,18 +300,19 @@ class _Options extends StatelessWidget {
           label: '${(c.opacity * 100).round()} %',
           onChanged: (v) => set(c.withOpacity(v)),
         ),
-        label(l.corners),
-        full(SegmentedButton<int>(
-          segments: [
-            ButtonSegment(value: 0, label: Text(l.cornersNone)),
-            ButtonSegment(value: 8, label: Text(l.cornersSmall)),
-            ButtonSegment(value: 16, label: Text(l.cornersMedium)),
-            ButtonSegment(value: 28, label: Text(l.cornersLarge)),
-          ],
-          showSelectedIcon: false,
-          selected: {c.corners},
-          onSelectionChanged: (s) => set(c.copyWith(corners: s.first)),
-        )),
+        if (!HomeWidgets.isIOS) label(l.corners),
+        if (!HomeWidgets.isIOS)
+          full(SegmentedButton<int>(
+            segments: [
+              ButtonSegment(value: 0, label: Text(l.cornersNone)),
+              ButtonSegment(value: 8, label: Text(l.cornersSmall)),
+              ButtonSegment(value: 16, label: Text(l.cornersMedium)),
+              ButtonSegment(value: 28, label: Text(l.cornersLarge)),
+            ],
+            showSelectedIcon: false,
+            selected: {c.corners},
+            onSelectionChanged: (s) => set(c.copyWith(corners: s.first)),
+          )),
         const SizedBox(height: 8),
         toggle(
             l.autoColors, c.autoColors, (v) => set(c.copyWith(autoColors: v))),

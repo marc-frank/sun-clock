@@ -22,6 +22,8 @@
 	</dict>
 	<key>NSLocationWhenInUseUsageDescription</key>
 	<string>Your position is used to calculate local sunrise and sunset times.</string>
+	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
+	<string>With "Follow my location in the background" on, the widget follows the phone while the app is closed. Your position is only used on this phone to calculate sun times.</string>
 	<key>CFBundleDisplayName</key>
 	<string>Sun Clock</string>
 	<key>CFBundleExecutable</key>

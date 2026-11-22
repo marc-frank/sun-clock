@@ -583,4 +583,12 @@ class AppLocalizationsEn extends AppLocalizations {
   String blueHourLine(String times) {
     return 'Blue hour $times';
   }
+
+  @override
+  String get addWidgetManualIos =>
+      'Touch and hold the home screen or Lock Screen, tap + or Edit → Add Widget, and choose Sun Clock.';
+
+  @override
+  String get widgetsHelpIos =>
+      'These settings apply to all Sun Clock widgets on the home screen. Lock Screen widgets show the sun time in the system\'s style.';
 }

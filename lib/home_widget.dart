@@ -7,6 +7,8 @@ import 'dart:io' show Platform;
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 
+import 'l10n/l10n.dart';
+
 /// Which clocks a widget shows.
 enum WidgetClocks { sun, local, both }
 
@@ -188,7 +190,40 @@ class WidgetConfig {
 class HomeWidgets {
   static const _channel = MethodChannel('sun_clock/widgets');
 
-  static bool get supported => !kIsWeb && Platform.isAndroid;
+  static bool get supported =>
+      !kIsWeb && (Platform.isAndroid || Platform.isIOS);
+
+  /// iOS: one set of settings for all widgets, no per-widget editing from
+  /// the home screen and no way to add a widget for the user.
+  static bool get isIOS => !kIsWeb && Platform.isIOS;
+
+  /// iOS draws the widget natively without the app's translations: send
+  /// the texts it needs in the app's language (Android has its own).
+  static Future<void> sendTexts(AppLocalizations l) async {
+    if (!isIOS) return;
+    try {
+      await _channel.invokeMethod<void>('setTexts', {
+        'texts': {
+          'day': l.dayWord,
+          'night': l.nightWord,
+          'sunriseAt': l.widgetSunriseAt('{time}'),
+          'sunsetAt': l.widgetSunsetAt('{time}'),
+          'solar': l.widgetSolar,
+          'noPosition': l.widgetNoPosition,
+          'nameSun': l.sunTime,
+          'nameLocal': l.localTime,
+          'offsetAhead': l.widgetOffset(l.offsetAhead('{d}')),
+          'offsetBehind': l.widgetOffset(l.offsetBehind('{d}')),
+          'offsetSame': l.widgetOffset(l.offsetInStep),
+          'dayHour': l.dayHourEquals('{n}'),
+          'nightHour': l.nightHourEquals('{n}'),
+          'minutes': l.minutesShort('{n}'),
+          'hoursMinutes': l.hoursMinutes('{h}', '{m}'),
+          'description': l.widgetsTileHelp,
+        },
+      });
+    } catch (_) {}
+  }
 
   /// Ids of the widgets on the home screen.
   static Future<List<int>> ids() async {

@@ -161,5 +161,7 @@
   "download": "Descargar",
   "later": "Más tarde",
   "goldenHourLine": "Hora dorada {times}",
-  "blueHourLine": "Hora azul {times}"
+  "blueHourLine": "Hora azul {times}",
+  "addWidgetManualIos": "Mantén pulsada la pantalla de inicio o de bloqueo, toca + o Editar → Añadir widget y elige Sun Clock.",
+  "widgetsHelpIos": "Estos ajustes se aplican a todos los widgets de Sun Clock de la pantalla de inicio. Los widgets de la pantalla de bloqueo muestran la hora del sol con el estilo del sistema."
 }

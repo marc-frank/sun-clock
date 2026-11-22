@@ -1077,6 +1077,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Blue hour {times}'**
   String blueHourLine(String times);
+
+  /// No description provided for @addWidgetManualIos.
+  ///
+  /// In en, this message translates to:
+  /// **'Touch and hold the home screen or Lock Screen, tap + or Edit → Add Widget, and choose Sun Clock.'**
+  String get addWidgetManualIos;
+
+  /// No description provided for @widgetsHelpIos.
+  ///
+  /// In en, this message translates to:
+  /// **'These settings apply to all Sun Clock widgets on the home screen. Lock Screen widgets show the sun time in the system\'s style.'**
+  String get widgetsHelpIos;
 }
 
 class _AppLocalizationsDelegate

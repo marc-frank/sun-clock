@@ -40,8 +40,14 @@ jobs:
       - name: flutter pub get
         run: flutter pub get
 
+      - name: Add the widget extension to the Xcode project
+        run: ruby tool/ios/add_widget_target.rb
+
       - name: Build iOS app (unsigned)
         run: flutter build ios --release --no-codesign
+
+      - name: The widget is inside the app
+        run: ls build/ios/iphoneos/Runner.app/PlugIns/SunClockWidget.appex
 
       - name: Package the unsigned .ipa
         run: |

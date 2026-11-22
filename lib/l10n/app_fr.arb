@@ -161,5 +161,7 @@
   "download": "Télécharger",
   "later": "Plus tard",
   "goldenHourLine": "Heure dorée {times}",
-  "blueHourLine": "Heure bleue {times}"
+  "blueHourLine": "Heure bleue {times}",
+  "addWidgetManualIos": "Maintenez le doigt sur l'écran d'accueil ou de verrouillage, touchez + ou Modifier → Ajouter un widget, puis choisissez Sun Clock.",
+  "widgetsHelpIos": "Ces réglages s'appliquent à tous les widgets Sun Clock de l'écran d'accueil. Les widgets de l'écran verrouillé affichent l'heure du soleil dans le style du système."
 }

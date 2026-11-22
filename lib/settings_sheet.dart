@@ -1,3 +1,6 @@
+import 'dart:io' show Platform;
+
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
 
@@ -8,6 +11,24 @@ import 'location_model.dart';
 import 'status_bar_clock.dart';
 import 'update_check.dart';
 import 'widget_editor.dart';
+
+/// Android calls the location option "Allow all the time", iOS "Always".
+/// The texts use Android's wording; on iOS it is swapped for Apple's.
+String permissionWording(String text) {
+  if (kIsWeb || !Platform.isIOS) return text;
+  const swaps = {
+    'Allow all the time': 'Always',
+    'Immer zulassen': 'Immer',
+    'Toujours autoriser': 'Toujours',
+    'Permitir todo el tiempo': 'Siempre',
+    'Разрешить в любом режиме': 'Всегда',
+    'Дозволити завжди': 'Завжди',
+  };
+  for (final e in swaps.entries) {
+    text = text.replaceAll(e.key, e.value);
+  }
+  return text;
+}
 
 /// Bottom sheet with location precision and the status-bar clock switch.
 void showSettings(BuildContext context, LocationModel model,
@@ -160,13 +181,13 @@ void showSettings(BuildContext context, LocationModel model,
               ],
               // Follows the phone while the app is closed, for the
               // widget and the status-bar clock alike.
-              if (statusBar.supported &&
+              if (statusBar.backgroundSupported &&
                   model.source == LocationSource.gps) ...[
                 SwitchListTile(
                   contentPadding: EdgeInsets.zero,
                   title: Text(l.followAfterRestart),
                   subtitle: Text(
-                    l.followAfterRestartHelp,
+                    permissionWording(l.followAfterRestartHelp),
                     style: muted,
                   ),
                   value: statusBar.backgroundOptIn,
@@ -177,7 +198,7 @@ void showSettings(BuildContext context, LocationModel model,
                   Row(children: [
                     Expanded(
                       child: Text(
-                        l.backgroundOff,
+                        permissionWording(l.backgroundOff),
                         style: muted,
                       ),
                     ),
@@ -244,7 +265,7 @@ Future<void> toggleBackgroundLocation(
       builder: (context) => AlertDialog(
         icon: const Icon(Icons.location_on_outlined),
         title: Text(l.backgroundTitle),
-        content: Text(l.backgroundDisclosure),
+        content: Text(permissionWording(l.backgroundDisclosure)),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
@@ -262,7 +283,7 @@ Future<void> toggleBackgroundLocation(
   final ok = await statusBar.setBackgroundLocation(on);
   if (!ok && context.mounted) {
     ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-      content: Text(l.backgroundSnack),
+      content: Text(permissionWording(l.backgroundSnack)),
       action: SnackBarAction(
           label: l.settings, onPressed: Geolocator.openAppSettings),
     ));

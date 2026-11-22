@@ -32,7 +32,14 @@ class StatusBarClock extends ChangeNotifier with WidgetsBindingObserver {
     model.addListener(_onLocationChanged);
   }
 
+  /// The status-bar clock itself: Android only (iOS has no such thing).
   bool get supported => !kIsWeb && Platform.isAndroid;
+
+  /// The native side that stores the position for the widget and follows
+  /// the location in the background: Android and iOS.
+  bool get backgroundSupported =>
+      !kIsWeb && (Platform.isAndroid || Platform.isIOS);
+
   bool get enabled => _enabled;
 
   /// The user turned on "Follow location after a restart".
@@ -50,7 +57,7 @@ class StatusBarClock extends ChangeNotifier with WidgetsBindingObserver {
   bool get chipAllowed => _chipAllowed;
 
   Future<void> load() async {
-    if (!supported) return;
+    if (!backgroundSupported) return;
     WidgetsBinding.instance.addObserver(this);
     try {
       _enabled = await _channel.invokeMethod<bool>('isEnabled') ?? false;
@@ -85,10 +92,9 @@ class StatusBarClock extends ChangeNotifier with WidgetsBindingObserver {
   /// Re-reads the background-location state; the permission can be changed
   /// in system settings at any time.
   Future<void> refreshBackground() async {
-    if (!supported) return;
+    if (!backgroundSupported) return;
     try {
-      final c =
-          await _channel.invokeMapMethod<String, bool>('textChipStatus');
+      final c = await _channel.invokeMapMethod<String, bool>('textChipStatus');
       _chipSupported = c?['supported'] ?? false;
       _chipOn = c?['on'] ?? false;
       _chipAllowed = c?['allowed'] ?? false;
@@ -112,13 +118,13 @@ class StatusBarClock extends ChangeNotifier with WidgetsBindingObserver {
   /// Turning on asks for "Allow all the time" (the caller shows the
   /// disclosure first). Returns false when Android did not grant it.
   Future<bool> setBackgroundLocation(bool on) async {
-    if (!supported) return false;
+    if (!backgroundSupported) return false;
     if (on) {
-      final granted = await _channel.invokeMethod<bool>(
-              'requestBackgroundLocation', {
-            'precise': model.precision == LocationPrecision.precise,
-          }) ??
-          false;
+      final granted =
+          await _channel.invokeMethod<bool>('requestBackgroundLocation', {
+                'precise': model.precision == LocationPrecision.precise,
+              }) ??
+              false;
       if (!granted) {
         await refreshBackground();
         return false;
@@ -139,7 +145,7 @@ class StatusBarClock extends ChangeNotifier with WidgetsBindingObserver {
       _channel.invokeMethod<void>('openPromotionSettings');
 
   void _onLocationChanged() {
-    if (!supported) return;
+    if (!backgroundSupported) return;
     _debounce?.cancel();
     _debounce = Timer(const Duration(seconds: 2), _sync);
   }
@@ -147,7 +153,7 @@ class StatusBarClock extends ChangeNotifier with WidgetsBindingObserver {
   /// Sends the position: 'start' (re)starts the status-bar service,
   /// 'setPosition' only stores it for the home-screen widget.
   Future<void> _sync() async {
-    if (!supported || !model.hasPosition) return;
+    if (!backgroundSupported || !model.hasPosition) return;
     try {
       await _channel.invokeMethod<void>(_enabled ? 'start' : 'setPosition', {
         'lat': model.latitude!,

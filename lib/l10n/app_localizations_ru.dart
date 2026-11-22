@@ -584,4 +584,12 @@ class AppLocalizationsRu extends AppLocalizations {
   String blueHourLine(String times) {
     return 'Синий час $times';
   }
+
+  @override
+  String get addWidgetManualIos =>
+      'Нажмите и удерживайте экран «Домой» или экран блокировки, коснитесь + или «Изменить» → «Добавить виджет» и выберите Sun Clock.';
+
+  @override
+  String get widgetsHelpIos =>
+      'Эти настройки действуют для всех виджетов Sun Clock на экране «Домой». Виджеты на экране блокировки показывают время солнца в стиле системы.';
 }

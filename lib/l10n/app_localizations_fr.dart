@@ -589,4 +589,12 @@ class AppLocalizationsFr extends AppLocalizations {
   String blueHourLine(String times) {
     return 'Heure bleue $times';
   }
+
+  @override
+  String get addWidgetManualIos =>
+      'Maintenez le doigt sur l\'écran d\'accueil ou de verrouillage, touchez + ou Modifier → Ajouter un widget, puis choisissez Sun Clock.';
+
+  @override
+  String get widgetsHelpIos =>
+      'Ces réglages s\'appliquent à tous les widgets Sun Clock de l\'écran d\'accueil. Les widgets de l\'écran verrouillé affichent l\'heure du soleil dans le style du système.';
 }

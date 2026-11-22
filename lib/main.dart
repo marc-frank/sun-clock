@@ -80,6 +80,7 @@ class SunClockApp extends StatelessWidget {
         builder: (context, _) => MaterialApp(
               title: 'Sun Clock',
               locale: language.locale,
+              builder: (context, child) => _NativeTexts(child: child!),
               debugShowCheckedModeBanner: false,
               localizationsDelegates: const [
                 AppLocalizations.delegate,
@@ -103,6 +104,32 @@ class SunClockApp extends StatelessWidget {
                       updates: updates),
             ));
   }
+}
+
+/// Sends the iOS widget its texts whenever the app's language changes.
+class _NativeTexts extends StatefulWidget {
+  final Widget child;
+  const _NativeTexts({required this.child});
+
+  @override
+  State<_NativeTexts> createState() => _NativeTextsState();
+}
+
+class _NativeTextsState extends State<_NativeTexts> {
+  Locale? _sent;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final locale = Localizations.maybeLocaleOf(context);
+    if (locale != null && locale != _sent) {
+      _sent = locale;
+      HomeWidgets.sendTexts(context.l10n);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) => widget.child;
 }
 
 class HomePage extends StatelessWidget {

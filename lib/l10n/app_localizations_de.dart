@@ -585,4 +585,12 @@ class AppLocalizationsDe extends AppLocalizations {
   String blueHourLine(String times) {
     return 'Blaue Stunde $times';
   }
+
+  @override
+  String get addWidgetManualIos =>
+      'Halte den Home- oder Sperrbildschirm gedrückt, tippe auf + oder Bearbeiten → Widget hinzufügen und wähle Sun Clock.';
+
+  @override
+  String get widgetsHelpIos =>
+      'Diese Einstellungen gelten für alle Sun-Clock-Widgets auf dem Home-Bildschirm. Widgets auf dem Sperrbildschirm zeigen die Sonnenzeit im Stil des Systems.';
 }
