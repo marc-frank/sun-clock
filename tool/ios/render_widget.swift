@@ -39,10 +39,15 @@ struct Render {
         stacked.background = 0xFFFF_F8E1
         stacked.textColor = 0xDE00_0000
 
+        // Outside a widget, containerBackground and the system's 16 pt content
+        // margins don't apply: add both by hand for the home-screen sizes.
+        func home(_ s: WidgetSettings) -> AnyView {
+            AnyView(HomeWidgetView(entry: entry(s)).padding(16).background(argb(s.background)))
+        }
         let views: [(String, AnyView, CGSize)] = [
-            ("small-default", AnyView(HomeWidgetView(entry: entry(WidgetSettings()))), CGSize(width: 170, height: 170)),
-            ("medium-side", AnyView(HomeWidgetView(entry: entry(both))), CGSize(width: 364, height: 170)),
-            ("small-stacked-light", AnyView(HomeWidgetView(entry: entry(stacked))), CGSize(width: 170, height: 170)),
+            ("small-default", home(WidgetSettings()), CGSize(width: 170, height: 170)),
+            ("medium-side", home(both), CGSize(width: 364, height: 170)),
+            ("small-stacked-light", home(stacked), CGSize(width: 170, height: 170)),
             ("lock-rectangular", AnyView(RectangularWidgetView(entry: entry(WidgetSettings()))), CGSize(width: 172, height: 76)),
             ("lock-circular", AnyView(CircularWidgetView(entry: entry(WidgetSettings()))), CGSize(width: 76, height: 76)),
             ("lock-inline", AnyView(InlineWidgetView(entry: entry(WidgetSettings()))), CGSize(width: 200, height: 24)),

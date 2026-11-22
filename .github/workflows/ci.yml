@@ -104,3 +104,28 @@ jobs:
         run: |
           ls build/ios/iphoneos/Runner.app/PlugIns/SunClockWidget.appex
           plutil -p build/ios/iphoneos/Runner.app/PlugIns/SunClockWidget.appex/Info.plist | grep -E "NSExtensionPointIdentifier|CFBundleShortVersionString"
+
+      # No iPhone to try it on: start the app in the simulator and take a
+      # picture once it has drawn its first frames.
+      - name: Run in the simulator
+        run: |
+          flutter build ios --simulator --debug
+          ls build/ios/iphonesimulator/Runner.app/PlugIns/SunClockWidget.appex
+          DEVICE=$(xcrun simctl list devices available -j | python3 -c "import json,sys; d=json.load(sys.stdin)['devices']; print(next(x['udid'] for k in sorted(d, reverse=True) if 'iOS' in k for x in d[k] if x['name'].startswith('iPhone')))")
+          xcrun simctl boot "$DEVICE"
+          xcrun simctl bootstatus "$DEVICE"
+          xcrun simctl install "$DEVICE" build/ios/iphonesimulator/Runner.app
+          xcrun simctl privacy "$DEVICE" grant location com.sunriseclock.sunClock || true
+          xcrun simctl location "$DEVICE" set 52.52,13.405 || true
+          xcrun simctl launch "$DEVICE" com.sunriseclock.sunClock
+          sleep 40
+          mkdir -p simulator
+          xcrun simctl io "$DEVICE" screenshot simulator/app.png
+          xcrun simctl spawn "$DEVICE" launchctl list | grep -i sunclock
+
+      - name: Upload simulator screenshot
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ios-simulator
+          path: simulator/

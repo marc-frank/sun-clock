@@ -211,6 +211,8 @@ struct HomeWidgetView: View {
                         .monospacedDigit()
                 }
                 .font(.system(size: 14))
+                .lineLimit(1)
+                .minimumScaleFactor(0.6)
                 .foregroundColor(textColor)
             }
             if !detail.isEmpty {
@@ -219,11 +221,18 @@ struct HomeWidgetView: View {
                     .foregroundColor(textColor)
                     .multilineTextAlignment(.center)
                     .lineLimit(2)
-                    .minimumScaleFactor(0.8)
+                    .minimumScaleFactor(0.6)
             }
             if c.progress, let r = r {
-                ProgressView(value: WidgetText.progress(r.sunMinutes))
-                    .tint(timeColor)
+                // Drawn by hand: ProgressView's look varies by iOS version.
+                GeometryReader { g in
+                    ZStack(alignment: .leading) {
+                        Capsule().fill(timeColor.opacity(0.25))
+                        Capsule().fill(timeColor)
+                            .frame(width: g.size.width * WidgetText.progress(r.sunMinutes))
+                    }
+                }
+                .frame(height: 4)
             }
         }
         .widgetBackground(argb(c.background))
