@@ -55,6 +55,24 @@ On Android 16+ the status-bar clock can instead show the sun time as text in
 a Live Update chip (opt-in in Settings, `POST_PROMOTED_NOTIFICATIONS`).
 Without promotion it keeps the stacked-digit icon.
 
+## iPhone
+
+The iOS app has the same clock, charts, map, converter, languages and update
+check. Instead of the status-bar clock (iOS has no such thing) it has
+widgets (`ios/SunClockWidget`, WidgetKit): small and medium ones for the home
+screen, with the settings from the app's widget editor (one set for all
+widgets), and inline, circular and rectangular ones for the Lock Screen.
+"Follow my location in the background" uses iOS's significant-change
+location service with the "Always" permission. The widget has its own Swift
+port of the sun maths, checked on CI against `test/solar_vectors.json`.
+
+There is no Mac in this project's setup, so the Xcode target for the widget
+is added by `tool/ios/add_widget_target.rb` on CI before each iOS build
+(run it once yourself to open the widget in Xcode). Releases carry an
+unsigned `.ipa` for sideloading (AltStore, SideStore, Sideloadly); the App
+Group the widget shares with the app is found under the sideloading tool's
+renamed id as well.
+
 ## Code
 
 | File | What it does |

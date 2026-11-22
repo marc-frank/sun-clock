@@ -1,7 +1,7 @@
 // NOAA sunrise/sunset and sun time for the iOS widget: a line-by-line port
 // of android/.../SolarCalc.kt and SunTime.kt (themselves ports of
 // lib/solar.dart and lib/sun_clock.dart). Checked against
-// test/solar_vectors.json on CI (tool/ios/vectors_test.swift). Plain
+// test/solar_vectors.json on CI (tool/ios/vectors/main.swift). Plain
 // Foundation, so it also compiles outside the widget.
 
 import Foundation

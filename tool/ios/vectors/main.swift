@@ -1,6 +1,6 @@
 // Checks ios/SunClockWidget/SunCalc.swift against test/solar_vectors.json,
 // the vectors the Dart and Kotlin versions are checked against. Run on CI:
-//   swiftc ios/SunClockWidget/SunCalc.swift tool/ios/vectors_test.swift -o vt
+//   swiftc ios/SunClockWidget/SunCalc.swift tool/ios/vectors/main.swift -o vt
 //   ./vt test/solar_vectors.json
 
 import Foundation

@@ -79,7 +79,7 @@ jobs:
       # as the Dart and Kotlin versions.
       - name: Swift sun maths vs. shared vectors
         run: |
-          swiftc -O ios/SunClockWidget/SunCalc.swift tool/ios/vectors_test.swift -o "$RUNNER_TEMP/vectors"
+          swiftc -O ios/SunClockWidget/SunCalc.swift tool/ios/vectors/main.swift -o "$RUNNER_TEMP/vectors"
           "$RUNNER_TEMP/vectors" test/solar_vectors.json
 
       # Pictures of the widget views (no iPhone home screen to look at).
